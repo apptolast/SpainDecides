@@ -36,6 +36,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.apptolast.spaindecides.data.model.Category
+import org.jetbrains.compose.resources.stringResource
+import spaindecides.composeapp.generated.resources.Res
+import spaindecides.composeapp.generated.resources.proposal_view
 
 /**
  * Maps icon name strings to Material Icons
@@ -125,7 +128,7 @@ fun CategoryCard(
             // Chevron right icon
             Icon(
                 imageVector = Icons.Default.ChevronRight,
-                contentDescription = "Ver propuestas",
+                contentDescription = stringResource(Res.string.proposal_view),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(24.dp)
             )

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">Decide Spain</string>
+
+    <!-- Common -->
+    <string name="error_unknown">Unknown error</string>
+    <string name="retry">Retry</string>
+    <string name="close">Close</string>
+    <string name="back">Back</string>
+    <string name="menu">Menu</string>
+    <string name="notifications">Notifications</string>
+    <string name="loading">Loading...</string>
+
+    <!-- Auth - Login -->
+    <string name="login_title">Welcome back</string>
+    <string name="login_subtitle">Sign in to participate.</string>
+    <string name="login_button">Sign In</string>
+    <string name="login_no_account">Don\'t have an account?</string>
+    <string name="login_register_link">Sign Up</string>
+    <string name="forgot_password">Forgot Password</string>
+
+    <!-- Auth - Register -->
+    <string name="register_title">Create Account</string>
+    <string name="register_subtitle">Join citizen participation.</string>
+    <string name="register_button">Sign Up</string>
+    <string name="register_has_account">Already have an account?</string>
+    <string name="register_login_link">Sign In</string>
+
+    <!-- Auth - Form Fields -->
+    <string name="field_email">Email</string>
+    <string name="field_password">Password</string>
+    <string name="field_name">Full name</string>
+    <string name="show_password">Show password</string>
+    <string name="hide_password">Hide password</string>
+
+    <!-- Categories Screen -->
+    <string name="categories_title">Citizen Program</string>
+    <string name="categories_subtitle">Select a category to participate</string>
+
+    <!-- Proposals List -->
+    <string name="proposals_empty_title">No proposals yet</string>
+    <string name="proposals_empty_subtitle">Be the first to create one</string>
+    <string name="proposal_new">New proposal</string>
+    <string name="proposal_view">View proposals</string>
+    <string name="proposal_vote_up">Vote up</string>
+    <string name="proposal_vote_down">Vote down</string>
+
+    <!-- Create Proposal -->
+    <string name="create_proposal_title">New Proposal</string>
+    <string name="create_proposal_publish">Publish</string>
+    <string name="create_proposal_category">Category: %s</string>
+    <string name="create_proposal_placeholder">Write your proposal... (max. 150 characters)</string>
+    <string name="create_proposal_counter">%d/150</string>
+    <string name="create_proposal_error_empty">The proposal cannot be empty</string>
+    <string name="create_proposal_error_too_long">The proposal cannot be longer than 150 characters</string>
+    <string name="create_proposal_error">Error creating proposal</string>
+</resources>

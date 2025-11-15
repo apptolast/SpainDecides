@@ -22,6 +22,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.apptolast.spaindecides.data.model.Proposal
+import org.jetbrains.compose.resources.stringResource
+import spaindecides.composeapp.generated.resources.Res
+import spaindecides.composeapp.generated.resources.proposal_vote_down
+import spaindecides.composeapp.generated.resources.proposal_vote_up
 
 /**
  * Card component for displaying a proposal with voting buttons.
@@ -68,7 +72,7 @@ fun ProposalCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowUp,
-                        contentDescription = "Votar a favor",
+                        contentDescription = stringResource(Res.string.proposal_vote_up),
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -97,7 +101,7 @@ fun ProposalCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Votar en contra",
+                        contentDescription = stringResource(Res.string.proposal_vote_down),
                         modifier = Modifier.size(24.dp)
                     )
                 }

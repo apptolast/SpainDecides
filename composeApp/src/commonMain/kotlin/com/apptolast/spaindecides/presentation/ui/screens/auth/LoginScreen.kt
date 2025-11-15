@@ -37,7 +37,19 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.apptolast.spaindecides.presentation.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import spaindecides.composeapp.generated.resources.Res
+import spaindecides.composeapp.generated.resources.field_email
+import spaindecides.composeapp.generated.resources.field_password
+import spaindecides.composeapp.generated.resources.forgot_password
+import spaindecides.composeapp.generated.resources.hide_password
+import spaindecides.composeapp.generated.resources.login_button
+import spaindecides.composeapp.generated.resources.login_no_account
+import spaindecides.composeapp.generated.resources.login_register_link
+import spaindecides.composeapp.generated.resources.login_subtitle
+import spaindecides.composeapp.generated.resources.login_title
+import spaindecides.composeapp.generated.resources.show_password
 
 /**
  * Login screen composable.
@@ -90,7 +102,7 @@ fun LoginScreen(
 
         // Title
         Text(
-            text = "Bienvenido/a de nuevo",
+            text = stringResource(Res.string.login_title),
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -98,7 +110,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Inicia sesión para participar.",
+            text = stringResource(Res.string.login_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -109,11 +121,11 @@ fun LoginScreen(
         OutlinedTextField(
             value = email,
             onValueChange = viewModel::updateEmail,
-            label = { Text("Email") },
+            label = { Text(stringResource(Res.string.field_email)) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Email,
-                    contentDescription = "Email"
+                    contentDescription = stringResource(Res.string.field_email)
                 )
             },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -128,18 +140,20 @@ fun LoginScreen(
         OutlinedTextField(
             value = password,
             onValueChange = viewModel::updatePassword,
-            label = { Text("Contraseña") },
+            label = { Text(stringResource(Res.string.field_password)) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Lock,
-                    contentDescription = "Contraseña"
+                    contentDescription = stringResource(Res.string.field_password)
                 )
             },
             trailingIcon = {
                 IconButton(onClick = viewModel::togglePasswordVisibility) {
                     Icon(
                         imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                        contentDescription = if (isPasswordVisible) "Ocultar contraseña" else "Mostrar contraseña"
+                        contentDescription = if (isPasswordVisible) stringResource(Res.string.hide_password) else stringResource(
+                            Res.string.show_password
+                        )
                     )
                 }
             },
@@ -158,7 +172,7 @@ fun LoginScreen(
             enabled = !isLoading
         ) {
             Text(
-                text = "Olvidé mi Contraseña",
+                text = stringResource(Res.string.forgot_password),
                 style = MaterialTheme.typography.bodySmall
             )
         }
@@ -184,7 +198,7 @@ fun LoginScreen(
                     color = MaterialTheme.colorScheme.onPrimary
                 )
             } else {
-                Text("Iniciar Sesión")
+                Text(stringResource(Res.string.login_button))
             }
         }
 
@@ -195,12 +209,12 @@ fun LoginScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "¿No tienes una cuenta? ",
+                text = stringResource(Res.string.login_no_account) + " ",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             TextButton(onClick = onNavigateToRegister) {
-                Text("Regístrate")
+                Text(stringResource(Res.string.login_register_link))
             }
         }
     }

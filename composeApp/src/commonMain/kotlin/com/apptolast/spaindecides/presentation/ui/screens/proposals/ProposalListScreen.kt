@@ -32,7 +32,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.apptolast.spaindecides.presentation.ui.components.ProposalCard
 import com.apptolast.spaindecides.presentation.viewmodel.ProposalViewModel
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import spaindecides.composeapp.generated.resources.Res
+import spaindecides.composeapp.generated.resources.back
+import spaindecides.composeapp.generated.resources.error_unknown
+import spaindecides.composeapp.generated.resources.proposal_new
+import spaindecides.composeapp.generated.resources.proposals_empty_subtitle
+import spaindecides.composeapp.generated.resources.proposals_empty_title
+import spaindecides.composeapp.generated.resources.retry
 
 /**
  * Proposal list screen - Shows proposals for a specific category.
@@ -74,7 +82,7 @@ fun ProposalListScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Volver"
+                            contentDescription = stringResource(Res.string.back)
                         )
                     }
                 },
@@ -91,7 +99,7 @@ fun ProposalListScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Nueva propuesta"
+                    contentDescription = stringResource(Res.string.proposal_new)
                 )
             }
         }
@@ -118,13 +126,13 @@ fun ProposalListScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = error ?: "Error desconocido",
+                        text = error ?: stringResource(Res.string.error_unknown),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.error
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(onClick = { viewModel.loadProposalsForCategory(categoryId) }) {
-                        Text("Reintentar")
+                        Text(stringResource(Res.string.retry))
                     }
                 }
             }
@@ -139,13 +147,13 @@ fun ProposalListScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "No hay propuestas aún",
+                        text = stringResource(Res.string.proposals_empty_title),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Sé el primero en crear una",
+                        text = stringResource(Res.string.proposals_empty_subtitle),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

@@ -39,7 +39,19 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.apptolast.spaindecides.presentation.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import spaindecides.composeapp.generated.resources.Res
+import spaindecides.composeapp.generated.resources.field_email
+import spaindecides.composeapp.generated.resources.field_name
+import spaindecides.composeapp.generated.resources.field_password
+import spaindecides.composeapp.generated.resources.hide_password
+import spaindecides.composeapp.generated.resources.register_button
+import spaindecides.composeapp.generated.resources.register_has_account
+import spaindecides.composeapp.generated.resources.register_login_link
+import spaindecides.composeapp.generated.resources.register_subtitle
+import spaindecides.composeapp.generated.resources.register_title
+import spaindecides.composeapp.generated.resources.show_password
 
 /**
  * Registration screen composable.
@@ -93,7 +105,7 @@ fun RegisterScreen(
 
         // Title
         Text(
-            text = "Crear Cuenta",
+            text = stringResource(Res.string.register_title),
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -101,7 +113,7 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Únete a la participación ciudadana.",
+            text = stringResource(Res.string.register_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -112,11 +124,11 @@ fun RegisterScreen(
         OutlinedTextField(
             value = name,
             onValueChange = viewModel::updateName,
-            label = { Text("Nombre completo") },
+            label = { Text(stringResource(Res.string.field_name)) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Person,
-                    contentDescription = "Nombre"
+                    contentDescription = stringResource(Res.string.field_name)
                 )
             },
             singleLine = true,
@@ -130,11 +142,11 @@ fun RegisterScreen(
         OutlinedTextField(
             value = email,
             onValueChange = viewModel::updateEmail,
-            label = { Text("Email") },
+            label = { Text(stringResource(Res.string.field_email)) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Email,
-                    contentDescription = "Email"
+                    contentDescription = stringResource(Res.string.field_email)
                 )
             },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -149,18 +161,20 @@ fun RegisterScreen(
         OutlinedTextField(
             value = password,
             onValueChange = viewModel::updatePassword,
-            label = { Text("Contraseña") },
+            label = { Text(stringResource(Res.string.field_password)) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Lock,
-                    contentDescription = "Contraseña"
+                    contentDescription = stringResource(Res.string.field_password)
                 )
             },
             trailingIcon = {
                 IconButton(onClick = viewModel::togglePasswordVisibility) {
                     Icon(
                         imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                        contentDescription = if (isPasswordVisible) "Ocultar contraseña" else "Mostrar contraseña"
+                        contentDescription = if (isPasswordVisible) stringResource(Res.string.hide_password) else stringResource(
+                            Res.string.show_password
+                        )
                     )
                 }
             },
@@ -192,7 +206,7 @@ fun RegisterScreen(
                     color = MaterialTheme.colorScheme.onPrimary
                 )
             } else {
-                Text("Registrarse")
+                Text(stringResource(Res.string.register_button))
             }
         }
 
@@ -203,12 +217,12 @@ fun RegisterScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "¿Ya tienes cuenta? ",
+                text = stringResource(Res.string.register_has_account) + " ",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             TextButton(onClick = onNavigateBack) {
-                Text("Inicia Sesión")
+                Text(stringResource(Res.string.register_login_link))
             }
         }
     }

@@ -34,7 +34,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.apptolast.spaindecides.presentation.viewmodel.ProposalViewModel
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import spaindecides.composeapp.generated.resources.Res
+import spaindecides.composeapp.generated.resources.close
+import spaindecides.composeapp.generated.resources.create_proposal_category
+import spaindecides.composeapp.generated.resources.create_proposal_counter
+import spaindecides.composeapp.generated.resources.create_proposal_placeholder
+import spaindecides.composeapp.generated.resources.create_proposal_publish
+import spaindecides.composeapp.generated.resources.create_proposal_title
 
 /**
  * Create proposal screen - Form to create a new proposal.
@@ -71,7 +79,7 @@ fun CreateProposalScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Nueva Propuesta",
+                        text = stringResource(Res.string.create_proposal_title),
                         style = MaterialTheme.typography.titleLarge
                     )
                 },
@@ -79,7 +87,7 @@ fun CreateProposalScreen(
                     IconButton(onClick = onClose) {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "Cerrar"
+                            contentDescription = stringResource(Res.string.close)
                         )
                     }
                 },
@@ -99,7 +107,7 @@ fun CreateProposalScreen(
                         },
                         enabled = !isCreating && proposalText.isNotBlank()
                     ) {
-                        Text("Publicar")
+                        Text(stringResource(Res.string.create_proposal_publish))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -122,7 +130,7 @@ fun CreateProposalScreen(
                 color = MaterialTheme.colorScheme.primaryContainer
             ) {
                 Text(
-                    text = "Categoría: $categoryName",
+                    text = stringResource(Res.string.create_proposal_category, categoryName),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
@@ -135,7 +143,7 @@ fun CreateProposalScreen(
             OutlinedTextField(
                 value = proposalText,
                 onValueChange = viewModel::updateNewProposalText,
-                placeholder = { Text("Escribe tu propuesta... (máx. 150 caracteres)") },
+                placeholder = { Text(stringResource(Res.string.create_proposal_placeholder)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
@@ -150,7 +158,7 @@ fun CreateProposalScreen(
 
             // Character counter
             Text(
-                text = "${viewModel.characterCount}/150",
+                text = stringResource(Res.string.create_proposal_counter, viewModel.characterCount),
                 style = MaterialTheme.typography.bodySmall,
                 color = if (viewModel.characterCount > 150) {
                     MaterialTheme.colorScheme.error

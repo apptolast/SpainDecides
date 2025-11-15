@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
@@ -33,7 +32,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.apptolast.spaindecides.presentation.ui.components.CategoryCard
 import com.apptolast.spaindecides.presentation.viewmodel.CategoryViewModel
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import spaindecides.composeapp.generated.resources.Res
+import spaindecides.composeapp.generated.resources.app_name
+import spaindecides.composeapp.generated.resources.categories_subtitle
+import spaindecides.composeapp.generated.resources.categories_title
+import spaindecides.composeapp.generated.resources.error_unknown
+import spaindecides.composeapp.generated.resources.menu
+import spaindecides.composeapp.generated.resources.retry
 
 /**
  * Categories screen - Main screen showing all participation categories.
@@ -56,7 +63,7 @@ fun CategoriesScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Decide España",
+                        text = stringResource(Res.string.app_name),
                         style = MaterialTheme.typography.titleLarge
                     )
                 },
@@ -64,17 +71,17 @@ fun CategoriesScreen(
                     IconButton(onClick = { /* TODO: Open menu */ }) {
                         Icon(
                             imageVector = Icons.Default.Menu,
-                            contentDescription = "Menú"
+                            contentDescription = stringResource(Res.string.menu)
                         )
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO: Show notifications */ }) {
-                        Icon(
-                            imageVector = Icons.Default.Notifications,
-                            contentDescription = "Notificaciones"
-                        )
-                    }
+//                    IconButton(onClick = { /* TODO: Show notifications */ }) {
+//                        Icon(
+//                            imageVector = Icons.Default.Notifications,
+//                            contentDescription = stringResource(Res.string.notifications)
+//                        )
+//                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -97,13 +104,13 @@ fun CategoriesScreen(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
                 ) {
                     Text(
-                        text = "Programa Ciudadano",
+                        text = stringResource(Res.string.categories_title),
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Selecciona una categoría para participar",
+                        text = stringResource(Res.string.categories_subtitle),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -132,13 +139,13 @@ fun CategoriesScreen(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = error ?: "Error desconocido",
+                            text = error ?: stringResource(Res.string.error_unknown),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.error
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(onClick = { viewModel.loadCategories() }) {
-                            Text("Reintentar")
+                            Text(stringResource(Res.string.retry))
                         }
                     }
                 }
