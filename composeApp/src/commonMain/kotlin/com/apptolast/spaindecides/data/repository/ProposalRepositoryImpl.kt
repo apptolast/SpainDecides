@@ -6,6 +6,8 @@ import com.apptolast.spaindecides.domain.repository.ProposalRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 /**
  * Implementation of ProposalRepository using mock data stored in memory.
@@ -27,9 +29,10 @@ class ProposalRepositoryImpl : ProposalRepository {
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     override suspend fun createProposal(title: String, categoryId: String): Proposal {
         val newProposal = Proposal(
-            id = "p_${System.currentTimeMillis()}", // Simple ID generation
+            id = "p_${Clock.System.now().toEpochMilliseconds()}", // Simple ID generation
             title = title,
             categoryId = categoryId,
             upvotes = 0,
