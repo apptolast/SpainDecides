@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Spain Decides</string>
+
+    <!-- Category Names -->
+    <string name="category_economy">Economy and Employment</string>
+    <string name="category_health">Public Health</string>
+    <string name="category_education">Education and Culture</string>
+    <string name="category_environment">Environment</string>
+    <string name="category_foreign_policy">Foreign Policy</string>
+    <string name="category_justice">Justice and Security</string>
+    <string name="category_housing">Housing</string>
+    <string name="category_science">Science and Innovation</string>
+    <string name="category_social_policies">Social Policies</string>
+    <string name="category_taxes">Taxes and Fiscal Policy</string>
+
+    <!-- Category Descriptions -->
+    <string name="category_economy_desc">Proposals related to employment, taxes, economic growth, and fiscal reforms</string>
+    <string name="category_health_desc">Improvements in the healthcare system, universal access, and quality of care</string>
+    <string name="category_education_desc">Educational reforms, access to culture, and promotion of the arts</string>
+    <string name="category_environment_desc">Sustainability, renewable energy, and protection of the natural environment</string>
+    <string name="category_foreign_policy_desc">International relations, cooperation, and diplomacy</string>
+    <string name="category_justice_desc">Judicial system, citizen security, and fundamental rights</string>
+    <string name="category_housing_desc">Access to decent housing, rental regulation, and housing policies</string>
+    <string name="category_science_desc">Research, technological development, and knowledge transfer</string>
+    <string name="category_social_policies_desc">Equality, social welfare, and protection of vulnerable groups</string>
+    <string name="category_taxes_desc">Tax reform, tax transparency, and resource distribution</string>
+
+    <!-- Common Strings -->
+    <string name="category_unknown">Unknown Category</string>
+    <string name="empty">-</string>
+
+    <!-- Login Screen -->
+    <string name="login_title">Welcome Back</string>
+    <string name="login_subtitle">Sign in to continue participating</string>
+    <string name="login_button">Sign In</string>
+    <string name="login_with_google">Continue with Google</string>
+    <string name="login_no_account">Don't have an account?</string>
+    <string name="login_register_link">Register</string>
+
+    <!-- Register Screen -->
+    <string name="register_title">Create Account</string>
+    <string name="register_subtitle">Join the community and make your voice heard</string>
+    <string name="register_button">Create Account</string>
+    <string name="register_has_account">Already have an account?</string>
+    <string name="register_login_link">Sign In</string>
+    <string name="register_privacy_policy_prefix">I accept the </string>
+    <string name="register_privacy_policy_link">Privacy Policy</string>
+    <string name="register_privacy_policy_url">https://albertohidalgo.apptolast.com/en/privacy/spain-decides</string>
+    <string name="register_csae_prefix"> and the </string>
+    <string name="register_csae_link">CSAE</string>
+    <string name="register_csae_url">https://albertohidalgo.apptolast.com/en/privacy/spain-decides-csae</string>
+    <string name="success_registration">Account created successfully! Please check your email to verify your account.</string>
+    <string name="error_eula_required">You must read and accept the policies to register</string>
+
+    <!-- Form Fields -->
+    <string name="field_name">Name</string>
+    <string name="field_email">Email</string>
+    <string name="field_password">Password</string>
+    <string name="show_password">Show password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="forgot_password">Forgot password?</string>
+
+    <!-- Auth Common -->
+    <string name="auth_divider">or</string>
+
+    <!-- Error Messages -->
+    <string name="error_invalid_credentials">Invalid email or password. Please try again.</string>
+    <string name="error_user_already_registered">This email is already registered. Please sign in instead.</string>
+    <string name="error_email_not_confirmed">Please verify your email before signing in. Check your inbox for the verification link.</string>
+    <string name="error_weak_password">Password is too weak. Please use a stronger password.</string>
+    <string name="error_network">Network error. Please check your internet connection and try again.</string>
+    <string name="error_unknown">An unexpected error occurred. Please try again later.</string>
+    <string name="error_email_required">Email is required</string>
+    <string name="error_email_invalid">Please enter a valid email address</string>
+    <string name="error_password_required">Password is required</string>
+    <string name="error_password_short">Password must be at least 6 characters</string>
+    <string name="error_name_required">Name is required</string>
+    <string name="error_google_signin">Google sign-in failed. Please try again.</string>
+
+    <!-- Categories Screen -->
+    <string name="categories_title">Participate</string>
+    <string name="categories_subtitle">Choose a category to view and vote on proposals</string>
+    <string name="logout_confirmation_title">Sign Out</string>
+    <string name="logout_confirmation_message">Are you sure you want to sign out?</string>
+    <string name="logout_confirm">Sign Out</string>
+    <string name="logout_cancel">Cancel</string>
+
+    <!-- Proposal List Screen -->
+    <string name="proposals_empty_title">No proposals yet</string>
+    <string name="proposals_empty_subtitle">Be the first to create a proposal in this category!</string>
+    <string name="proposal_new">Create new proposal</string>
+    <string name="proposal_vote_up">Vote up</string>
+    <string name="proposal_vote_down">Vote down</string>
+    <string name="proposal_show_more">Show more</string>
+    <string name="proposal_show_less">Show less</string>
+
+    <!-- Proposal Detail Screen -->
+    <string name="proposal_detail_title">Proposal</string>
+    <string name="proposal_upvotes">Upvotes: %1$d</string>
+    <string name="proposal_downvotes">Downvotes: %1$d</string>
+    <string name="proposal_net_votes">Net votes: %1$d</string>
+
+    <!-- Create Proposal Screen -->
+    <string name="create_proposal_title">New Proposal</string>
+    <string name="create_proposal_category">%1$s</string>
+    <string name="create_proposal_title_label">Title</string>
+    <string name="create_proposal_title_placeholder">Write a brief title (10-100 characters)...</string>
+    <string name="create_proposal_title_counter">%1$d/100</string>
+    <string name="create_proposal_description_label">Description</string>
+    <string name="create_proposal_description_placeholder">Describe your proposal in detail (10-1000 characters)...</string>
+    <string name="create_proposal_description_counter">%1$d/1000</string>
+    <string name="create_proposal_publish">Publish</string>
+    <string name="create_proposal_discard_title">Discard Proposal?</string>
+    <string name="create_proposal_discard_message">You have unsaved changes. Are you sure you want to discard this proposal?</string>
+    <string name="create_proposal_discard_confirm">Discard</string>
+    <string name="create_proposal_discard_cancel">Keep Editing</string>
+
+    <!-- Common Navigation -->
+    <string name="back">Back</string>
+    <string name="close">Close</string>
+    <string name="retry">Retry</string>
+    <string name="settings">Settings</string>
+    <string name="logout">Sign Out</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_user_name_label">Name</string>
+    <string name="settings_email_label">Email Address</string>
+    <string name="settings_logout_button">Sign Out</string>
+    <string name="settings_delete_account_button">Delete Account</string>
+
+    <!-- Settings Dialogs -->
+    <string name="settings_logout_dialog_title">Sign Out</string>
+    <string name="settings_logout_dialog_message">Are you sure you want to sign out?</string>
+    <string name="settings_logout_confirm">Sign Out</string>
+    <string name="settings_logout_cancel">Cancel</string>
+
+    <string name="settings_delete_account_dialog_title">Delete Account</string>
+    <string name="settings_delete_account_dialog_message">Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.</string>
+    <string name="settings_delete_account_confirm">Delete Account</string>
+    <string name="settings_delete_account_cancel">Cancel</string>
+    <string name="settings_delete_account_success">Account deleted successfully</string>
+    <string name="settings_delete_account_error">Error deleting account. Please try again.</string>
+
+    <!-- Loading Messages -->
+    <string name="loading_signing_out">Signing out...</string>
+    <string name="loading_deleting_account">Deleting account...</string>
+
+    <!-- Duplicate Proposals Screen -->
+    <string name="duplicates_title">Similar proposals</string>
+    <string name="duplicates_cancel">Cancel</string>
+    <string name="duplicates_create_anyway">Create anyway</string>
+    <string name="duplicates_similarity">%1$d% similar</string>
+
+    <!-- Report Content -->
+    <string name="report_content">Report inappropriate content</string>
+    <string name="report_dialog_title">Report Content</string>
+    <string name="report_dialog_proposal">Proposal: %1$s</string>
+    <string name="report_dialog_select_reason">Select the reason for reporting:</string>
+    <string name="report_submit">Submit Report</string>
+    <string name="report_cancel">Cancel</string>
+    <string name="report_success">Report submitted successfully. Thank you for helping keep our community safe.</string>
+    <string name="report_error">Failed to submit report. Please try again.</string>
+</resources>
