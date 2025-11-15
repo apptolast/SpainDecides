@@ -1,48 +1,112 @@
 package com.apptolast.spaindecides
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.Composable
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import com.apptolast.spaindecides.navigation.CategoriesRoute
+import com.apptolast.spaindecides.navigation.CreateProposalRoute
+import com.apptolast.spaindecides.navigation.LoginRoute
+import com.apptolast.spaindecides.navigation.ProposalListRoute
+import com.apptolast.spaindecides.navigation.RegisterRoute
+import com.apptolast.spaindecides.presentation.ui.screens.auth.LoginScreen
+import com.apptolast.spaindecides.presentation.ui.screens.auth.RegisterScreen
+import com.apptolast.spaindecides.presentation.ui.screens.home.CategoriesScreen
+import com.apptolast.spaindecides.presentation.ui.screens.proposals.CreateProposalScreen
+import com.apptolast.spaindecides.presentation.ui.screens.proposals.ProposalListScreen
+import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 
-import spaindecides.composeapp.generated.resources.Res
-import spaindecides.composeapp.generated.resources.compose_multiplatform
-
+/**
+ * Main App composable with navigation.
+ * Entry point for the entire application.
+ */
 @Composable
-@Preview
 fun App() {
-    MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
+    SpainDecidesTheme {
+        val navController = rememberNavController()
+
+        NavHost(
+            navController = navController,
+            startDestination = LoginRoute
         ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
+            // Login screen
+            composable<LoginRoute> {
+                LoginScreen(
+                    onLoginSuccess = {
+                        navController.navigate(CategoriesRoute) {
+                            // Clear backstack so user can't go back to login
+                            popUpTo(LoginRoute) { inclusive = true }
+                        }
+                    },
+                    onNavigateToRegister = {
+                        navController.navigate(RegisterRoute)
+                    }
+                )
             }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
-                }
+
+            // Register screen
+            composable<RegisterRoute> {
+                RegisterScreen(
+                    onRegisterSuccess = {
+                        navController.navigate(CategoriesRoute) {
+                            // Clear backstack so user can't go back to registration
+                            popUpTo(LoginRoute) { inclusive = true }
+                        }
+                    },
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            // Categories/Home screen
+            composable<CategoriesRoute> {
+                CategoriesScreen(
+                    onCategoryClick = { categoryId, categoryName ->
+                        navController.navigate(
+                            ProposalListRoute(
+                                categoryId = categoryId,
+                                categoryName = categoryName
+                            )
+                        )
+                    }
+                )
+            }
+
+            // Proposal list screen
+            composable<ProposalListRoute> { backStackEntry ->
+                val route: ProposalListRoute = backStackEntry.toRoute()
+                ProposalListScreen(
+                    categoryId = route.categoryId,
+                    categoryName = route.categoryName,
+                    onBack = {
+                        navController.popBackStack()
+                    },
+                    onCreateProposal = {
+                        navController.navigate(
+                            CreateProposalRoute(
+                                categoryId = route.categoryId,
+                                categoryName = route.categoryName
+                            )
+                        )
+                    }
+                )
+            }
+
+            // Create proposal screen
+            composable<CreateProposalRoute> { backStackEntry ->
+                val route: CreateProposalRoute = backStackEntry.toRoute()
+                CreateProposalScreen(
+                    categoryId = route.categoryId,
+                    categoryName = route.categoryName,
+                    onClose = {
+                        navController.popBackStack()
+                    },
+                    onProposalCreated = {
+                        navController.popBackStack()
+                    }
+                )
             }
         }
     }
