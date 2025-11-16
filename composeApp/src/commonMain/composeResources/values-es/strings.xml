@@ -34,6 +34,31 @@
     <string name="show_password">Mostrar contraseña</string>
     <string name="hide_password">Ocultar contraseña</string>
 
+    <!-- Auth - Google Sign-In -->
+    <string name="login_with_google">Continuar con Google</string>
+    <string name="auth_divider">o</string>
+
+    <!-- Auth - Validation Errors -->
+    <string name="error_email_required">Por favor ingresa tu correo electrónico</string>
+    <string name="error_email_invalid">Por favor ingresa un correo electrónico válido</string>
+    <string name="error_password_required">Por favor ingresa tu contraseña</string>
+    <string name="error_password_short">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="error_name_required">Por favor ingresa tu nombre completo</string>
+
+    <!-- Auth - Success Messages -->
+    <string name="success_registration">Cuenta creada exitosamente. Por favor revisa tu correo electrónico para verificar tu cuenta.</string>
+    <string name="success_password_reset">Correo de restablecimiento enviado. Por favor revisa tu bandeja de entrada.</string>
+
+    <!-- Auth - Error Messages -->
+    <string name="error_invalid_credentials">Correo o contraseña incorrectos</string>
+    <string name="error_user_already_registered">Este correo ya está registrado</string>
+    <string name="error_email_not_confirmed">Por favor verifica tu correo electrónico antes de iniciar sesión</string>
+    <string name="error_network">Error de conexión. Por favor verifica tu conexión a internet</string>
+    <string name="error_weak_password">La contraseña es muy débil. Por favor usa una contraseña más fuerte</string>
+    <string name="error_login">Error al iniciar sesión</string>
+    <string name="error_registration">Error al crear cuenta</string>
+    <string name="error_google_signin">Error al iniciar sesión con Google</string>
+
     <!-- Categories Screen -->
     <string name="categories_title">Programa Ciudadano</string>
     <string name="categories_subtitle">Selecciona una categoría para participar</string>

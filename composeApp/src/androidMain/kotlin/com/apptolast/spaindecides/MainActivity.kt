@@ -1,5 +1,6 @@
 package com.apptolast.spaindecides
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,6 +16,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             App()
         }
+    }
+
+    /**
+     * Handles deep links when the app is already running
+     * This is required for OAuth callback flow
+     */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
     }
 }
 

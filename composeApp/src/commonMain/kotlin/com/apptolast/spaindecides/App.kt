@@ -23,35 +23,37 @@ import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
  */
 @Composable
 fun App() {
-    SpainDecidesTheme {
+    SpainDecidesTheme(darkTheme = false) {
         val navController = rememberNavController()
 
         NavHost(
             navController = navController,
-            startDestination = LoginRoute
+            startDestination = LoginRoute()
         ) {
             // Login screen
-            composable<LoginRoute> {
+            composable<LoginRoute> { backStackEntry ->
+                val route: LoginRoute = backStackEntry.toRoute()
                 LoginScreen(
                     onLoginSuccess = {
                         navController.navigate(CategoriesRoute) {
                             // Clear backstack so user can't go back to login
-                            popUpTo(LoginRoute) { inclusive = true }
+                            popUpTo<LoginRoute> { inclusive = true }
                         }
                     },
                     onNavigateToRegister = {
                         navController.navigate(RegisterRoute)
-                    }
+                    },
+                    successMessage = route.successMessage
                 )
             }
 
             // Register screen
             composable<RegisterRoute> {
                 RegisterScreen(
-                    onRegisterSuccess = {
-                        navController.navigate(CategoriesRoute) {
-                            // Clear backstack so user can't go back to registration
-                            popUpTo(LoginRoute) { inclusive = true }
+                    onRegisterSuccess = { successMessage ->
+                        navController.navigate(LoginRoute(successMessage = successMessage)) {
+                            // Clear register screen from backstack
+                            popUpTo<RegisterRoute> { inclusive = true }
                         }
                     },
                     onNavigateBack = {

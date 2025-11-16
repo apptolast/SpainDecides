@@ -10,9 +10,12 @@ sealed interface Route
 
 /**
  * Login screen route
+ * @param successMessage Optional success message to display (e.g., from registration)
  */
 @Serializable
-object LoginRoute : Route
+data class LoginRoute(
+    val successMessage: String? = null
+) : Route
 
 /**
  * Register screen route

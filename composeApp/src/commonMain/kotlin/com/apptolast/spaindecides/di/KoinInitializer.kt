@@ -14,7 +14,8 @@ fun initKoin(appDeclaration: KoinAppDeclaration? = null) {
 
         modules(
             dataModule,
-            presentationModule
+            presentationModule,
+            createAuthModule()
         )
     }
 }

@@ -34,6 +34,31 @@
     <string name="show_password">Show password</string>
     <string name="hide_password">Hide password</string>
 
+    <!-- Auth - Google Sign-In -->
+    <string name="login_with_google">Continue with Google</string>
+    <string name="auth_divider">or</string>
+
+    <!-- Auth - Validation Errors -->
+    <string name="error_email_required">Please enter your email</string>
+    <string name="error_email_invalid">Please enter a valid email</string>
+    <string name="error_password_required">Please enter your password</string>
+    <string name="error_password_short">Password must be at least 6 characters</string>
+    <string name="error_name_required">Please enter your full name</string>
+
+    <!-- Auth - Success Messages -->
+    <string name="success_registration">Account created successfully. Please check your email to verify your account.</string>
+    <string name="success_password_reset">Password reset email sent. Please check your inbox.</string>
+
+    <!-- Auth - Error Messages -->
+    <string name="error_invalid_credentials">Invalid email or password</string>
+    <string name="error_user_already_registered">This email is already registered</string>
+    <string name="error_email_not_confirmed">Please verify your email address before logging in</string>
+    <string name="error_network">Connection error. Please check your internet connection</string>
+    <string name="error_weak_password">Password is too weak. Please use a stronger password</string>
+    <string name="error_login">Error signing in</string>
+    <string name="error_registration">Error creating account</string>
+    <string name="error_google_signin">Error signing in with Google</string>
+
     <!-- Categories Screen -->
     <string name="categories_title">Citizen Program</string>
     <string name="categories_subtitle">Select a category to participate</string>
