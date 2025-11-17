@@ -1,4 +1,6 @@
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -6,6 +8,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinx.serialization)
+    alias(libs.plugins.buildkonfig)
 }
 
 kotlin {
@@ -30,7 +33,16 @@ kotlin {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.koin.android)
+
+            // Ktor Client for Android
+            implementation(libs.ktor.client.android)
         }
+
+        iosMain.dependencies {
+            // Ktor Client for iOS
+            implementation(libs.ktor.client.darwin)
+        }
+
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -54,6 +66,21 @@ kotlin {
 
             // Serialization
             implementation(libs.kotlinx.serialization.json)
+
+            // Ktor Client
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.ktor.client.logging)
+
+            // Supabase
+            implementation(project.dependencies.platform(libs.supabase.bom))
+            implementation(libs.supabase.auth)
+            implementation(libs.supabase.compose.auth)
+            implementation(libs.supabase.postgrest)
+
+            // Secure Storage
+            implementation(libs.kvault)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -93,3 +120,31 @@ dependencies {
     debugImplementation(compose.uiTooling)
 }
 
+/**
+ * BuildKonfig configuration
+ * Reads sensitive credentials from local.properties and makes them available via BuildKonfig
+ */
+buildkonfig {
+    packageName = "com.apptolast.spaindecides"
+
+    // Read from local.properties
+    val localProperties = Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { localProperties.load(it) }
+    }
+
+    defaultConfigs {
+        buildConfigField(STRING, "SUPABASE_URL", localProperties.getProperty("SUPABASE_URL", ""))
+        buildConfigField(
+            STRING,
+            "SUPABASE_ANON_KEY",
+            localProperties.getProperty("SUPABASE_ANON_KEY", "")
+        )
+        buildConfigField(
+            STRING,
+            "GOOGLE_WEB_CLIENT_ID",
+            localProperties.getProperty("GOOGLE_WEB_CLIENT_ID", "")
+        )
+    }
+}

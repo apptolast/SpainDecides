@@ -24,12 +24,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +43,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.apptolast.spaindecides.presentation.viewmodel.AuthViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -52,18 +58,19 @@ import spaindecides.composeapp.generated.resources.register_login_link
 import spaindecides.composeapp.generated.resources.register_subtitle
 import spaindecides.composeapp.generated.resources.register_title
 import spaindecides.composeapp.generated.resources.show_password
+import spaindecides.composeapp.generated.resources.success_registration
 
 /**
  * Registration screen composable.
  * Allows users to create a new account (UI only for now).
  *
- * @param onRegisterSuccess Callback when registration is successful
+ * @param onRegisterSuccess Callback when registration is successful (navigates to login with success message)
  * @param onNavigateBack Callback to navigate back to login
  * @param viewModel Auth ViewModel (injected via Koin)
  */
 @Composable
 fun RegisterScreen(
-    onRegisterSuccess: () -> Unit,
+    onRegisterSuccess: (successMessage: String) -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: AuthViewModel = koinViewModel()
 ) {
@@ -72,16 +79,34 @@ fun RegisterScreen(
     val password by viewModel.password.collectAsState()
     val isPasswordVisible by viewModel.isPasswordVisible.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
 
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
+    // Resolve string resources (must be done in @Composable context)
+    val successMessageText = stringResource(Res.string.success_registration)
+
+    // Show error message when it changes
+    val currentErrorMessage = errorMessage?.let { stringResource(it) }
+    LaunchedEffect(currentErrorMessage) {
+        currentErrorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
         // App icon placeholder
         Surface(
             shape = MaterialTheme.shapes.large,
@@ -187,42 +212,47 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Register button
-        Button(
-            onClick = {
-                scope.launch {
-                    val success = viewModel.register()
-                    if (success) {
-                        onRegisterSuccess()
+            // Register button
+            Button(
+                onClick = {
+                    scope.launch {
+                        val success = viewModel.register()
+                        if (success) {
+                            // Show success snackbar
+                            snackbarHostState.showSnackbar(successMessageText)
+                            // Wait 2 seconds then navigate to login
+                            delay(2000)
+                            onRegisterSuccess(successMessageText)
+                        }
                     }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading && name.isNotBlank() && email.isNotBlank() && password.isNotBlank()
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text(stringResource(Res.string.register_button))
                 }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !isLoading && name.isNotBlank() && email.isNotBlank() && password.isNotBlank()
-        ) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            } else {
-                Text(stringResource(Res.string.register_button))
             }
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // Back to login link
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(Res.string.register_has_account) + " ",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            TextButton(onClick = onNavigateBack) {
-                Text(stringResource(Res.string.register_login_link))
+            // Back to login link
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(Res.string.register_has_account) + " ",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                TextButton(onClick = onNavigateBack) {
+                    Text(stringResource(Res.string.register_login_link))
+                }
             }
         }
     }
