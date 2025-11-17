@@ -72,6 +72,12 @@ fun App() {
                                 categoryName = categoryName
                             )
                         )
+                    },
+                    onLogout = {
+                        navController.navigate(LoginRoute()) {
+                            // Clear all backstack so user can't go back after logout
+                            popUpTo(0) { inclusive = true }
+                        }
                     }
                 )
             }

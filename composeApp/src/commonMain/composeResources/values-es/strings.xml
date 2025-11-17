@@ -11,6 +11,12 @@
     <string name="menu">Menú</string>
     <string name="notifications">Notificaciones</string>
     <string name="loading">Cargando...</string>
+    <string name="settings">Configuración</string>
+    <string name="logout">Cerrar sesión</string>
+    <string name="logout_confirmation_title">Cerrar sesión</string>
+    <string name="logout_confirmation_message">¿Estás seguro de que quieres cerrar sesión?</string>
+    <string name="logout_confirm">Sí, cerrar sesión</string>
+    <string name="logout_cancel">Cancelar</string>
 
     <!-- Auth - Login -->
     <string name="login_title">Bienvenido/a de nuevo</string>

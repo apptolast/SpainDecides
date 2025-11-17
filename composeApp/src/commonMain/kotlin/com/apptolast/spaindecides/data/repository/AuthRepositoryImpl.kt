@@ -4,6 +4,7 @@ import com.apptolast.spaindecides.data.remote.SupabaseClientConfig
 import com.apptolast.spaindecides.data.storage.SecureStorage
 import com.apptolast.spaindecides.domain.model.AuthUser
 import com.apptolast.spaindecides.domain.repository.AuthRepository
+import io.github.jan.supabase.auth.SignOutScope
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.auth.status.SessionStatus
@@ -42,15 +43,6 @@ class AuthRepositoryImpl(
                 this.password = password
             }
 
-            // Save session tokens
-            val session = auth.currentSessionOrNull()
-            session?.let {
-                secureStorage.saveToken("access_token", it.accessToken)
-                it.refreshToken?.let { refreshToken ->
-                    secureStorage.saveToken("refresh_token", refreshToken)
-                }
-            }
-
             val user = auth.currentUserOrNull()?.toAuthUser()
             user?.let { Result.success(it) } ?: Result.failure(Exception("Sign in failed"))
         } catch (e: Exception) {
@@ -64,15 +56,6 @@ class AuthRepositoryImpl(
             // This method is called after the OAuth flow completes
             val user = auth.currentUserOrNull()?.toAuthUser()
 
-            // Save session tokens
-            val session = auth.currentSessionOrNull()
-            session?.let {
-                secureStorage.saveToken("access_token", it.accessToken)
-                it.refreshToken?.let { refreshToken ->
-                    secureStorage.saveToken("refresh_token", refreshToken)
-                }
-            }
-
             user?.let { Result.success(it) } ?: Result.failure(Exception("Google sign in failed"))
         } catch (e: Exception) {
             Result.failure(e)
@@ -81,7 +64,9 @@ class AuthRepositoryImpl(
 
     override suspend fun signOut(): Result<Unit> {
         return try {
-            auth.signOut()
+            // Use GLOBAL scope to clear ALL sessions including Supabase's internal storage
+            // This prevents automatic session restoration after logout
+            auth.signOut(scope = SignOutScope.GLOBAL)
             secureStorage.clear()
             Result.success(Unit)
         } catch (e: Exception) {

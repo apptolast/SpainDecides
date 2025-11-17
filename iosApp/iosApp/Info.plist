@@ -2,43 +2,20 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleIdentifier</key>
-	<string></string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+
+	<!-- URL Schemes for OAuth deep linking -->
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>com.apptolast.spaindecides</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.apptolast.spaindecides</string>
 			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>com.googleusercontent.apps.72523674654-5e4rvl9094sg70bn8vh917sn2thv02vn</string>
-			</array>
+			<key>CFBundleURLName</key>
+			<string>com.apptolast.spaindecides</string>
 		</dict>
 	</array>
-	<key>GIDClientID</key>
-	<string>72523674654-5e4rvl9094sg70bn8vh917sn2thv02vn.apps.googleusercontent.com</string>
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<string>googlechromes</string>
-		<string>googlechrome</string>
-		<string>com.google.gpicks</string>
-	</array>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
 </dict>
 </plist>

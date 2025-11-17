@@ -180,14 +180,16 @@ class AuthViewModel(
 
     /**
      * Signs out the current user
+     * This is a suspend function to ensure signOut completes before navigation happens,
+     * preventing race conditions on iOS where the session might not be cleared yet.
      */
-    fun signOut() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            authRepository.signOut()
-            clearForm()
-            _isLoading.value = false
-        }
+    suspend fun signOut() {
+        // Immediately set state to Unauthenticated to prevent observer race condition
+        _authState.value = AuthState.Unauthenticated
+        _isLoading.value = true
+        authRepository.signOut()
+        clearForm()
+        _isLoading.value = false
     }
 
     /**
