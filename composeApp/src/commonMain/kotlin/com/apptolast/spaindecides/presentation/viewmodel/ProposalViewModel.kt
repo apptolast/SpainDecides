@@ -2,7 +2,7 @@ package com.apptolast.spaindecides.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.apptolast.spaindecides.data.model.Proposal
+import com.apptolast.spaindecides.data.model.ProposalWithUserVote
 import com.apptolast.spaindecides.domain.repository.ProposalRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,13 +12,14 @@ import kotlinx.coroutines.launch
 /**
  * ViewModel for proposal-related screens (List and Create).
  * Manages proposals for a specific category, voting, and creating new proposals.
+ * Uses ProposalWithUserVote to include the current user's vote status.
  */
 class ProposalViewModel(
     private val proposalRepository: ProposalRepository
 ) : ViewModel() {
 
-    private val _proposals = MutableStateFlow<List<Proposal>>(emptyList())
-    val proposals: StateFlow<List<Proposal>> = _proposals.asStateFlow()
+    private val _proposals = MutableStateFlow<List<ProposalWithUserVote>>(emptyList())
+    val proposals: StateFlow<List<ProposalWithUserVote>> = _proposals.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()

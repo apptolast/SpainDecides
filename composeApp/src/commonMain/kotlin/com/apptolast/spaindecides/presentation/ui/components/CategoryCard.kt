@@ -36,25 +36,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.apptolast.spaindecides.data.model.Category
-import org.jetbrains.compose.resources.stringResource
-import spaindecides.composeapp.generated.resources.Res
-import spaindecides.composeapp.generated.resources.proposal_view
+import com.apptolast.spaindecides.presentation.util.getLocalizedDescription
+import com.apptolast.spaindecides.presentation.util.getLocalizedName
 
 /**
- * Maps icon name strings to Material Icons
+ * Maps icon name strings to Material Icons.
+ * Icon names match those stored in the database (snake_case).
  */
 fun getIconForCategory(iconName: String): ImageVector {
     return when (iconName) {
-        "AccountBalance" -> Icons.Default.AccountBalance
-        "Shield" -> Icons.Default.Shield
-        "School" -> Icons.Default.School
-        "Park" -> Icons.Default.Park
-        "Public" -> Icons.Default.Public
-        "Gavel" -> Icons.Default.Gavel
-        "Apartment" -> Icons.Default.Apartment
-        "Science" -> Icons.Default.Science
-        "Groups" -> Icons.Default.Groups
-        "Receipt" -> Icons.Default.Receipt
+        "account_balance" -> Icons.Default.AccountBalance
+        "medical_services" -> Icons.Default.Shield
+        "school" -> Icons.Default.School
+        "park" -> Icons.Default.Park
+        "public" -> Icons.Default.Public
+        "gavel" -> Icons.Default.Gavel
+        "apartment" -> Icons.Default.Apartment
+        "science" -> Icons.Default.Science
+        "groups" -> Icons.Default.Groups
+        "receipt" -> Icons.Default.Receipt
         else -> Icons.Default.Category
     }
 }
@@ -99,7 +99,7 @@ fun CategoryCard(
                 ) {
                     Icon(
                         imageVector = getIconForCategory(category.iconName),
-                        contentDescription = category.name,
+                        contentDescription = category.getLocalizedName(),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
                     )
@@ -113,13 +113,13 @@ fun CategoryCard(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = category.name,
+                    text = category.getLocalizedName(),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = category.description,
+                    text = category.getLocalizedDescription(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -128,7 +128,7 @@ fun CategoryCard(
             // Chevron right icon
             Icon(
                 imageVector = Icons.Default.ChevronRight,
-                contentDescription = stringResource(Res.string.proposal_view),
+                contentDescription = "Ver propuestas",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(24.dp)
             )

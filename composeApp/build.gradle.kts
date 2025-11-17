@@ -64,6 +64,9 @@ kotlin {
             // Navigation
             implementation(libs.navigation.compose)
 
+            // Coroutines
+            implementation(libs.kotlinx.coroutines.core)
+
             // Serialization
             implementation(libs.kotlinx.serialization.json)
 

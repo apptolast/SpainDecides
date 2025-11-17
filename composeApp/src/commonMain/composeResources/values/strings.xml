@@ -1,89 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- App Name -->
-    <string name="app_name">Decide Spain</string>
+    <!-- Category Names -->
+    <string name="category_economy">Economy and Employment</string>
+    <string name="category_health">Public Health</string>
+    <string name="category_education">Education and Culture</string>
+    <string name="category_environment">Environment</string>
+    <string name="category_foreign_policy">Foreign Policy</string>
+    <string name="category_justice">Justice and Security</string>
+    <string name="category_housing">Housing</string>
+    <string name="category_science">Science and Innovation</string>
+    <string name="category_social_policies">Social Policies</string>
+    <string name="category_taxes">Taxes and Fiscal Policy</string>
 
-    <!-- Common -->
-    <string name="error_unknown">Unknown error</string>
-    <string name="retry">Retry</string>
-    <string name="close">Close</string>
-    <string name="back">Back</string>
-    <string name="menu">Menu</string>
-    <string name="notifications">Notifications</string>
-    <string name="loading">Loading...</string>
-    <string name="settings">Settings</string>
-    <string name="logout">Logout</string>
-    <string name="logout_confirmation_title">Logout</string>
-    <string name="logout_confirmation_message">Are you sure you want to logout?</string>
-    <string name="logout_confirm">Yes, logout</string>
-    <string name="logout_cancel">Cancel</string>
+    <!-- Category Descriptions -->
+    <string name="category_economy_desc">Proposals related to employment, taxes, economic growth, and fiscal reforms</string>
+    <string name="category_health_desc">Improvements in the healthcare system, universal access, and quality of care</string>
+    <string name="category_education_desc">Educational reforms, access to culture, and promotion of the arts</string>
+    <string name="category_environment_desc">Sustainability, renewable energy, and protection of the natural environment</string>
+    <string name="category_foreign_policy_desc">International relations, cooperation, and diplomacy</string>
+    <string name="category_justice_desc">Judicial system, citizen security, and fundamental rights</string>
+    <string name="category_housing_desc">Access to decent housing, rental regulation, and housing policies</string>
+    <string name="category_science_desc">Research, technological development, and knowledge transfer</string>
+    <string name="category_social_policies_desc">Equality, social welfare, and protection of vulnerable groups</string>
+    <string name="category_taxes_desc">Tax reform, tax transparency, and resource distribution</string>
 
-    <!-- Auth - Login -->
-    <string name="login_title">Welcome back</string>
-    <string name="login_subtitle">Sign in to participate.</string>
+    <!-- Common Strings -->
+    <string name="category_unknown">Unknown Category</string>
+    <string name="empty">-</string>
+
+    <!-- Login Screen -->
+    <string name="login_title">Welcome Back</string>
+    <string name="login_subtitle">Sign in to continue participating</string>
     <string name="login_button">Sign In</string>
+    <string name="login_with_google">Continue with Google</string>
     <string name="login_no_account">Don\'t have an account?</string>
-    <string name="login_register_link">Sign Up</string>
-    <string name="forgot_password">Forgot Password</string>
+    <string name="login_register_link">Register</string>
 
-    <!-- Auth - Register -->
+    <!-- Register Screen -->
     <string name="register_title">Create Account</string>
-    <string name="register_subtitle">Join citizen participation.</string>
-    <string name="register_button">Sign Up</string>
+    <string name="register_subtitle">Join the community and make your voice heard</string>
+    <string name="register_button">Create Account</string>
     <string name="register_has_account">Already have an account?</string>
     <string name="register_login_link">Sign In</string>
+    <string name="success_registration">Account created successfully! Please check your email to verify your account.</string>
 
-    <!-- Auth - Form Fields -->
+    <!-- Form Fields -->
+    <string name="field_name">Name</string>
     <string name="field_email">Email</string>
     <string name="field_password">Password</string>
-    <string name="field_name">Full name</string>
     <string name="show_password">Show password</string>
     <string name="hide_password">Hide password</string>
+    <string name="forgot_password">Forgot password?</string>
 
-    <!-- Auth - Google Sign-In -->
-    <string name="login_with_google">Continue with Google</string>
+    <!-- Auth Common -->
     <string name="auth_divider">or</string>
 
-    <!-- Auth - Validation Errors -->
-    <string name="error_email_required">Please enter your email</string>
-    <string name="error_email_invalid">Please enter a valid email</string>
-    <string name="error_password_required">Please enter your password</string>
+    <!-- Error Messages -->
+    <string name="error_invalid_credentials">Invalid email or password. Please try again.</string>
+    <string name="error_user_already_registered">This email is already registered. Please sign in instead.</string>
+    <string name="error_email_not_confirmed">Please verify your email before signing in. Check your inbox for the verification link.</string>
+    <string name="error_weak_password">Password is too weak. Please use a stronger password.</string>
+    <string name="error_network">Network error. Please check your internet connection and try again.</string>
+    <string name="error_unknown">An unexpected error occurred. Please try again later.</string>
+    <string name="error_email_required">Email is required</string>
+    <string name="error_email_invalid">Please enter a valid email address</string>
+    <string name="error_password_required">Password is required</string>
     <string name="error_password_short">Password must be at least 6 characters</string>
-    <string name="error_name_required">Please enter your full name</string>
-
-    <!-- Auth - Success Messages -->
-    <string name="success_registration">Account created successfully. Please check your email to verify your account.</string>
-    <string name="success_password_reset">Password reset email sent. Please check your inbox.</string>
-
-    <!-- Auth - Error Messages -->
-    <string name="error_invalid_credentials">Invalid email or password</string>
-    <string name="error_user_already_registered">This email is already registered</string>
-    <string name="error_email_not_confirmed">Please verify your email address before logging in</string>
-    <string name="error_network">Connection error. Please check your internet connection</string>
-    <string name="error_weak_password">Password is too weak. Please use a stronger password</string>
-    <string name="error_login">Error signing in</string>
-    <string name="error_registration">Error creating account</string>
-    <string name="error_google_signin">Error signing in with Google</string>
+    <string name="error_name_required">Name is required</string>
+    <string name="error_google_signin">Google sign-in failed. Please try again.</string>
 
     <!-- Categories Screen -->
-    <string name="categories_title">Citizen Program</string>
-    <string name="categories_subtitle">Select a category to participate</string>
+    <string name="categories_title">Participate</string>
+    <string name="categories_subtitle">Choose a category to view and vote on proposals</string>
+    <string name="logout_confirmation_title">Sign Out</string>
+    <string name="logout_confirmation_message">Are you sure you want to sign out?</string>
+    <string name="logout_confirm">Sign Out</string>
+    <string name="logout_cancel">Cancel</string>
 
-    <!-- Proposals List -->
+    <!-- Proposal List Screen -->
     <string name="proposals_empty_title">No proposals yet</string>
-    <string name="proposals_empty_subtitle">Be the first to create one</string>
-    <string name="proposal_new">New proposal</string>
-    <string name="proposal_view">View proposals</string>
+    <string name="proposals_empty_subtitle">Be the first to create a proposal in this category!</string>
+    <string name="proposal_new">Create new proposal</string>
     <string name="proposal_vote_up">Vote up</string>
     <string name="proposal_vote_down">Vote down</string>
 
-    <!-- Create Proposal -->
+    <!-- Create Proposal Screen -->
     <string name="create_proposal_title">New Proposal</string>
-    <string name="create_proposal_publish">Publish</string>
     <string name="create_proposal_category">Category: %s</string>
-    <string name="create_proposal_placeholder">Write your proposal... (max. 150 characters)</string>
+    <string name="create_proposal_placeholder">Write your proposal here (10-150 characters)...</string>
     <string name="create_proposal_counter">%d/150</string>
-    <string name="create_proposal_error_empty">The proposal cannot be empty</string>
-    <string name="create_proposal_error_too_long">The proposal cannot be longer than 150 characters</string>
-    <string name="create_proposal_error">Error creating proposal</string>
+    <string name="create_proposal_publish">Publish</string>
+
+    <!-- Common Navigation -->
+    <string name="back">Back</string>
+    <string name="close">Close</string>
+    <string name="retry">Retry</string>
+    <string name="settings">Settings</string>
+    <string name="logout">Sign Out</string>
 </resources>
