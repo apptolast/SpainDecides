@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
  * Sealed interface for type-safe navigation routes.
  * All routes must be serializable for Navigation Compose.
  */
+@Serializable
 sealed interface Route
 
 /**

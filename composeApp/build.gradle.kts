@@ -34,8 +34,8 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.koin.android)
 
-            // Ktor Client for Android
-            implementation(libs.ktor.client.android)
+            // Ktor Client for Android (OkHttp engine supports WebSockets)
+            implementation(libs.ktor.client.okhttp)
         }
 
         iosMain.dependencies {
@@ -75,12 +75,14 @@ kotlin {
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.logging)
+            implementation(libs.ktor.client.websockets)
 
             // Supabase
             implementation(project.dependencies.platform(libs.supabase.bom))
             implementation(libs.supabase.auth)
             implementation(libs.supabase.compose.auth)
             implementation(libs.supabase.postgrest)
+            implementation(libs.supabase.realtime)
 
             // Secure Storage
             implementation(libs.kvault)
