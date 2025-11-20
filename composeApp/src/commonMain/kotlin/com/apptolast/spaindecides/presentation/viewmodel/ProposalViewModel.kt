@@ -5,20 +5,54 @@ import androidx.lifecycle.viewModelScope
 import com.apptolast.spaindecides.data.model.ProposalWithUserVote
 import com.apptolast.spaindecides.domain.repository.ProposalRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
  * ViewModel for proposal-related screens (List and Create).
  * Manages proposals for a specific category, voting, and creating new proposals.
- * Uses ProposalWithUserVote to include the current user's vote status.
+ *
+ * ## KISS Architecture:
+ * Each category gets its own ViewModel instance (via Koin parametersOf).
+ * This ensures clean Realtime channel lifecycle management:
+ * - ViewModel created → Supabase channel subscribes
+ * - ViewModel destroyed → Supabase channel unsubscribes
+ * No race conditions, no channel reuse issues.
+ *
+ * @param categoryId The category ID this ViewModel manages (injected via Koin)
+ * @param proposalRepository Repository for proposal operations
  */
 class ProposalViewModel(
+    private val categoryId: String,
     private val proposalRepository: ProposalRepository
 ) : ViewModel() {
 
-    val proposals: StateFlow<List<ProposalWithUserVote>>
-        field: MutableStateFlow<List<ProposalWithUserVote>> = MutableStateFlow(emptyList())
+    // Direct subscription to proposals for this category
+    // Simple and straightforward - no complex reactive operators needed
+    val proposals: StateFlow<List<ProposalWithUserVote>> =
+        proposalRepository.getProposalsByCategory(categoryId)
+            .onStart {
+                isLoading.value = true
+                error.value = null
+            }
+            .catch { e ->
+                error.value = e.message ?: "Error al cargar propuestas"
+                isLoading.value = false
+                emit(emptyList())
+            }
+            .onEach {
+                isLoading.value = false
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.Lazily,
+                initialValue = emptyList()
+            )
 
     val isLoading: StateFlow<Boolean>
         field: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -26,36 +60,12 @@ class ProposalViewModel(
     val error: StateFlow<String?>
         field: MutableStateFlow<String?> = MutableStateFlow(null)
 
-    private val _currentCategoryId = MutableStateFlow<String?>(null)
-
     // For create proposal screen
     val newProposalText: StateFlow<String>
         field: MutableStateFlow<String> = MutableStateFlow("")
 
     val isCreating: StateFlow<Boolean>
         field: MutableStateFlow<Boolean> = MutableStateFlow(false)
-
-    /**
-     * Loads proposals for a specific category
-     */
-    fun loadProposalsForCategory(categoryId: String) {
-        _currentCategoryId.value = categoryId
-
-        viewModelScope.launch {
-            isLoading.value = true
-            error.value = null
-
-            try {
-                proposalRepository.getProposalsByCategory(categoryId).collect { proposalsList ->
-                    proposals.value = proposalsList
-                    isLoading.value = false
-                }
-            } catch (e: Exception) {
-                error.value = e.message ?: "Error al cargar propuestas"
-                isLoading.value = false
-            }
-        }
-    }
 
     /**
      * Votes on a proposal
@@ -84,7 +94,7 @@ class ProposalViewModel(
     /**
      * Creates a new proposal in the current category
      */
-    suspend fun createProposal(categoryId: String): Boolean {
+    suspend fun createProposal(): Boolean {
         if (newProposalText.value.isBlank()) {
             error.value = "La propuesta no puede estar vacía"
             return false
@@ -124,6 +134,16 @@ class ProposalViewModel(
      * Clears any error message
      */
     fun clearError() {
+        error.value = null
+    }
+
+    /**
+     * Retries loading proposals after an error.
+     * Sets loading state to show user feedback. The Realtime Flow will
+     * automatically emit new data when available.
+     */
+    fun retry() {
+        isLoading.value = true
         error.value = null
     }
 
