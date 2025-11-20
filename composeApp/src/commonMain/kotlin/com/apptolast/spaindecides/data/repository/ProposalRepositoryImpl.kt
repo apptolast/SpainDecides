@@ -18,31 +18,21 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 /**
  * Implementation of ProposalRepository using Supabase as the backend.
  *
- * This repository handles proposals and voting through the Supabase database with
- * **Realtime synchronization** using Supabase Postgres Changes.
+ * ## Realtime Synchronization:
+ * - Uses Supabase Postgres Changes to receive database updates via WebSocket
+ * - Each Flow subscription creates a unique channel (prevents reuse conflicts)
+ * - Automatically re-fetches data when proposals or votes change
+ * - Vote counts updated by database triggers
  *
- * ## Realtime Features:
- * - Automatically receives database changes (INSERT, UPDATE, DELETE) via WebSocket
- * - Subscribes to both `proposals` and `proposal_votes` tables
- * - Updates UI in real-time when votes are cast or proposals are created
- *
- * ## Requirements for Realtime to Work:
- * 1. Tables must be added to `supabase_realtime` publication in Database → Replication
- * 2. RLS policies must allow SELECT access for authenticated users
- * 3. REPLICA IDENTITY should be set to FULL for complete row data
- *
- * ## How it works:
- * 1. Creates a Realtime channel per category
- * 2. Subscribes to Postgres Changes on both tables
- * 3. Emits initial data immediately
- * 4. Re-fetches and emits updated data whenever a change event is received
- * 5. Properly cleans up subscriptions when the Flow is cancelled
- *
- * Vote counts are automatically updated by database triggers when votes are cast.
+ * ## Requirements:
+ * 1. Tables added to `supabase_realtime` publication
+ * 2. RLS policies allow SELECT for authenticated users
+ * 3. REPLICA IDENTITY set to FULL
  */
 class ProposalRepositoryImpl : ProposalRepository {
 
@@ -112,85 +102,48 @@ class ProposalRepositoryImpl : ProposalRepository {
                 return proposalsWithVotes.sortedByDescending { it.netVotes }
             }
 
-            // Create a Realtime channel for this category
-            val channelId = "proposals_category_$categoryId"
+            // Create a unique Realtime channel to avoid reuse conflicts
+            // Each Flow gets its own channel, preventing "cannot call postgresChangeFlow after joining" errors
+            val channelId = "proposals_${Random.nextLong()}"
             val channel = supabase.channel(channelId)
 
-            // IMPORTANT: Set up postgresChangeFlow() BEFORE calling subscribe()
-            // This tells the channel what database changes to listen for
-            println("🔧 Setting up Realtime listeners for channel: $channelId")
-
-            // Subscribe to changes on proposals table (INSERT, UPDATE, DELETE)
+            // Set up postgresChangeFlow() BEFORE calling subscribe()
             val proposalChanges = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
                 table = "proposals"
             }
 
-            // Subscribe to changes on proposal_votes table (INSERT, UPDATE, DELETE)
             val voteChanges = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
                 table = "proposal_votes"
             }
 
-            // Now subscribe to the channel to start receiving events
-            // This must be called AFTER postgresChangeFlow() setup
-            println("📡 Subscribing to Realtime channel: $channelId")
+            // Subscribe to the channel to start receiving events
             channel.subscribe()
-            println("✅ Realtime channel subscribed successfully: $channelId")
 
             // Emit initial data immediately
             try {
-                println("📊 Fetching initial proposals for category: $categoryId")
                 val initialData = fetchProposalsWithVotes()
-                println("✅ Initial data loaded: ${initialData.size} proposals")
                 send(initialData)
             } catch (e: Exception) {
-                println("❌ Error fetching initial proposals: ${e.message}")
-                e.printStackTrace()
+                println("❌ Error fetching proposals: ${e.message}")
                 send(emptyList())
             }
 
             // Collect changes from both flows and reload data
             try {
-                println("👂 Listening for Realtime events on proposals and votes...")
-                merge(proposalChanges, voteChanges).collect { action ->
-                    // Log the received event with details
-                    when (action) {
-                        is PostgresAction.Insert -> {
-                            println("🆕 Realtime INSERT event received: ${action.record}")
-                        }
-
-                        is PostgresAction.Update -> {
-                            println("🔄 Realtime UPDATE event received")
-                            println("   Old: ${action.oldRecord}")
-                            println("   New: ${action.record}")
-                        }
-
-                        is PostgresAction.Delete -> {
-                            println("🗑️ Realtime DELETE event received: ${action.oldRecord}")
-                        }
-
-                        is PostgresAction.Select -> {
-                            println("📋 Realtime SELECT event received")
-                        }
-                    }
-
+                merge(proposalChanges, voteChanges).collect {
                     // Reload and send updated data on any change
-                    println("🔄 Reloading proposals after Realtime event...")
                     val updatedData = fetchProposalsWithVotes()
-                    println("✅ Reloaded ${updatedData.size} proposals, emitting to UI")
                     send(updatedData)
                 }
             } catch (e: Exception) {
                 println("❌ Error in Realtime flow: ${e.message}")
-                e.printStackTrace()
                 send(emptyList())
             }
 
             // Cleanup: Unsubscribe from channel when Flow is cancelled
             awaitClose {
                 flowScope.launch {
-                    println("🔌 Unsubscribing from Realtime channel: $channelId")
                     channel.unsubscribe()
-                    println("✅ Realtime channel unsubscribed: $channelId")
                 }
             }
         }

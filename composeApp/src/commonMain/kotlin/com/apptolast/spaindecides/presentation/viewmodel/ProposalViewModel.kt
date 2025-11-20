@@ -138,16 +138,6 @@ class ProposalViewModel(
     }
 
     /**
-     * Retries loading proposals after an error.
-     * Sets loading state to show user feedback. The Realtime Flow will
-     * automatically emit new data when available.
-     */
-    fun retry() {
-        isLoading.value = true
-        error.value = null
-    }
-
-    /**
      * Character count for the current proposal text
      */
     val characterCount: Int

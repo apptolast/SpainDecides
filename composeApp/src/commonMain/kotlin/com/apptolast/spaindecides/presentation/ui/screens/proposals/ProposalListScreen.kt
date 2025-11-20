@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -36,11 +35,9 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import spaindecides.composeapp.generated.resources.Res
 import spaindecides.composeapp.generated.resources.back
-import spaindecides.composeapp.generated.resources.error_unknown
 import spaindecides.composeapp.generated.resources.proposal_new
 import spaindecides.composeapp.generated.resources.proposals_empty_subtitle
 import spaindecides.composeapp.generated.resources.proposals_empty_title
-import spaindecides.composeapp.generated.resources.retry
 
 /**
  * Proposal list screen - Shows proposals for a specific category.
@@ -110,27 +107,6 @@ fun ProposalListScreen(
                     contentAlignment = androidx.compose.ui.Alignment.Center
                 ) {
                     CircularProgressIndicator()
-                }
-            }
-
-            error != null -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                        .padding(16.dp),
-                    horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = error ?: stringResource(Res.string.error_unknown),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = { viewModel.retry() }) {
-                        Text(stringResource(Res.string.retry))
-                    }
                 }
             }
 

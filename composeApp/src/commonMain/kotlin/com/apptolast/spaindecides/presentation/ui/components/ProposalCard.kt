@@ -51,13 +51,13 @@ fun ProposalCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Vote buttons column
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.width(48.dp)
+                modifier = Modifier.width(40.dp)
             ) {
                 // Upvote button
                 IconButton(
@@ -81,9 +81,9 @@ fun ProposalCard(
                 Text(
                     text = proposal.formattedVotes,
                     style = MaterialTheme.typography.labelLarge,
-                    color = when {
-                        proposal.userVote == 1 -> MaterialTheme.colorScheme.primary
-                        proposal.userVote == -1 -> MaterialTheme.colorScheme.error
+                    color = when (proposal.userVote) {
+                        1 -> MaterialTheme.colorScheme.primary
+                        -1 -> MaterialTheme.colorScheme.error
                         else -> MaterialTheme.colorScheme.onSurface
                     }
                 )
