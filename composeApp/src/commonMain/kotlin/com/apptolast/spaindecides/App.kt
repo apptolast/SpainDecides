@@ -65,11 +65,11 @@ fun App() {
             // Categories/Home screen
             composable<CategoriesRoute> {
                 CategoriesScreen(
-                    onCategoryClick = { categoryId, categoryName ->
+                    onCategoryClick = { category ->
                         navController.navigate(
                             ProposalListRoute(
-                                categoryId = categoryId,
-                                categoryName = categoryName
+                                categoryId = category.id,
+                                categoryKey = category.key
                             )
                         )
                     },
@@ -87,7 +87,7 @@ fun App() {
                 val route: ProposalListRoute = backStackEntry.toRoute()
                 ProposalListScreen(
                     categoryId = route.categoryId,
-                    categoryName = route.categoryName,
+                    categoryKey = route.categoryKey,
                     onBack = {
                         navController.popBackStack()
                     },
@@ -95,7 +95,7 @@ fun App() {
                         navController.navigate(
                             CreateProposalRoute(
                                 categoryId = route.categoryId,
-                                categoryName = route.categoryName
+                                categoryKey = route.categoryKey
                             )
                         )
                     }
@@ -107,7 +107,7 @@ fun App() {
                 val route: CreateProposalRoute = backStackEntry.toRoute()
                 CreateProposalScreen(
                     categoryId = route.categoryId,
-                    categoryName = route.categoryName,
+                    categoryKey = route.categoryKey,
                     onClose = {
                         navController.popBackStack()
                     },

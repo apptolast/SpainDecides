@@ -26,6 +26,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.apptolast.spaindecides.data.model.Category
 import com.apptolast.spaindecides.presentation.ui.components.AppTopBar
 import com.apptolast.spaindecides.presentation.ui.components.CategoryCard
 import com.apptolast.spaindecides.presentation.viewmodel.AuthViewModel
@@ -53,7 +54,7 @@ import spaindecides.composeapp.generated.resources.retry
  */
 @Composable
 fun CategoriesScreen(
-    onCategoryClick: (categoryId: String, categoryName: String) -> Unit,
+    onCategoryClick: (categoryId: Category) -> Unit,
     onLogout: () -> Unit,
     categoryViewModel: CategoryViewModel = koinViewModel(),
     authViewModel: AuthViewModel = koinViewModel()
@@ -128,7 +129,7 @@ fun CategoriesScreen(
                         CategoryCard(
                             category = category,
                             onClick = {
-                                onCategoryClick(category.id, category.key)
+                                onCategoryClick(category)
                             }
                         )
                     }

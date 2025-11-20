@@ -32,6 +32,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.apptolast.spaindecides.data.model.Category
+import com.apptolast.spaindecides.presentation.util.getLocalizedName
 import com.apptolast.spaindecides.presentation.viewmodel.ProposalViewModel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -48,8 +50,8 @@ import spaindecides.composeapp.generated.resources.create_proposal_title
 /**
  * Create proposal screen - Form to create a new proposal.
  *
- * @param categoryId ID of the category to create the proposal in
- * @param categoryName Name of the category (for display)
+ * @param categoryId ID of the category to create the proposal in (UUID from database)
+ * @param categoryKey i18n key for resolving localized name (e.g., "economy", "health")
  * @param onClose Callback to close the screen
  * @param onProposalCreated Callback when proposal is successfully created
  * @param viewModel Proposal ViewModel (injected via Koin with categoryId parameter)
@@ -58,11 +60,19 @@ import spaindecides.composeapp.generated.resources.create_proposal_title
 @Composable
 fun CreateProposalScreen(
     categoryId: String,
-    categoryName: String,
+    categoryKey: String,
+    viewModel: ProposalViewModel = koinViewModel { parametersOf(categoryId) },
     onClose: () -> Unit,
     onProposalCreated: () -> Unit,
-    viewModel: ProposalViewModel = koinViewModel { parametersOf(categoryId) }
 ) {
+    // Reconstruct minimal Category object for using extension functions
+    val category = Category(
+        id = categoryId,
+        key = categoryKey,
+        iconName = "", // Not needed for CreateProposalScreen
+        sortOrder = 0  // Not needed for CreateProposalScreen
+    )
+
     val proposalText by viewModel.newProposalText.collectAsState()
     val isCreating by viewModel.isCreating.collectAsState()
     val error by viewModel.error.collectAsState()
@@ -131,7 +141,10 @@ fun CreateProposalScreen(
                 color = MaterialTheme.colorScheme.primaryContainer
             ) {
                 Text(
-                    text = stringResource(Res.string.create_proposal_category, categoryName),
+                    text = stringResource(
+                        Res.string.create_proposal_category,
+                        category.getLocalizedName()
+                    ),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)

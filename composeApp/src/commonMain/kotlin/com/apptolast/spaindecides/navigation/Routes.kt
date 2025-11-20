@@ -32,22 +32,22 @@ object CategoriesRoute : Route
 
 /**
  * Proposal list screen route
- * @param categoryId ID of the category to show proposals for
- * @param categoryName Display name of the category (for UI)
+ * @param categoryId ID of the category (UUID from database)
+ * @param categoryKey i18n key for resolving localized name (e.g., "economy", "health")
  */
 @Serializable
 data class ProposalListRoute(
     val categoryId: String,
-    val categoryName: String
+    val categoryKey: String
 ) : Route
 
 /**
  * Create new proposal screen route
- * @param categoryId ID of the category to create the proposal in
- * @param categoryName Display name of the category (for UI)
+ * @param categoryId ID of the category (UUID from database)
+ * @param categoryKey i18n key for resolving localized name (e.g., "economy", "health")
  */
 @Serializable
 data class CreateProposalRoute(
     val categoryId: String,
-    val categoryName: String
+    val categoryKey: String
 ) : Route
