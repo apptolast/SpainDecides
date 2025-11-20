@@ -6,7 +6,6 @@ import com.apptolast.spaindecides.data.model.Category
 import com.apptolast.spaindecides.domain.repository.CategoryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
@@ -17,14 +16,14 @@ class CategoryViewModel(
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {
 
-    private val _categories = MutableStateFlow<List<Category>>(emptyList())
-    val categories: StateFlow<List<Category>> = _categories.asStateFlow()
+    val categories: StateFlow<List<Category>>
+        field: MutableStateFlow<List<Category>> = MutableStateFlow(emptyList())
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    val isLoading: StateFlow<Boolean>
+        field: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error.asStateFlow()
+    val error: StateFlow<String?>
+        field: MutableStateFlow<String?> = MutableStateFlow(null)
 
     init {
         loadCategories()
@@ -35,17 +34,17 @@ class CategoryViewModel(
      */
     fun loadCategories() {
         viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
+            isLoading.value = true
+            error.value = null
 
             try {
                 categoryRepository.getCategories().collect { categoriesList ->
-                    _categories.value = categoriesList
-                    _isLoading.value = false
+                    categories.value = categoriesList
+                    isLoading.value = false
                 }
             } catch (e: Exception) {
-                _error.value = e.message ?: "Error desconocido"
-                _isLoading.value = false
+                error.value = e.message ?: "Error desconocido"
+                isLoading.value = false
             }
         }
     }
@@ -61,6 +60,6 @@ class CategoryViewModel(
      * Clears any error message
      */
     fun clearError() {
-        _error.value = null
+        error.value = null
     }
 }

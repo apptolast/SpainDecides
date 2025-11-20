@@ -7,6 +7,7 @@ import io.github.jan.supabase.compose.auth.ComposeAuth
 import io.github.jan.supabase.compose.auth.googleNativeLogin
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.realtime.Realtime
 
 /**
  * Supabase client configuration
@@ -33,6 +34,8 @@ object SupabaseClientConfig {
             }
 
             install(Postgrest)
+
+            install(Realtime)
         }
     }
 }

@@ -1,89 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- App Name -->
-    <string name="app_name">Decide España</string>
+    <!-- Nombres de Categorías -->
+    <string name="category_economy">Economía y Empleo</string>
+    <string name="category_health">Sanidad Pública</string>
+    <string name="category_education">Educación y Cultura</string>
+    <string name="category_environment">Medio Ambiente</string>
+    <string name="category_foreign_policy">Política Exterior</string>
+    <string name="category_justice">Justicia y Seguridad</string>
+    <string name="category_housing">Vivienda</string>
+    <string name="category_science">Ciencia e Innovación</string>
+    <string name="category_social_policies">Políticas Sociales</string>
+    <string name="category_taxes">Impuestos y Fiscalidad</string>
 
-    <!-- Common -->
-    <string name="error_unknown">Error desconocido</string>
-    <string name="retry">Reintentar</string>
-    <string name="close">Cerrar</string>
-    <string name="back">Volver</string>
-    <string name="menu">Menú</string>
-    <string name="notifications">Notificaciones</string>
-    <string name="loading">Cargando...</string>
-    <string name="settings">Configuración</string>
-    <string name="logout">Cerrar sesión</string>
-    <string name="logout_confirmation_title">Cerrar sesión</string>
-    <string name="logout_confirmation_message">¿Estás seguro de que quieres cerrar sesión?</string>
-    <string name="logout_confirm">Sí, cerrar sesión</string>
-    <string name="logout_cancel">Cancelar</string>
+    <!-- Descripciones de Categorías -->
+    <string name="category_economy_desc">Propuestas relacionadas con empleo, impuestos, crecimiento económico y reformas fiscales</string>
+    <string name="category_health_desc">Mejoras en el sistema sanitario, acceso universal y calidad asistencial</string>
+    <string name="category_education_desc">Reformas educativas, acceso a la cultura y promoción de las artes</string>
+    <string name="category_environment_desc">Sostenibilidad, energías renovables y protección del entorno natural</string>
+    <string name="category_foreign_policy_desc">Relaciones internacionales, cooperación y diplomacia</string>
+    <string name="category_justice_desc">Sistema judicial, seguridad ciudadana y derechos fundamentales</string>
+    <string name="category_housing_desc">Acceso a vivienda digna, regulación del alquiler y políticas habitacionales</string>
+    <string name="category_science_desc">Investigación, desarrollo tecnológico y transferencia de conocimiento</string>
+    <string name="category_social_policies_desc">Igualdad, bienestar social y protección a colectivos vulnerables</string>
+    <string name="category_taxes_desc">Reforma fiscal, transparencia tributaria y distribución de recursos</string>
 
-    <!-- Auth - Login -->
-    <string name="login_title">Bienvenido/a de nuevo</string>
-    <string name="login_subtitle">Inicia sesión para participar.</string>
+    <!-- Cadenas Comunes -->
+    <string name="category_unknown">Categoría Desconocida</string>
+    <string name="empty">-</string>
+
+    <!-- Pantalla de Inicio de Sesión -->
+    <string name="login_title">Bienvenido de Nuevo</string>
+    <string name="login_subtitle">Inicia sesión para continuar participando</string>
     <string name="login_button">Iniciar Sesión</string>
-    <string name="login_no_account">¿No tienes una cuenta?</string>
+    <string name="login_with_google">Continuar con Google</string>
+    <string name="login_no_account">¿No tienes cuenta?</string>
     <string name="login_register_link">Regístrate</string>
-    <string name="forgot_password">Olvidé mi Contraseña</string>
 
-    <!-- Auth - Register -->
+    <!-- Pantalla de Registro -->
     <string name="register_title">Crear Cuenta</string>
-    <string name="register_subtitle">Únete a la participación ciudadana.</string>
-    <string name="register_button">Registrarse</string>
+    <string name="register_subtitle">Únete a la comunidad y haz que tu voz sea escuchada</string>
+    <string name="register_button">Crear Cuenta</string>
     <string name="register_has_account">¿Ya tienes cuenta?</string>
-    <string name="register_login_link">Inicia Sesión</string>
+    <string name="register_login_link">Iniciar Sesión</string>
+    <string name="success_registration">¡Cuenta creada exitosamente! Por favor revisa tu correo para verificar tu cuenta.</string>
 
-    <!-- Auth - Form Fields -->
-    <string name="field_email">Email</string>
+    <!-- Campos del Formulario -->
+    <string name="field_name">Nombre</string>
+    <string name="field_email">Correo Electrónico</string>
     <string name="field_password">Contraseña</string>
-    <string name="field_name">Nombre completo</string>
     <string name="show_password">Mostrar contraseña</string>
     <string name="hide_password">Ocultar contraseña</string>
+    <string name="forgot_password">¿Olvidaste tu contraseña?</string>
 
-    <!-- Auth - Google Sign-In -->
-    <string name="login_with_google">Continuar con Google</string>
+    <!-- Auth Común -->
     <string name="auth_divider">o</string>
 
-    <!-- Auth - Validation Errors -->
-    <string name="error_email_required">Por favor ingresa tu correo electrónico</string>
+    <!-- Mensajes de Error -->
+    <string name="error_invalid_credentials">Email o contraseña incorrectos. Por favor intenta de nuevo.</string>
+    <string name="error_user_already_registered">Este correo ya está registrado. Por favor inicia sesión.</string>
+    <string name="error_email_not_confirmed">Por favor verifica tu correo antes de iniciar sesión. Revisa tu bandeja de entrada para el enlace de verificación.</string>
+    <string name="error_weak_password">La contraseña es demasiado débil. Por favor usa una contraseña más segura.</string>
+    <string name="error_network">Error de red. Por favor verifica tu conexión a internet e intenta de nuevo.</string>
+    <string name="error_unknown">Ocurrió un error inesperado. Por favor intenta más tarde.</string>
+    <string name="error_email_required">El correo es obligatorio</string>
     <string name="error_email_invalid">Por favor ingresa un correo electrónico válido</string>
-    <string name="error_password_required">Por favor ingresa tu contraseña</string>
+    <string name="error_password_required">La contraseña es obligatoria</string>
     <string name="error_password_short">La contraseña debe tener al menos 6 caracteres</string>
-    <string name="error_name_required">Por favor ingresa tu nombre completo</string>
+    <string name="error_name_required">El nombre es obligatorio</string>
+    <string name="error_google_signin">Error al iniciar sesión con Google. Por favor intenta de nuevo.</string>
 
-    <!-- Auth - Success Messages -->
-    <string name="success_registration">Cuenta creada exitosamente. Por favor revisa tu correo electrónico para verificar tu cuenta.</string>
-    <string name="success_password_reset">Correo de restablecimiento enviado. Por favor revisa tu bandeja de entrada.</string>
+    <!-- Pantalla de Categorías -->
+    <string name="categories_title">Participa</string>
+    <string name="categories_subtitle">Elige una categoría para ver y votar propuestas</string>
+    <string name="logout_confirmation_title">Cerrar Sesión</string>
+    <string name="logout_confirmation_message">¿Estás seguro de que quieres cerrar sesión?</string>
+    <string name="logout_confirm">Cerrar Sesión</string>
+    <string name="logout_cancel">Cancelar</string>
 
-    <!-- Auth - Error Messages -->
-    <string name="error_invalid_credentials">Correo o contraseña incorrectos</string>
-    <string name="error_user_already_registered">Este correo ya está registrado</string>
-    <string name="error_email_not_confirmed">Por favor verifica tu correo electrónico antes de iniciar sesión</string>
-    <string name="error_network">Error de conexión. Por favor verifica tu conexión a internet</string>
-    <string name="error_weak_password">La contraseña es muy débil. Por favor usa una contraseña más fuerte</string>
-    <string name="error_login">Error al iniciar sesión</string>
-    <string name="error_registration">Error al crear cuenta</string>
-    <string name="error_google_signin">Error al iniciar sesión con Google</string>
-
-    <!-- Categories Screen -->
-    <string name="categories_title">Programa Ciudadano</string>
-    <string name="categories_subtitle">Selecciona una categoría para participar</string>
-
-    <!-- Proposals List -->
+    <!-- Pantalla de Lista de Propuestas -->
     <string name="proposals_empty_title">No hay propuestas aún</string>
-    <string name="proposals_empty_subtitle">Sé el primero en crear una</string>
-    <string name="proposal_new">Nueva propuesta</string>
-    <string name="proposal_view">Ver propuestas</string>
+    <string name="proposals_empty_subtitle">¡Sé el primero en crear una propuesta en esta categoría!</string>
+    <string name="proposal_new">Crear nueva propuesta</string>
     <string name="proposal_vote_up">Votar a favor</string>
     <string name="proposal_vote_down">Votar en contra</string>
 
-    <!-- Create Proposal -->
+    <!-- Pantalla de Crear Propuesta -->
     <string name="create_proposal_title">Nueva Propuesta</string>
-    <string name="create_proposal_publish">Publicar</string>
     <string name="create_proposal_category">Categoría: %s</string>
-    <string name="create_proposal_placeholder">Escribe tu propuesta... (máx. 150 caracteres)</string>
+    <string name="create_proposal_placeholder">Escribe tu propuesta aquí (10-150 caracteres)...</string>
     <string name="create_proposal_counter">%d/150</string>
-    <string name="create_proposal_error_empty">La propuesta no puede estar vacía</string>
-    <string name="create_proposal_error_too_long">La propuesta no puede tener más de 150 caracteres</string>
-    <string name="create_proposal_error">Error al crear propuesta</string>
+    <string name="create_proposal_publish">Publicar</string>
+
+    <!-- Navegación Común -->
+    <string name="back">Atrás</string>
+    <string name="close">Cerrar</string>
+    <string name="retry">Reintentar</string>
+    <string name="settings">Configuración</string>
+    <string name="logout">Cerrar Sesión</string>
 </resources>

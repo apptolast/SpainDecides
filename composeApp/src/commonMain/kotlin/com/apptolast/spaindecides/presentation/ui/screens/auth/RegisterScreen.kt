@@ -71,8 +71,8 @@ import spaindecides.composeapp.generated.resources.success_registration
 @Composable
 fun RegisterScreen(
     onRegisterSuccess: (successMessage: String) -> Unit,
+    viewModel: AuthViewModel = koinViewModel(),
     onNavigateBack: () -> Unit,
-    viewModel: AuthViewModel = koinViewModel()
 ) {
     val name by viewModel.name.collectAsState()
     val email by viewModel.email.collectAsState()
@@ -107,110 +107,110 @@ fun RegisterScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-        // App icon placeholder
-        Surface(
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.primaryContainer,
-            modifier = Modifier.size(80.dp)
-        ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxSize()
+            // App icon placeholder
+            Surface(
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.size(80.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.PersonAdd,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(40.dp)
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Title
-        Text(
-            text = stringResource(Res.string.register_title),
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = stringResource(Res.string.register_subtitle),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Name field
-        OutlinedTextField(
-            value = name,
-            onValueChange = viewModel::updateName,
-            label = { Text(stringResource(Res.string.field_name)) },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = stringResource(Res.string.field_name)
-                )
-            },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !isLoading
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Email field
-        OutlinedTextField(
-            value = email,
-            onValueChange = viewModel::updateEmail,
-            label = { Text(stringResource(Res.string.field_email)) },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Email,
-                    contentDescription = stringResource(Res.string.field_email)
-                )
-            },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !isLoading
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Password field
-        OutlinedTextField(
-            value = password,
-            onValueChange = viewModel::updatePassword,
-            label = { Text(stringResource(Res.string.field_password)) },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Lock,
-                    contentDescription = stringResource(Res.string.field_password)
-                )
-            },
-            trailingIcon = {
-                IconButton(onClick = viewModel::togglePasswordVisibility) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
                     Icon(
-                        imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                        contentDescription = if (isPasswordVisible) stringResource(Res.string.hide_password) else stringResource(
-                            Res.string.show_password
-                        )
+                        imageVector = Icons.Default.PersonAdd,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(40.dp)
                     )
                 }
-            },
-            visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !isLoading
-        )
+            }
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Title
+            Text(
+                text = stringResource(Res.string.register_title),
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = stringResource(Res.string.register_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Name field
+            OutlinedTextField(
+                value = name,
+                onValueChange = viewModel::updateName,
+                label = { Text(stringResource(Res.string.field_name)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = stringResource(Res.string.field_name)
+                    )
+                },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Email field
+            OutlinedTextField(
+                value = email,
+                onValueChange = viewModel::updateEmail,
+                label = { Text(stringResource(Res.string.field_email)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Email,
+                        contentDescription = stringResource(Res.string.field_email)
+                    )
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Password field
+            OutlinedTextField(
+                value = password,
+                onValueChange = viewModel::updatePassword,
+                label = { Text(stringResource(Res.string.field_password)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = stringResource(Res.string.field_password)
+                    )
+                },
+                trailingIcon = {
+                    IconButton(onClick = viewModel::togglePasswordVisibility) {
+                        Icon(
+                            imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            contentDescription = if (isPasswordVisible) stringResource(Res.string.hide_password) else stringResource(
+                                Res.string.show_password
+                            )
+                        )
+                    }
+                },
+                visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
 
             // Register button
             Button(

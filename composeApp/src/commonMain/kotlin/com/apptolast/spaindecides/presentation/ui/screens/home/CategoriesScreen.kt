@@ -128,7 +128,7 @@ fun CategoriesScreen(
                         CategoryCard(
                             category = category,
                             onClick = {
-                                onCategoryClick(category.id, category.name)
+                                onCategoryClick(category.id, category.key)
                             }
                         )
                     }

@@ -1,6 +1,7 @@
 package com.apptolast.spaindecides.domain.repository
 
 import com.apptolast.spaindecides.data.model.Proposal
+import com.apptolast.spaindecides.data.model.ProposalWithUserVote
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -11,36 +12,37 @@ interface ProposalRepository {
 
     /**
      * Gets all proposals for a specific category as a Flow.
-     * Proposals are sorted by net votes (descending).
+     * Proposals are sorted by net votes (descending) and include the current user's vote status.
      *
      * @param categoryId The ID of the category
-     * @return Flow emitting the list of proposals for the category
+     * @return Flow emitting the list of proposals with user vote information
      */
-    fun getProposalsByCategory(categoryId: String): Flow<List<Proposal>>
+    fun getProposalsByCategory(categoryId: String): Flow<List<ProposalWithUserVote>>
 
     /**
      * Creates a new proposal in a specific category.
      *
-     * @param title The proposal text (max 150 characters)
+     * @param title The proposal text (10-150 characters)
      * @param categoryId The ID of the category
-     * @return The created proposal with a generated ID
+     * @return The created proposal
      */
     suspend fun createProposal(title: String, categoryId: String): Proposal
 
     /**
-     * Votes on a proposal.
+     * Votes on a proposal. This will insert or update a vote in the proposal_votes table.
+     * If voteType is 0, it removes the user's vote.
      *
      * @param proposalId The ID of the proposal to vote on
      * @param voteType 1 for upvote, -1 for downvote, 0 to remove vote
-     * @return The updated proposal
+     * @return The updated proposal with user vote information, or null if proposal not found
      */
-    suspend fun voteOnProposal(proposalId: String, voteType: Int): Proposal?
+    suspend fun voteOnProposal(proposalId: String, voteType: Int): ProposalWithUserVote?
 
     /**
-     * Gets a specific proposal by its ID.
+     * Gets a specific proposal by its ID with the current user's vote status.
      *
      * @param proposalId The unique identifier of the proposal
-     * @return The proposal if found, null otherwise
+     * @return The proposal with vote information if found, null otherwise
      */
-    suspend fun getProposalById(proposalId: String): Proposal?
+    suspend fun getProposalById(proposalId: String): ProposalWithUserVote?
 }

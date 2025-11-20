@@ -11,9 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -25,7 +24,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -34,13 +32,12 @@ import com.apptolast.spaindecides.presentation.ui.components.ProposalCard
 import com.apptolast.spaindecides.presentation.viewmodel.ProposalViewModel
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 import spaindecides.composeapp.generated.resources.Res
 import spaindecides.composeapp.generated.resources.back
-import spaindecides.composeapp.generated.resources.error_unknown
 import spaindecides.composeapp.generated.resources.proposal_new
 import spaindecides.composeapp.generated.resources.proposals_empty_subtitle
 import spaindecides.composeapp.generated.resources.proposals_empty_title
-import spaindecides.composeapp.generated.resources.retry
 
 /**
  * Proposal list screen - Shows proposals for a specific category.
@@ -49,25 +46,22 @@ import spaindecides.composeapp.generated.resources.retry
  * @param categoryName Name of the category (for display)
  * @param onBack Callback to navigate back
  * @param onCreateProposal Callback to navigate to create proposal screen
- * @param viewModel Proposal ViewModel (injected via Koin)
+ * @param viewModel Proposal ViewModel (injected via Koin with categoryId parameter)
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProposalListScreen(
     categoryId: String,
     categoryName: String,
+    viewModel: ProposalViewModel = koinViewModel { parametersOf(categoryId) },
     onBack: () -> Unit,
     onCreateProposal: () -> Unit,
-    viewModel: ProposalViewModel = koinViewModel()
 ) {
     val proposals by viewModel.proposals.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
 
-    // Load proposals when screen is displayed
-    LaunchedEffect(categoryId) {
-        viewModel.loadProposalsForCategory(categoryId)
-    }
+    // ViewModel already has categoryId injected - no LaunchedEffect needed!
 
     Scaffold(
         topBar = {
@@ -81,7 +75,7 @@ fun ProposalListScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(Res.string.back)
                         )
                     }
@@ -113,27 +107,6 @@ fun ProposalListScreen(
                     contentAlignment = androidx.compose.ui.Alignment.Center
                 ) {
                     CircularProgressIndicator()
-                }
-            }
-
-            error != null -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                        .padding(16.dp),
-                    horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = error ?: stringResource(Res.string.error_unknown),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = { viewModel.loadProposalsForCategory(categoryId) }) {
-                        Text(stringResource(Res.string.retry))
-                    }
                 }
             }
 

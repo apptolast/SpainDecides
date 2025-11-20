@@ -8,7 +8,6 @@ import com.apptolast.spaindecides.util.AuthErrorMapper
 import com.apptolast.spaindecides.util.ValidationError
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 
@@ -28,35 +27,35 @@ class AuthViewModel(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    private val _email = MutableStateFlow("")
-    val email: StateFlow<String> = _email.asStateFlow()
+    val email: StateFlow<String>
+        field: MutableStateFlow<String> = MutableStateFlow("")
 
-    private val _password = MutableStateFlow("")
-    val password: StateFlow<String> = _password.asStateFlow()
+    val password: StateFlow<String>
+        field: MutableStateFlow<String> = MutableStateFlow("")
 
-    private val _name = MutableStateFlow("") // For registration
-    val name: StateFlow<String> = _name.asStateFlow()
+    val name: StateFlow<String> // For registration
+        field: MutableStateFlow<String> = MutableStateFlow("")
 
-    private val _isPasswordVisible = MutableStateFlow(false)
-    val isPasswordVisible: StateFlow<Boolean> = _isPasswordVisible.asStateFlow()
+    val isPasswordVisible: StateFlow<Boolean>
+        field: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    val isLoading: StateFlow<Boolean>
+        field: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    private val _errorMessage = MutableStateFlow<StringResource?>(null)
-    val errorMessage: StateFlow<StringResource?> = _errorMessage.asStateFlow()
+    val errorMessage: StateFlow<StringResource?>
+        field: MutableStateFlow<StringResource?> = MutableStateFlow(null)
 
-    private val _successMessage = MutableStateFlow<StringResource?>(null)
-    val successMessage: StateFlow<StringResource?> = _successMessage.asStateFlow()
+    val successMessage: StateFlow<StringResource?>
+        field: MutableStateFlow<StringResource?> = MutableStateFlow(null)
 
-    private val _authState = MutableStateFlow<AuthState>(AuthState.Unauthenticated)
-    val authState: StateFlow<AuthState> = _authState.asStateFlow()
+    val authState: StateFlow<AuthState>
+        field: MutableStateFlow<AuthState> = MutableStateFlow(AuthState.Unauthenticated)
 
     init {
         // Observe authentication state changes
         viewModelScope.launch {
             authRepository.observeAuthState().collect { user ->
-                _authState.value = if (user != null) {
+                authState.value = if (user != null) {
                     AuthState.Authenticated(user)
                 } else {
                     AuthState.Unauthenticated
@@ -69,7 +68,7 @@ class AuthViewModel(
      * Updates the email field
      */
     fun updateEmail(newEmail: String) {
-        _email.value = newEmail
+        email.value = newEmail
         clearMessages() // Clear messages when user types
     }
 
@@ -77,7 +76,7 @@ class AuthViewModel(
      * Updates the password field
      */
     fun updatePassword(newPassword: String) {
-        _password.value = newPassword
+        password.value = newPassword
         clearMessages() // Clear messages when user types
     }
 
@@ -85,7 +84,7 @@ class AuthViewModel(
      * Updates the name field (for registration)
      */
     fun updateName(newName: String) {
-        _name.value = newName
+        name.value = newName
         clearMessages() // Clear messages when user types
     }
 
@@ -93,7 +92,7 @@ class AuthViewModel(
      * Toggles password visibility
      */
     fun togglePasswordVisibility() {
-        _isPasswordVisible.value = !_isPasswordVisible.value
+        isPasswordVisible.value = !isPasswordVisible.value
     }
 
     /**
@@ -103,15 +102,15 @@ class AuthViewModel(
     suspend fun login(): Boolean {
         if (!validateLoginInput()) return false
 
-        _isLoading.value = true
+        isLoading.value = true
         clearMessages()
 
         val result = authRepository.signInWithEmail(
-            email = _email.value.trim(),
-            password = _password.value
+            email = email.value.trim(),
+            password = password.value
         )
 
-        _isLoading.value = false
+        isLoading.value = false
 
         return result.fold(
             onSuccess = {
@@ -119,7 +118,7 @@ class AuthViewModel(
                 true
             },
             onFailure = { exception ->
-                _errorMessage.value = AuthErrorMapper.mapError(exception)
+                errorMessage.value = AuthErrorMapper.mapError(exception)
                 false
             }
         )
@@ -132,15 +131,15 @@ class AuthViewModel(
     suspend fun register(): Boolean {
         if (!validateRegisterInput()) return false
 
-        _isLoading.value = true
+        isLoading.value = true
         clearMessages()
 
         val result = authRepository.signUpWithEmail(
-            email = _email.value.trim(),
-            password = _password.value
+            email = email.value.trim(),
+            password = password.value
         )
 
-        _isLoading.value = false
+        isLoading.value = false
 
         return result.fold(
             onSuccess = {
@@ -148,7 +147,7 @@ class AuthViewModel(
                 true
             },
             onFailure = { exception ->
-                _errorMessage.value = AuthErrorMapper.mapError(exception)
+                errorMessage.value = AuthErrorMapper.mapError(exception)
                 false
             }
         )
@@ -160,19 +159,19 @@ class AuthViewModel(
      * Returns true if successful, false otherwise
      */
     suspend fun signInWithGoogle(): Boolean {
-        _isLoading.value = true
+        isLoading.value = true
         clearMessages()
 
         val result = authRepository.signInWithGoogle()
 
-        _isLoading.value = false
+        isLoading.value = false
 
         return result.fold(
             onSuccess = {
                 true
             },
             onFailure = { exception ->
-                _errorMessage.value = AuthErrorMapper.mapError(exception)
+                errorMessage.value = AuthErrorMapper.mapError(exception)
                 false
             }
         )
@@ -185,11 +184,11 @@ class AuthViewModel(
      */
     suspend fun signOut() {
         // Immediately set state to Unauthenticated to prevent observer race condition
-        _authState.value = AuthState.Unauthenticated
-        _isLoading.value = true
+        authState.value = AuthState.Unauthenticated
+        isLoading.value = true
         authRepository.signOut()
         clearForm()
-        _isLoading.value = false
+        isLoading.value = false
     }
 
     /**
@@ -197,23 +196,23 @@ class AuthViewModel(
      */
     suspend fun sendPasswordResetEmail(email: String): Boolean {
         if (email.isBlank()) {
-            _errorMessage.value = AuthErrorMapper.mapValidationError(ValidationError.EMAIL_REQUIRED)
+            errorMessage.value = AuthErrorMapper.mapValidationError(ValidationError.EMAIL_REQUIRED)
             return false
         }
 
-        _isLoading.value = true
+        isLoading.value = true
         clearMessages()
 
         val result = authRepository.sendPasswordResetEmail(email.trim())
 
-        _isLoading.value = false
+        isLoading.value = false
 
         return result.fold(
             onSuccess = {
                 true
             },
             onFailure = { exception ->
-                _errorMessage.value = AuthErrorMapper.mapError(exception)
+                errorMessage.value = AuthErrorMapper.mapError(exception)
                 false
             }
         )
@@ -223,31 +222,31 @@ class AuthViewModel(
      * Clears all form fields
      */
     fun clearForm() {
-        _email.value = ""
-        _password.value = ""
-        _name.value = ""
+        email.value = ""
+        password.value = ""
+        name.value = ""
     }
 
     /**
      * Clears the current error message
      */
     fun clearError() {
-        _errorMessage.value = null
+        errorMessage.value = null
     }
 
     /**
      * Clears the current success message
      */
     fun clearSuccess() {
-        _successMessage.value = null
+        successMessage.value = null
     }
 
     /**
      * Clears both error and success messages
      */
     private fun clearMessages() {
-        _errorMessage.value = null
-        _successMessage.value = null
+        errorMessage.value = null
+        successMessage.value = null
     }
 
     /**
@@ -255,20 +254,20 @@ class AuthViewModel(
      */
     private fun validateLoginInput(): Boolean {
         return when {
-            _email.value.isBlank() -> {
-                _errorMessage.value =
+            email.value.isBlank() -> {
+                errorMessage.value =
                     AuthErrorMapper.mapValidationError(ValidationError.EMAIL_REQUIRED)
                 false
             }
 
-            !_email.value.contains("@") -> {
-                _errorMessage.value =
+            !email.value.contains("@") -> {
+                errorMessage.value =
                     AuthErrorMapper.mapValidationError(ValidationError.EMAIL_INVALID)
                 false
             }
 
-            _password.value.isBlank() -> {
-                _errorMessage.value =
+            password.value.isBlank() -> {
+                errorMessage.value =
                     AuthErrorMapper.mapValidationError(ValidationError.PASSWORD_REQUIRED)
                 false
             }
@@ -282,32 +281,32 @@ class AuthViewModel(
      */
     private fun validateRegisterInput(): Boolean {
         return when {
-            _name.value.isBlank() -> {
-                _errorMessage.value =
+            name.value.isBlank() -> {
+                errorMessage.value =
                     AuthErrorMapper.mapValidationError(ValidationError.NAME_REQUIRED)
                 false
             }
 
-            _email.value.isBlank() -> {
-                _errorMessage.value =
+            email.value.isBlank() -> {
+                errorMessage.value =
                     AuthErrorMapper.mapValidationError(ValidationError.EMAIL_REQUIRED)
                 false
             }
 
-            !_email.value.contains("@") -> {
-                _errorMessage.value =
+            !email.value.contains("@") -> {
+                errorMessage.value =
                     AuthErrorMapper.mapValidationError(ValidationError.EMAIL_INVALID)
                 false
             }
 
-            _password.value.isBlank() -> {
-                _errorMessage.value =
+            password.value.isBlank() -> {
+                errorMessage.value =
                     AuthErrorMapper.mapValidationError(ValidationError.PASSWORD_REQUIRED)
                 false
             }
 
-            _password.value.length < 6 -> {
-                _errorMessage.value =
+            password.value.length < 6 -> {
+                errorMessage.value =
                     AuthErrorMapper.mapValidationError(ValidationError.PASSWORD_SHORT)
                 false
             }

@@ -21,7 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.apptolast.spaindecides.data.model.Proposal
+import com.apptolast.spaindecides.data.model.ProposalWithUserVote
 import org.jetbrains.compose.resources.stringResource
 import spaindecides.composeapp.generated.resources.Res
 import spaindecides.composeapp.generated.resources.proposal_vote_down
@@ -30,14 +30,14 @@ import spaindecides.composeapp.generated.resources.proposal_vote_up
 /**
  * Card component for displaying a proposal with voting buttons.
  *
- * @param proposal The proposal to display
+ * @param proposal The proposal to display (with user vote information)
  * @param onUpvote Callback when upvote is clicked
  * @param onDownvote Callback when downvote is clicked
  * @param modifier Optional modifier
  */
 @Composable
 fun ProposalCard(
-    proposal: Proposal,
+    proposal: ProposalWithUserVote,
     onUpvote: () -> Unit,
     onDownvote: () -> Unit,
     modifier: Modifier = Modifier
@@ -51,13 +51,13 @@ fun ProposalCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Vote buttons column
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.width(48.dp)
+                modifier = Modifier.width(40.dp)
             ) {
                 // Upvote button
                 IconButton(
@@ -81,9 +81,9 @@ fun ProposalCard(
                 Text(
                     text = proposal.formattedVotes,
                     style = MaterialTheme.typography.labelLarge,
-                    color = when {
-                        proposal.userVote == 1 -> MaterialTheme.colorScheme.primary
-                        proposal.userVote == -1 -> MaterialTheme.colorScheme.error
+                    color = when (proposal.userVote) {
+                        1 -> MaterialTheme.colorScheme.primary
+                        -1 -> MaterialTheme.colorScheme.error
                         else -> MaterialTheme.colorScheme.onSurface
                     }
                 )

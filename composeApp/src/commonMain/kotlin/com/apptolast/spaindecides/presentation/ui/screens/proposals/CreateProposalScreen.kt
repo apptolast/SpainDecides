@@ -36,6 +36,7 @@ import com.apptolast.spaindecides.presentation.viewmodel.ProposalViewModel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 import spaindecides.composeapp.generated.resources.Res
 import spaindecides.composeapp.generated.resources.close
 import spaindecides.composeapp.generated.resources.create_proposal_category
@@ -51,7 +52,7 @@ import spaindecides.composeapp.generated.resources.create_proposal_title
  * @param categoryName Name of the category (for display)
  * @param onClose Callback to close the screen
  * @param onProposalCreated Callback when proposal is successfully created
- * @param viewModel Proposal ViewModel (injected via Koin)
+ * @param viewModel Proposal ViewModel (injected via Koin with categoryId parameter)
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,7 +61,7 @@ fun CreateProposalScreen(
     categoryName: String,
     onClose: () -> Unit,
     onProposalCreated: () -> Unit,
-    viewModel: ProposalViewModel = koinViewModel()
+    viewModel: ProposalViewModel = koinViewModel { parametersOf(categoryId) }
 ) {
     val proposalText by viewModel.newProposalText.collectAsState()
     val isCreating by viewModel.isCreating.collectAsState()
@@ -95,7 +96,7 @@ fun CreateProposalScreen(
                     TextButton(
                         onClick = {
                             scope.launch {
-                                val success = viewModel.createProposal(categoryId)
+                                val success = viewModel.createProposal()
                                 if (success) {
                                     onProposalCreated()
                                 } else {

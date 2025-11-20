@@ -2,60 +2,70 @@ package com.apptolast.spaindecides.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.apptolast.spaindecides.data.model.Proposal
+import com.apptolast.spaindecides.data.model.ProposalWithUserVote
 import com.apptolast.spaindecides.domain.repository.ProposalRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
  * ViewModel for proposal-related screens (List and Create).
  * Manages proposals for a specific category, voting, and creating new proposals.
+ *
+ * ## KISS Architecture:
+ * Each category gets its own ViewModel instance (via Koin parametersOf).
+ * This ensures clean Realtime channel lifecycle management:
+ * - ViewModel created → Supabase channel subscribes
+ * - ViewModel destroyed → Supabase channel unsubscribes
+ * No race conditions, no channel reuse issues.
+ *
+ * @param categoryId The category ID this ViewModel manages (injected via Koin)
+ * @param proposalRepository Repository for proposal operations
  */
 class ProposalViewModel(
+    private val categoryId: String,
     private val proposalRepository: ProposalRepository
 ) : ViewModel() {
 
-    private val _proposals = MutableStateFlow<List<Proposal>>(emptyList())
-    val proposals: StateFlow<List<Proposal>> = _proposals.asStateFlow()
+    // Direct subscription to proposals for this category
+    // Simple and straightforward - no complex reactive operators needed
+    val proposals: StateFlow<List<ProposalWithUserVote>> =
+        proposalRepository.getProposalsByCategory(categoryId)
+            .onStart {
+                isLoading.value = true
+                error.value = null
+            }
+            .catch { e ->
+                error.value = e.message ?: "Error al cargar propuestas"
+                isLoading.value = false
+                emit(emptyList())
+            }
+            .onEach {
+                isLoading.value = false
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.Lazily,
+                initialValue = emptyList()
+            )
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    val isLoading: StateFlow<Boolean>
+        field: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error.asStateFlow()
-
-    private val _currentCategoryId = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?>
+        field: MutableStateFlow<String?> = MutableStateFlow(null)
 
     // For create proposal screen
-    private val _newProposalText = MutableStateFlow("")
-    val newProposalText: StateFlow<String> = _newProposalText.asStateFlow()
+    val newProposalText: StateFlow<String>
+        field: MutableStateFlow<String> = MutableStateFlow("")
 
-    private val _isCreating = MutableStateFlow(false)
-    val isCreating: StateFlow<Boolean> = _isCreating.asStateFlow()
-
-    /**
-     * Loads proposals for a specific category
-     */
-    fun loadProposalsForCategory(categoryId: String) {
-        _currentCategoryId.value = categoryId
-
-        viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
-
-            try {
-                proposalRepository.getProposalsByCategory(categoryId).collect { proposalsList ->
-                    _proposals.value = proposalsList
-                    _isLoading.value = false
-                }
-            } catch (e: Exception) {
-                _error.value = e.message ?: "Error al cargar propuestas"
-                _isLoading.value = false
-            }
-        }
-    }
+    val isCreating: StateFlow<Boolean>
+        field: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     /**
      * Votes on a proposal
@@ -67,7 +77,7 @@ class ProposalViewModel(
             try {
                 proposalRepository.voteOnProposal(proposalId, voteType)
             } catch (e: Exception) {
-                _error.value = e.message ?: "Error al votar"
+                error.value = e.message ?: "Error al votar"
             }
         }
     }
@@ -77,38 +87,38 @@ class ProposalViewModel(
      */
     fun updateNewProposalText(text: String) {
         if (text.length <= 150) { // Enforce 150 character limit
-            _newProposalText.value = text
+            newProposalText.value = text
         }
     }
 
     /**
      * Creates a new proposal in the current category
      */
-    suspend fun createProposal(categoryId: String): Boolean {
-        if (_newProposalText.value.isBlank()) {
-            _error.value = "La propuesta no puede estar vacía"
+    suspend fun createProposal(): Boolean {
+        if (newProposalText.value.isBlank()) {
+            error.value = "La propuesta no puede estar vacía"
             return false
         }
 
-        if (_newProposalText.value.length > 150) {
-            _error.value = "La propuesta no puede tener más de 150 caracteres"
+        if (newProposalText.value.length > 150) {
+            error.value = "La propuesta no puede tener más de 150 caracteres"
             return false
         }
 
-        _isCreating.value = true
-        _error.value = null
+        isCreating.value = true
+        error.value = null
 
         return try {
             proposalRepository.createProposal(
-                title = _newProposalText.value.trim(),
+                title = newProposalText.value.trim(),
                 categoryId = categoryId
             )
-            _newProposalText.value = "" // Clear the text field
-            _isCreating.value = false
+            newProposalText.value = "" // Clear the text field
+            isCreating.value = false
             true
         } catch (e: Exception) {
-            _error.value = e.message ?: "Error al crear propuesta"
-            _isCreating.value = false
+            error.value = e.message ?: "Error al crear propuesta"
+            isCreating.value = false
             false
         }
     }
@@ -117,19 +127,19 @@ class ProposalViewModel(
      * Clears the new proposal text
      */
     fun clearNewProposalText() {
-        _newProposalText.value = ""
+        newProposalText.value = ""
     }
 
     /**
      * Clears any error message
      */
     fun clearError() {
-        _error.value = null
+        error.value = null
     }
 
     /**
      * Character count for the current proposal text
      */
     val characterCount: Int
-        get() = _newProposalText.value.length
+        get() = newProposalText.value.length
 }
