@@ -1,5 +1,7 @@
 package com.apptolast.spaindecides.presentation.ui.components
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,22 +19,31 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.apptolast.spaindecides.data.model.ProposalWithUserVote
 import org.jetbrains.compose.resources.stringResource
 import spaindecides.composeapp.generated.resources.Res
+import spaindecides.composeapp.generated.resources.proposal_show_less
+import spaindecides.composeapp.generated.resources.proposal_show_more
 import spaindecides.composeapp.generated.resources.proposal_vote_down
 import spaindecides.composeapp.generated.resources.proposal_vote_up
 
 /**
- * Card component for displaying a proposal with voting buttons.
+ * Card component for displaying a proposal with voting buttons and expandable description.
  *
  * @param proposal The proposal to display (with user vote information)
  * @param onUpvote Callback when upvote is clicked
  * @param onDownvote Callback when downvote is clicked
+ * @param onCardClick Callback when the card is clicked (navigates to detail screen)
  * @param modifier Optional modifier
  */
 @Composable
@@ -40,10 +51,19 @@ fun ProposalCard(
     proposal: ProposalWithUserVote,
     onUpvote: () -> Unit,
     onDownvote: () -> Unit,
+    onCardClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // State for expansion (3 lines -> 6 lines)
+    var isExpanded by remember { mutableStateOf(false) }
+
+    // State to track if text is truncated (to show/hide expand button)
+    var isTextTruncated by remember { mutableStateOf(false) }
+
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onCardClick),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         )
@@ -109,25 +129,52 @@ fun ProposalCard(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Proposal content (title + description)
+            // Proposal content (title + description + expand button)
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
+                    .animateContentSize()
             ) {
                 // Proposal title
                 Text(
                     text = proposal.title,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.padding(top = 4.dp))
 
-                // Proposal description
+                // Proposal description (expandable)
                 Text(
                     text = proposal.description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = if (isExpanded) 7 else 3,
+                    overflow = TextOverflow.Ellipsis,
+                    onTextLayout = { textLayoutResult ->
+                        // Detect if text is truncated
+                        isTextTruncated = textLayoutResult.hasVisualOverflow
+                    }
                 )
+
+                // Show more/less button (only if text is truncated)
+                if (isTextTruncated || isExpanded) {
+                    TextButton(
+                        onClick = { isExpanded = !isExpanded },
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
+                        Text(
+                            text = stringResource(
+                                if (isExpanded) Res.string.proposal_show_less
+                                else Res.string.proposal_show_more
+                            ),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             }
         }
     }

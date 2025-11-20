@@ -8,12 +8,14 @@ import androidx.navigation.toRoute
 import com.apptolast.spaindecides.navigation.CategoriesRoute
 import com.apptolast.spaindecides.navigation.CreateProposalRoute
 import com.apptolast.spaindecides.navigation.LoginRoute
+import com.apptolast.spaindecides.navigation.ProposalDetailRoute
 import com.apptolast.spaindecides.navigation.ProposalListRoute
 import com.apptolast.spaindecides.navigation.RegisterRoute
 import com.apptolast.spaindecides.presentation.ui.screens.auth.LoginScreen
 import com.apptolast.spaindecides.presentation.ui.screens.auth.RegisterScreen
 import com.apptolast.spaindecides.presentation.ui.screens.home.CategoriesScreen
 import com.apptolast.spaindecides.presentation.ui.screens.proposals.CreateProposalScreen
+import com.apptolast.spaindecides.presentation.ui.screens.proposals.ProposalDetailScreen
 import com.apptolast.spaindecides.presentation.ui.screens.proposals.ProposalListScreen
 import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 
@@ -98,6 +100,15 @@ fun App() {
                                 categoryKey = route.categoryKey
                             )
                         )
+                    },
+                    onProposalClick = { proposalId ->
+                        navController.navigate(
+                            ProposalDetailRoute(
+                                proposalId = proposalId,
+                                categoryId = route.categoryId,
+                                categoryKey = route.categoryKey
+                            )
+                        )
                     }
                 )
             }
@@ -112,6 +123,19 @@ fun App() {
                         navController.popBackStack()
                     },
                     onProposalCreated = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            // Proposal detail screen
+            composable<ProposalDetailRoute> { backStackEntry ->
+                val route: ProposalDetailRoute = backStackEntry.toRoute()
+                ProposalDetailScreen(
+                    proposalId = route.proposalId,
+                    categoryId = route.categoryId,
+                    categoryKey = route.categoryKey,
+                    onBack = {
                         navController.popBackStack()
                     }
                 )

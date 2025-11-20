@@ -51,3 +51,16 @@ data class CreateProposalRoute(
     val categoryId: String,
     val categoryKey: String
 ) : Route
+
+/**
+ * Proposal detail screen route - displays full proposal with voting
+ * @param proposalId ID of the proposal to display (UUID from database)
+ * @param categoryId ID of the category (UUID from database)
+ * @param categoryKey i18n key for resolving localized name (e.g., "economy", "health")
+ */
+@Serializable
+data class ProposalDetailRoute(
+    val proposalId: String,
+    val categoryId: String,
+    val categoryKey: String
+) : Route

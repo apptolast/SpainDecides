@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <string name="app_name">España Decide</string>
+
     <!-- Nombres de Categorías -->
     <string name="category_economy">Economía y Empleo</string>
     <string name="category_health">Sanidad Pública</string>
@@ -83,6 +86,14 @@
     <string name="proposal_new">Crear nueva propuesta</string>
     <string name="proposal_vote_up">Votar a favor</string>
     <string name="proposal_vote_down">Votar en contra</string>
+    <string name="proposal_show_more">Ver más</string>
+    <string name="proposal_show_less">Ver menos</string>
+
+    <!-- Pantalla de Detalle de Propuesta -->
+    <string name="proposal_detail_title">Propuesta</string>
+    <string name="proposal_upvotes">A favor: %1$d</string>
+    <string name="proposal_downvotes">En contra: %1$d</string>
+    <string name="proposal_net_votes">Votos netos: %1$d</string>
 
     <!-- Pantalla de Crear Propuesta -->
     <string name="create_proposal_title">Nueva Propuesta</string>

@@ -49,6 +49,7 @@ import spaindecides.composeapp.generated.resources.proposals_empty_title
  * @param viewModel Proposal ViewModel (injected via Koin with categoryId parameter)
  * @param onBack Callback to navigate back
  * @param onCreateProposal Callback to navigate to create proposal screen
+ * @param onProposalClick Callback when a proposal card is clicked (navigate to detail)
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,6 +59,7 @@ fun ProposalListScreen(
     viewModel: ProposalViewModel = koinViewModel { parametersOf(categoryId) },
     onBack: () -> Unit,
     onCreateProposal: () -> Unit,
+    onProposalClick: (String) -> Unit,
 ) {
     // Reconstruct minimal Category object for using extension functions
     val category = Category(
@@ -158,6 +160,9 @@ fun ProposalListScreen(
                             onDownvote = {
                                 val newVote = if (proposal.userVote == -1) 0 else -1
                                 viewModel.vote(proposal.id, newVote)
+                            },
+                            onCardClick = {
+                                onProposalClick(proposal.id)
                             }
                         )
                     }
