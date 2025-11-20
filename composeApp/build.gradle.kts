@@ -12,6 +12,8 @@ plugins {
 }
 
 kotlin {
+    compilerOptions.freeCompilerArgs.add("-Xexpect-actual-classes")
+
     androidTarget {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
@@ -91,6 +93,10 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.koin.test)
         }
+    }
+
+    sourceSets.configureEach {
+        languageSettings.enableLanguageFeature("ExplicitBackingFields")
     }
 }
 

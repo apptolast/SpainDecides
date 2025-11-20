@@ -13,11 +13,11 @@ import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.realtime.PostgresAction
 import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.postgresChangeFlow
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
 
 /**
  * Implementation of ProposalRepository using Supabase as the backend.
@@ -29,7 +29,11 @@ class ProposalRepositoryImpl : ProposalRepository {
 
     private val supabase = SupabaseClientConfig.client
 
-    override fun getProposalsByCategory(categoryId: String): Flow<List<ProposalWithUserVote>> {
+    override fun getProposalsByCategory(categoryId: String): Flow<List<ProposalWithUserVote>> =
+        callbackFlow {
+            // Store reference to the coroutine scope for cleanup
+            val flowScope = this
+
         // Helper function to fetch proposals with user votes
         suspend fun fetchProposalsWithVotes(): List<ProposalWithUserVote> {
             val currentUserId = supabase.auth.currentUserOrNull()?.id
@@ -80,6 +84,9 @@ class ProposalRepositoryImpl : ProposalRepository {
         val channelId = "proposals_category_$categoryId"
         val channel = supabase.channel(channelId)
 
+            // IMPORTANT: Subscribe to the channel FIRST before calling postgresChangeFlow()
+            channel.subscribe()
+
         // Subscribe to changes on proposals table
         val proposalChanges = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
             table = "proposals"
@@ -90,23 +97,30 @@ class ProposalRepositoryImpl : ProposalRepository {
             table = "proposal_votes"
         }
 
-        // Merge both flows and reload data whenever any change occurs
-        return merge(proposalChanges, voteChanges)
-            .onStart {
-                // Subscribe to the channel
-                channel.subscribe()
+            // Emit initial data immediately
+            try {
+                send(fetchProposalsWithVotes())
+            } catch (e: Exception) {
+                println("Error fetching initial proposals: ${e.message}")
+                send(emptyList())
             }
-            .map {
-                // Reload and return updated data on any change
-                fetchProposalsWithVotes()
+
+            // Collect changes from both flows and reload data
+            try {
+                merge(proposalChanges, voteChanges).collect {
+                    // Reload and send updated data on any change
+                    send(fetchProposalsWithVotes())
             }
-            .onStart {
-                // Emit initial data immediately when someone first collects
-                emit(fetchProposalsWithVotes())
-            }
-            .catch { e ->
+            } catch (e: Exception) {
                 println("Error in Realtime flow: ${e.message}")
-                emit(emptyList())
+                send(emptyList())
+            }
+
+            // Cleanup: Unsubscribe from channel when Flow is cancelled
+            awaitClose {
+                flowScope.launch {
+                    channel.unsubscribe()
+                }
             }
     }
 
