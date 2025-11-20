@@ -87,8 +87,12 @@
     <!-- Pantalla de Crear Propuesta -->
     <string name="create_proposal_title">Nueva Propuesta</string>
     <string name="create_proposal_category">Categoría: %s</string>
-    <string name="create_proposal_placeholder">Escribe tu propuesta aquí (10-150 caracteres)...</string>
-    <string name="create_proposal_counter">%d/150</string>
+    <string name="create_proposal_title_label">Título</string>
+    <string name="create_proposal_title_placeholder">Escribe un título breve (10-100 caracteres)...</string>
+    <string name="create_proposal_title_counter">%1$d/100</string>
+    <string name="create_proposal_description_label">Descripción</string>
+    <string name="create_proposal_description_placeholder">Describe tu propuesta en detalle (10-1000 caracteres)...</string>
+    <string name="create_proposal_description_counter">%1$d/1000</string>
     <string name="create_proposal_publish">Publicar</string>
 
     <!-- Navegación Común -->

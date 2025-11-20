@@ -87,8 +87,12 @@
     <!-- Create Proposal Screen -->
     <string name="create_proposal_title">New Proposal</string>
     <string name="create_proposal_category">Category: %s</string>
-    <string name="create_proposal_placeholder">Write your proposal here (10-150 characters)...</string>
-    <string name="create_proposal_counter">%d/150</string>
+    <string name="create_proposal_title_label">Title</string>
+    <string name="create_proposal_title_placeholder">Write a brief title (10-100 characters)...</string>
+    <string name="create_proposal_title_counter">%1$d/100</string>
+    <string name="create_proposal_description_label">Description</string>
+    <string name="create_proposal_description_placeholder">Describe your proposal in detail (10-1000 characters)...</string>
+    <string name="create_proposal_description_counter">%1$d/1000</string>
     <string name="create_proposal_publish">Publish</string>
 
     <!-- Common Navigation -->

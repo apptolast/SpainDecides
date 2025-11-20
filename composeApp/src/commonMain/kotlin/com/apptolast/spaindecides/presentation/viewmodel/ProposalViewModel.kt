@@ -61,7 +61,10 @@ class ProposalViewModel(
         field: MutableStateFlow<String?> = MutableStateFlow(null)
 
     // For create proposal screen
-    val newProposalText: StateFlow<String>
+    val newProposalTitle: StateFlow<String>
+        field: MutableStateFlow<String> = MutableStateFlow("")
+
+    val newProposalDescription: StateFlow<String>
         field: MutableStateFlow<String> = MutableStateFlow("")
 
     val isCreating: StateFlow<Boolean>
@@ -83,11 +86,20 @@ class ProposalViewModel(
     }
 
     /**
-     * Updates the new proposal text field
+     * Updates the new proposal title field
      */
-    fun updateNewProposalText(text: String) {
-        if (text.length <= 150) { // Enforce 150 character limit
-            newProposalText.value = text
+    fun updateNewProposalTitle(text: String) {
+        if (text.length <= 100) { // Enforce 100 character limit
+            newProposalTitle.value = text
+        }
+    }
+
+    /**
+     * Updates the new proposal description field
+     */
+    fun updateNewProposalDescription(text: String) {
+        if (text.length <= 1000) { // Enforce 1000 character limit
+            newProposalDescription.value = text
         }
     }
 
@@ -95,13 +107,35 @@ class ProposalViewModel(
      * Creates a new proposal in the current category
      */
     suspend fun createProposal(): Boolean {
-        if (newProposalText.value.isBlank()) {
-            error.value = "La propuesta no puede estar vacía"
+        // Validate title
+        if (newProposalTitle.value.isBlank()) {
+            error.value = "El título no puede estar vacío"
             return false
         }
 
-        if (newProposalText.value.length > 150) {
-            error.value = "La propuesta no puede tener más de 150 caracteres"
+        if (newProposalTitle.value.length < 10) {
+            error.value = "El título debe tener al menos 10 caracteres"
+            return false
+        }
+
+        if (newProposalTitle.value.length > 100) {
+            error.value = "El título no puede tener más de 100 caracteres"
+            return false
+        }
+
+        // Validate description
+        if (newProposalDescription.value.isBlank()) {
+            error.value = "La descripción no puede estar vacía"
+            return false
+        }
+
+        if (newProposalDescription.value.length < 10) {
+            error.value = "La descripción debe tener al menos 10 caracteres"
+            return false
+        }
+
+        if (newProposalDescription.value.length > 1000) {
+            error.value = "La descripción no puede tener más de 1000 caracteres"
             return false
         }
 
@@ -110,10 +144,12 @@ class ProposalViewModel(
 
         return try {
             proposalRepository.createProposal(
-                title = newProposalText.value.trim(),
+                title = newProposalTitle.value.trim(),
+                description = newProposalDescription.value.trim(),
                 categoryId = categoryId
             )
-            newProposalText.value = "" // Clear the text field
+            newProposalTitle.value = "" // Clear the title field
+            newProposalDescription.value = "" // Clear the description field
             isCreating.value = false
             true
         } catch (e: Exception) {
@@ -124,10 +160,11 @@ class ProposalViewModel(
     }
 
     /**
-     * Clears the new proposal text
+     * Clears the new proposal title and description
      */
-    fun clearNewProposalText() {
-        newProposalText.value = ""
+    fun clearNewProposalFields() {
+        newProposalTitle.value = ""
+        newProposalDescription.value = ""
     }
 
     /**
@@ -138,8 +175,14 @@ class ProposalViewModel(
     }
 
     /**
-     * Character count for the current proposal text
+     * Character count for the current proposal title
      */
-    val characterCount: Int
-        get() = newProposalText.value.length
+    val titleCharacterCount: Int
+        get() = newProposalTitle.value.length
+
+    /**
+     * Character count for the current proposal description
+     */
+    val descriptionCharacterCount: Int
+        get() = newProposalDescription.value.length
 }

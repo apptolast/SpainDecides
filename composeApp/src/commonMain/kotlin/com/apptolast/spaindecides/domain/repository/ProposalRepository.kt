@@ -22,11 +22,12 @@ interface ProposalRepository {
     /**
      * Creates a new proposal in a specific category.
      *
-     * @param title The proposal text (10-150 characters)
+     * @param title Brief title of the proposal (10-100 characters)
+     * @param description Detailed description of the proposal (10-1000 characters)
      * @param categoryId The ID of the category
      * @return The created proposal
      */
-    suspend fun createProposal(title: String, categoryId: String): Proposal
+    suspend fun createProposal(title: String, description: String, categoryId: String): Proposal
 
     /**
      * Votes on a proposal. This will insert or update a vote in the proposal_votes table.

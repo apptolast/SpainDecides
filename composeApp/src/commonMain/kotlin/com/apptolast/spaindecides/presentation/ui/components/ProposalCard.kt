@@ -109,13 +109,26 @@ fun ProposalCard(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Proposal text
-            Text(
-                text = proposal.title,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
+            // Proposal content (title + description)
+            Column(
                 modifier = Modifier.weight(1f)
-            )
+            ) {
+                // Proposal title
+                Text(
+                    text = proposal.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(modifier = Modifier.padding(top = 4.dp))
+
+                // Proposal description
+                Text(
+                    text = proposal.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }

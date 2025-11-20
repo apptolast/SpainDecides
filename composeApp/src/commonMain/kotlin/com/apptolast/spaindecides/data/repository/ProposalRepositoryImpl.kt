@@ -148,7 +148,11 @@ class ProposalRepositoryImpl : ProposalRepository {
             }
         }
 
-    override suspend fun createProposal(title: String, categoryId: String): Proposal {
+    override suspend fun createProposal(
+        title: String,
+        description: String,
+        categoryId: String
+    ): Proposal {
         val userId = supabase.auth.currentUserOrNull()?.id
             ?: throw IllegalStateException("User must be authenticated to create proposals")
 
@@ -157,6 +161,7 @@ class ProposalRepositoryImpl : ProposalRepository {
             .insert(
                 ProposalInsert(
                     title = title,
+                    description = description,
                     categoryId = categoryId,
                     userId = userId
                 )
