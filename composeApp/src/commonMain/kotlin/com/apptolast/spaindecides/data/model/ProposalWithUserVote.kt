@@ -22,6 +22,7 @@ data class ProposalWithUserVote(
      */
     val id: String get() = proposal.id
     val title: String get() = proposal.title
+    val description: String get() = proposal.description
     val categoryId: String get() = proposal.categoryId
     val userId: String get() = proposal.userId
     val upvotes: Int get() = proposal.upvotes

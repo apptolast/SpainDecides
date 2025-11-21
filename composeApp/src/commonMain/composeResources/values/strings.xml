@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <string name="app_name">Spain Decides</string>
+
     <!-- Category Names -->
     <string name="category_economy">Economy and Employment</string>
     <string name="category_health">Public Health</string>
@@ -83,12 +86,24 @@
     <string name="proposal_new">Create new proposal</string>
     <string name="proposal_vote_up">Vote up</string>
     <string name="proposal_vote_down">Vote down</string>
+    <string name="proposal_show_more">Show more</string>
+    <string name="proposal_show_less">Show less</string>
+
+    <!-- Proposal Detail Screen -->
+    <string name="proposal_detail_title">Proposal</string>
+    <string name="proposal_upvotes">Upvotes: %1$d</string>
+    <string name="proposal_downvotes">Downvotes: %1$d</string>
+    <string name="proposal_net_votes">Net votes: %1$d</string>
 
     <!-- Create Proposal Screen -->
     <string name="create_proposal_title">New Proposal</string>
     <string name="create_proposal_category">Category: %s</string>
-    <string name="create_proposal_placeholder">Write your proposal here (10-150 characters)...</string>
-    <string name="create_proposal_counter">%d/150</string>
+    <string name="create_proposal_title_label">Title</string>
+    <string name="create_proposal_title_placeholder">Write a brief title (10-100 characters)...</string>
+    <string name="create_proposal_title_counter">%1$d/100</string>
+    <string name="create_proposal_description_label">Description</string>
+    <string name="create_proposal_description_placeholder">Describe your proposal in detail (10-1000 characters)...</string>
+    <string name="create_proposal_description_counter">%1$d/1000</string>
     <string name="create_proposal_publish">Publish</string>
 
     <!-- Common Navigation -->

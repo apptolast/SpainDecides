@@ -28,7 +28,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.apptolast.spaindecides.data.model.Category
 import com.apptolast.spaindecides.presentation.ui.components.ProposalCard
+import com.apptolast.spaindecides.presentation.util.getLocalizedName
 import com.apptolast.spaindecides.presentation.viewmodel.ProposalViewModel
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -42,33 +44,40 @@ import spaindecides.composeapp.generated.resources.proposals_empty_title
 /**
  * Proposal list screen - Shows proposals for a specific category.
  *
- * @param categoryId ID of the category
- * @param categoryName Name of the category (for display)
+ * @param categoryId ID of the category (UUID from database)
+ * @param categoryKey i18n key for resolving localized name (e.g., "economy", "health")
+ * @param viewModel Proposal ViewModel (injected via Koin with categoryId parameter)
  * @param onBack Callback to navigate back
  * @param onCreateProposal Callback to navigate to create proposal screen
- * @param viewModel Proposal ViewModel (injected via Koin with categoryId parameter)
+ * @param onProposalClick Callback when a proposal card is clicked (navigate to detail)
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProposalListScreen(
     categoryId: String,
-    categoryName: String,
+    categoryKey: String,
     viewModel: ProposalViewModel = koinViewModel { parametersOf(categoryId) },
     onBack: () -> Unit,
     onCreateProposal: () -> Unit,
+    onProposalClick: (String) -> Unit,
 ) {
+    // Reconstruct minimal Category object for using extension functions
+    val category = Category(
+        id = categoryId,
+        key = categoryKey,
+        iconName = "", // Not needed for ProposalListScreen
+        sortOrder = 0  // Not needed for ProposalListScreen
+    )
+
     val proposals by viewModel.proposals.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val error by viewModel.error.collectAsState()
-
-    // ViewModel already has categoryId injected - no LaunchedEffect needed!
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = categoryName,
+                        text = category.getLocalizedName(),
                         style = MaterialTheme.typography.titleLarge
                     )
                 },
@@ -151,6 +160,9 @@ fun ProposalListScreen(
                             onDownvote = {
                                 val newVote = if (proposal.userVote == -1) 0 else -1
                                 viewModel.vote(proposal.id, newVote)
+                            },
+                            onCardClick = {
+                                onProposalClick(proposal.id)
                             }
                         )
                     }

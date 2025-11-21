@@ -992,6 +992,241 @@ Card(shape = RoundedCornerShape(16.dp)) { /* ... */ }
 Button(shape = RoundedCornerShape(12.dp)) { /* ... */ }
 ```
 
+### State Hoisting and Composable Architecture
+
+Follow Google's recommendations for state hoisting using the **Screen/Content pattern**. This makes
+composables easier to test, preview, and reuse.
+
+#### Screen/Content Pattern
+
+**Screen composable** (stateful):
+
+- Contains ViewModel injection
+- Manages state collection
+- Handles navigation callbacks
+- Difficult to preview
+
+**Content composable** (stateless):
+
+- Receives state as parameters
+- Receives callbacks as lambdas
+- Pure presentation logic
+- Easy to preview with sample data
+
+#### Example Implementation
+
+```kotlin
+// ✅ RECOMMENDED: Screen/Content pattern
+
+// ProposalListScreen.kt - Stateful (Screen)
+@Composable
+fun ProposalListScreen(
+    categoryId: String,
+    categoryName: String,
+    viewModel: ProposalViewModel = koinViewModel { parametersOf(categoryId) },
+    onBack: () -> Unit,
+    onCreateProposal: () -> Unit
+) {
+    val proposals by viewModel.proposals.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
+    ProposalListContent(
+        categoryName = categoryName,
+        proposals = proposals,
+        isLoading = isLoading,
+        onBack = onBack,
+        onCreateProposal = onCreateProposal,
+        onVote = viewModel::vote
+    )
+}
+
+// ProposalListContent.kt - Stateless (Content)
+@Composable
+fun ProposalListContent(
+    categoryName: String,
+    proposals: List<ProposalWithUserVote>,
+    isLoading: Boolean,
+    onBack: () -> Unit,
+    onCreateProposal: () -> Unit,
+    onVote: (String, Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(categoryName) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                    }
+                }
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = onCreateProposal) {
+                Icon(Icons.Default.Add, "Create")
+            }
+        }
+    ) { paddingValues ->
+        if (isLoading) {
+            CircularProgressIndicator()
+        } else {
+            LazyColumn(modifier = Modifier.padding(paddingValues)) {
+                items(proposals) { proposal ->
+                    ProposalCard(
+                        proposal = proposal,
+                        onUpvote = { onVote(proposal.id, 1) },
+                        onDownvote = { onVote(proposal.id, -1) }
+                    )
+                }
+            }
+        }
+    }
+}
+```
+
+#### Benefits of Screen/Content Pattern
+
+1. **Testability**: Content composable can be tested without ViewModel
+2. **Previews**: Easy to create previews with sample data
+3. **Reusability**: Content can be reused in different contexts
+4. **Separation**: Clear boundary between state management and presentation
+5. **Navigation**: Screen handles navigation, Content is navigation-agnostic
+
+### Compose Previews
+
+**Always implement previews when creating composables** (when it makes sense). Previews help with:
+
+- Visual verification during development
+- Testing different states (loading, error, success)
+- Dark/light theme verification
+- Different screen sizes
+- Accessibility testing
+
+#### Preview Best Practices
+
+```kotlin
+// 1. Preview the stateless Content composable, not the stateful Screen
+@Preview(name = "Proposal List - Light")
+@Preview(name = "Proposal List - Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun ProposalListContentPreview() {
+    AppTheme {
+        ProposalListContent(
+            categoryName = "Economía",
+            proposals = listOf(
+                ProposalWithUserVote(
+                    proposal = Proposal(
+                        id = "1",
+                        title = "Reducir impuestos a las pequeñas empresas",
+                        categoryId = "eco",
+                        userId = "user1",
+                        upvotes = 42,
+                        downvotes = 5,
+                        createdAt = "2024-01-15T10:30:00Z"
+                    ),
+                    userVote = 1
+                ),
+                ProposalWithUserVote(
+                    proposal = Proposal(
+                        id = "2",
+                        title = "Aumentar salario mínimo",
+                        categoryId = "eco",
+                        userId = "user2",
+                        upvotes = 128,
+                        downvotes = 23,
+                        createdAt = "2024-01-14T15:20:00Z"
+                    ),
+                    userVote = 0
+                )
+            ),
+            isLoading = false,
+            onBack = {},
+            onCreateProposal = {},
+            onVote = { _, _ -> }
+        )
+    }
+}
+
+// 2. Preview different states
+@Preview(name = "Loading State")
+@Composable
+private fun ProposalListContentLoadingPreview() {
+    AppTheme {
+        ProposalListContent(
+            categoryName = "Economía",
+            proposals = emptyList(),
+            isLoading = true,
+            onBack = {},
+            onCreateProposal = {},
+            onVote = { _, _ -> }
+        )
+    }
+}
+
+// 3. Preview empty state
+@Preview(name = "Empty State")
+@Composable
+private fun ProposalListContentEmptyPreview() {
+    AppTheme {
+        ProposalListContent(
+            categoryName = "Economía",
+            proposals = emptyList(),
+            isLoading = false,
+            onBack = {},
+            onCreateProposal = {},
+            onVote = { _, _ -> }
+        )
+    }
+}
+```
+
+#### When to Create Previews
+
+✅ **Create previews for**:
+
+- Screen content composables (stateless versions)
+- Reusable UI components (cards, buttons, inputs)
+- Different states (loading, error, empty, success)
+- Complex layouts that need visual verification
+
+❌ **Skip previews for**:
+
+- Stateful Screen composables with ViewModels (preview Content instead)
+- Very simple composables (single Text or Icon)
+- Composables that require platform-specific dependencies
+
+#### Preview Sample Data
+
+Create a `SampleData.kt` file for reusable preview data:
+
+```kotlin
+// presentation/ui/preview/SampleData.kt
+object SampleData {
+    val sampleProposal = Proposal(
+        id = "1",
+        title = "Sample proposal title",
+        categoryId = "cat1",
+        userId = "user1",
+        upvotes = 42,
+        downvotes = 5,
+        createdAt = "2024-01-15T10:30:00Z"
+    )
+
+    val sampleProposals = listOf(
+        sampleProposal,
+        sampleProposal.copy(id = "2", title = "Another proposal", upvotes = 128)
+    )
+
+    val sampleCategory = Category(
+        id = "cat1",
+        name = "Economía",
+        icon = "💰",
+        description = "Propuestas sobre economía"
+    )
+}
+```
+
 ### Status Bar & System UI Management
 
 #### Android Edge-to-Edge Design

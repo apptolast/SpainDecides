@@ -11,7 +11,8 @@ import kotlinx.serialization.Serializable
  * proposal_votes table. Use [ProposalWithUserVote] for UI display.
  *
  * @property id Unique identifier for the proposal (UUID)
- * @property title The proposal text (10-150 characters)
+ * @property title Brief title of the proposal (10-100 characters)
+ * @property description Detailed description of the proposal (10-1000 characters)
  * @property categoryId ID of the category this proposal belongs to
  * @property userId ID of the user who created this proposal
  * @property upvotes Number of positive votes (automatically updated by database trigger)
@@ -22,6 +23,7 @@ import kotlinx.serialization.Serializable
 data class Proposal(
     val id: String,
     val title: String,
+    val description: String,
     @SerialName("category_id") val categoryId: String,
     @SerialName("user_id") val userId: String,
     val upvotes: Int = 0,

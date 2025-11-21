@@ -18,20 +18,19 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.apptolast.spaindecides.presentation.viewmodel.ProposalViewModel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -39,17 +38,20 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import spaindecides.composeapp.generated.resources.Res
 import spaindecides.composeapp.generated.resources.close
-import spaindecides.composeapp.generated.resources.create_proposal_category
-import spaindecides.composeapp.generated.resources.create_proposal_counter
-import spaindecides.composeapp.generated.resources.create_proposal_placeholder
+import spaindecides.composeapp.generated.resources.create_proposal_description_counter
+import spaindecides.composeapp.generated.resources.create_proposal_description_label
+import spaindecides.composeapp.generated.resources.create_proposal_description_placeholder
 import spaindecides.composeapp.generated.resources.create_proposal_publish
 import spaindecides.composeapp.generated.resources.create_proposal_title
+import spaindecides.composeapp.generated.resources.create_proposal_title_counter
+import spaindecides.composeapp.generated.resources.create_proposal_title_label
+import spaindecides.composeapp.generated.resources.create_proposal_title_placeholder
 
 /**
  * Create proposal screen - Form to create a new proposal.
  *
- * @param categoryId ID of the category to create the proposal in
- * @param categoryName Name of the category (for display)
+ * @param categoryId ID of the category to create the proposal in (UUID from database)
+ * @param categoryKey i18n key for resolving localized name (e.g., "economy", "health")
  * @param onClose Callback to close the screen
  * @param onProposalCreated Callback when proposal is successfully created
  * @param viewModel Proposal ViewModel (injected via Koin with categoryId parameter)
@@ -58,21 +60,30 @@ import spaindecides.composeapp.generated.resources.create_proposal_title
 @Composable
 fun CreateProposalScreen(
     categoryId: String,
-    categoryName: String,
+    categoryKey: String,
+    viewModel: ProposalViewModel = koinViewModel { parametersOf(categoryId) },
     onClose: () -> Unit,
     onProposalCreated: () -> Unit,
-    viewModel: ProposalViewModel = koinViewModel { parametersOf(categoryId) }
 ) {
-    val proposalText by viewModel.newProposalText.collectAsState()
-    val isCreating by viewModel.isCreating.collectAsState()
-    val error by viewModel.error.collectAsState()
+//    // Reconstruct minimal Category object for using extension functions
+//    val category = Category(
+//        id = categoryId,
+//        key = categoryKey,
+//        iconName = "", // Not needed for CreateProposalScreen
+//        sortOrder = 0  // Not needed for CreateProposalScreen
+//    )
+
+    val proposalTitle by viewModel.newProposalTitle.collectAsStateWithLifecycle()
+    val proposalDescription by viewModel.newProposalDescription.collectAsStateWithLifecycle()
+    val isCreating by viewModel.isCreating.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Clear text when screen is opened
+    // Clear fields when screen is opened
     LaunchedEffect(Unit) {
-        viewModel.clearNewProposalText()
+        viewModel.clearNewProposalFields()
     }
 
     Scaffold(
@@ -106,7 +117,7 @@ fun CreateProposalScreen(
                                 }
                             }
                         },
-                        enabled = !isCreating && proposalText.isNotBlank()
+                        enabled = !isCreating && proposalTitle.isNotBlank() && proposalDescription.isNotBlank()
                     ) {
                         Text(stringResource(Res.string.create_proposal_publish))
                     }
@@ -125,26 +136,81 @@ fun CreateProposalScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            // Category chip
-            Surface(
-                shape = MaterialTheme.shapes.small,
-                color = MaterialTheme.colorScheme.primaryContainer
-            ) {
-                Text(
-                    text = stringResource(Res.string.create_proposal_category, categoryName),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+//            // Category chip
+//            Surface(
+//                shape = MaterialTheme.shapes.small,
+//                color = MaterialTheme.colorScheme.primaryContainer
+//            ) {
+//                Text(
+//                    text = stringResource(
+//                        Res.string.create_proposal_category,
+//                        category.getLocalizedName()
+//                    ),
+//                    style = MaterialTheme.typography.labelMedium,
+//                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+//                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+//                )
+//            }
+//
+//            Spacer(modifier = Modifier.height(16.dp))
+
+            // Title label
+            Text(
+                text = stringResource(Res.string.create_proposal_title_label),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Title input field
+            OutlinedTextField(
+                value = proposalTitle,
+                onValueChange = viewModel::updateNewProposalTitle,
+                placeholder = { Text(stringResource(Res.string.create_proposal_title_placeholder)) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isCreating,
+                singleLine = true,
+                maxLines = 1,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
                 )
-            }
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Title character counter
+            Text(
+                text = stringResource(
+                    Res.string.create_proposal_title_counter,
+                    viewModel.titleCharacterCount
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = if (viewModel.titleCharacterCount > 100) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                modifier = Modifier.align(Alignment.End)
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Text field
+            // Description label
+            Text(
+                text = stringResource(Res.string.create_proposal_description_label),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Description input field
             OutlinedTextField(
-                value = proposalText,
-                onValueChange = viewModel::updateNewProposalText,
-                placeholder = { Text(stringResource(Res.string.create_proposal_placeholder)) },
+                value = proposalDescription,
+                onValueChange = viewModel::updateNewProposalDescription,
+                placeholder = { Text(stringResource(Res.string.create_proposal_description_placeholder)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
@@ -155,13 +221,16 @@ fun CreateProposalScreen(
                 )
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-            // Character counter
+            // Description character counter
             Text(
-                text = stringResource(Res.string.create_proposal_counter, viewModel.characterCount),
+                text = stringResource(
+                    Res.string.create_proposal_description_counter,
+                    viewModel.descriptionCharacterCount
+                ),
                 style = MaterialTheme.typography.bodySmall,
-                color = if (viewModel.characterCount > 150) {
+                color = if (viewModel.descriptionCharacterCount > 1000) {
                     MaterialTheme.colorScheme.error
                 } else {
                     MaterialTheme.colorScheme.onSurfaceVariant
