@@ -25,7 +25,7 @@ import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
  */
 @Composable
 fun App() {
-    SpainDecidesTheme(darkTheme = false) {
+    SpainDecidesTheme {
         val navController = rememberNavController()
 
         NavHost(
