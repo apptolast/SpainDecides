@@ -19,7 +19,7 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    
+
     listOf(
         iosArm64(),
         iosSimulatorArm64()
@@ -29,7 +29,7 @@ kotlin {
             isStatic = true
         }
     }
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(compose.preview)
@@ -104,6 +104,31 @@ android {
     namespace = "com.apptolast.spaindecides"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
+    // Read signing properties from local.properties
+    val localProperties = Properties().apply {
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            load(localPropertiesFile.inputStream())
+        }
+    }
+
+    // Signing configurations for release builds
+    signingConfigs {
+        create("release") {
+            // Read signing credentials from local.properties
+            val storeFilePath = localProperties.getProperty("signing.storeFile")
+            if (storeFilePath != null) {
+                storeFile = file(storeFilePath)
+                storePassword = localProperties.getProperty("signing.storePassword")
+                keyAlias = localProperties.getProperty("signing.keyAlias")
+                keyPassword = localProperties.getProperty("signing.keyPassword")
+            } else {
+                // Log warning if signing properties are not found
+                logger.warn("⚠️  Signing properties not found in local.properties. Release builds will not be signed.")
+            }
+        }
+    }
+
     defaultConfig {
         applicationId = "com.apptolast.spaindecides"
         minSdk = libs.versions.android.minSdk.get().toInt()
@@ -118,7 +143,19 @@ android {
     }
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            // Enable code shrinking, obfuscation, and optimization
+//            isMinifyEnabled = true
+//            isShrinkResources = true
+            isDebuggable = true
+
+            // Apply ProGuard rules
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+
+            // Apply signing configuration
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
