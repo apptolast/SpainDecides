@@ -136,7 +136,8 @@ class AuthViewModel(
 
         val result = authRepository.signUpWithEmail(
             email = email.value.trim(),
-            password = password.value
+            password = password.value,
+            fullName = name.value.trim()
         )
 
         isLoading.value = false
@@ -154,20 +155,22 @@ class AuthViewModel(
     }
 
     /**
-     * Performs Google sign-in using Supabase OAuth
-     * This is called after the OAuth flow completes
+     * Deletes the current user account permanently
      * Returns true if successful, false otherwise
      */
-    suspend fun signInWithGoogle(): Boolean {
+    suspend fun deleteAccount(): Boolean {
+        // Immediately set state to Unauthenticated to prevent observer race condition
+        authState.value = AuthState.Unauthenticated
         isLoading.value = true
         clearMessages()
 
-        val result = authRepository.signInWithGoogle()
+        val result = authRepository.deleteAccount()
 
         isLoading.value = false
 
         return result.fold(
             onSuccess = {
+                clearForm()
                 true
             },
             onFailure = { exception ->
@@ -190,6 +193,7 @@ class AuthViewModel(
         clearForm()
         isLoading.value = false
     }
+
 
     /**
      * Sends password reset email

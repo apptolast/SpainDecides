@@ -11,12 +11,14 @@ import com.apptolast.spaindecides.navigation.LoginRoute
 import com.apptolast.spaindecides.navigation.ProposalDetailRoute
 import com.apptolast.spaindecides.navigation.ProposalListRoute
 import com.apptolast.spaindecides.navigation.RegisterRoute
+import com.apptolast.spaindecides.navigation.SettingsRoute
 import com.apptolast.spaindecides.presentation.ui.screens.auth.LoginScreen
 import com.apptolast.spaindecides.presentation.ui.screens.auth.RegisterScreen
 import com.apptolast.spaindecides.presentation.ui.screens.home.CategoriesScreen
 import com.apptolast.spaindecides.presentation.ui.screens.proposals.CreateProposalScreen
 import com.apptolast.spaindecides.presentation.ui.screens.proposals.ProposalDetailScreen
 import com.apptolast.spaindecides.presentation.ui.screens.proposals.ProposalListScreen
+import com.apptolast.spaindecides.presentation.ui.screens.settings.SettingsScreen
 import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 
 /**
@@ -75,11 +77,8 @@ fun App() {
                             )
                         )
                     },
-                    onLogout = {
-                        navController.navigate(LoginRoute()) {
-                            // Clear all backstack so user can't go back after logout
-                            popUpTo(0) { inclusive = true }
-                        }
+                    onNavigateToSettings = {
+                        navController.navigate(SettingsRoute)
                     }
                 )
             }
@@ -137,6 +136,21 @@ fun App() {
                     categoryKey = route.categoryKey,
                     onBack = {
                         navController.popBackStack()
+                    }
+                )
+            }
+
+            // Settings screen
+            composable<SettingsRoute> {
+                SettingsScreen(
+                    onBack = {
+                        navController.popBackStack()
+                    },
+                    onLogoutSuccess = {
+                        navController.navigate(LoginRoute()) {
+                            // Clear all backstack so user can't go back after logout
+                            popUpTo(0) { inclusive = true }
+                        }
                     }
                 )
             }

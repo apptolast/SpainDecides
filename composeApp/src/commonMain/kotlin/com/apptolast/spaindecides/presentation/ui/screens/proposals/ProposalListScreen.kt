@@ -150,7 +150,10 @@ fun ProposalListScreen(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(proposals) { proposal ->
+                    items(
+                        items = proposals,
+                        key = { proposal -> proposal.id }
+                    ) { proposal ->
                         ProposalCard(
                             proposal = proposal,
                             onUpvote = {
@@ -163,7 +166,8 @@ fun ProposalListScreen(
                             },
                             onCardClick = {
                                 onProposalClick(proposal.id)
-                            }
+                            },
+                            modifier = Modifier.animateItem()
                         )
                     }
                 }

@@ -64,3 +64,9 @@ data class ProposalDetailRoute(
     val categoryId: String,
     val categoryKey: String
 ) : Route
+
+/**
+ * Settings screen route
+ */
+@Serializable
+object SettingsRoute : Route
