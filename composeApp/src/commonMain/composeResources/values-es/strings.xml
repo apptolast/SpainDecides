@@ -112,4 +112,24 @@
     <string name="retry">Reintentar</string>
     <string name="settings">Configuración</string>
     <string name="logout">Cerrar Sesión</string>
+
+    <!-- Pantalla de Configuración -->
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_user_name_label">Nombre</string>
+    <string name="settings_email_label">Correo Electrónico</string>
+    <string name="settings_logout_button">Cerrar Sesión</string>
+    <string name="settings_delete_account_button">Eliminar Cuenta</string>
+
+    <!-- Diálogos de Configuración -->
+    <string name="settings_logout_dialog_title">Cerrar Sesión</string>
+    <string name="settings_logout_dialog_message">¿Estás seguro de que quieres cerrar sesión?</string>
+    <string name="settings_logout_confirm">Cerrar Sesión</string>
+    <string name="settings_logout_cancel">Cancelar</string>
+
+    <string name="settings_delete_account_dialog_title">Eliminar Cuenta</string>
+    <string name="settings_delete_account_dialog_message">¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer y se eliminarán todos tus datos permanentemente.</string>
+    <string name="settings_delete_account_confirm">Eliminar Cuenta</string>
+    <string name="settings_delete_account_cancel">Cancelar</string>
+    <string name="settings_delete_account_success">Cuenta eliminada exitosamente</string>
+    <string name="settings_delete_account_error">Error al eliminar la cuenta. Por favor, inténtalo de nuevo.</string>
 </resources>
