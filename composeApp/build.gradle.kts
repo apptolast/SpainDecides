@@ -148,9 +148,8 @@ android {
     buildTypes {
         getByName("release") {
             // Enable code shrinking, obfuscation, and optimization
-//            isMinifyEnabled = true
-//            isShrinkResources = true
-            isDebuggable = true
+            isMinifyEnabled = true
+            isShrinkResources = true
 
             // Apply ProGuard rules
             proguardFiles(
