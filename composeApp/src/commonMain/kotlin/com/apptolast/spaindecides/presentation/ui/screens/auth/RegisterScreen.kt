@@ -43,7 +43,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.apptolast.spaindecides.presentation.viewmodel.AuthViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -218,10 +217,7 @@ fun RegisterScreen(
                     scope.launch {
                         val success = viewModel.register()
                         if (success) {
-                            // Show success snackbar
-                            snackbarHostState.showSnackbar(successMessageText)
-                            // Wait 2 seconds then navigate to login
-                            delay(2000)
+                            // Navigate to login with success message (LoginScreen will show the snackbar)
                             onRegisterSuccess(successMessageText)
                         }
                     }

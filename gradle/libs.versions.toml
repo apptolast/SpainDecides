@@ -20,6 +20,7 @@ ktor = "3.3.2"
 supabase = "3.2.6"
 kvault = "1.12.0"
 buildkonfig = "0.17.1"
+coil = "3.3.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -69,6 +70,10 @@ supabase-realtime = { module = "io.github.jan-tennert.supabase:realtime-kt" }
 
 # Secure Storage
 kvault = { module = "com.liftric:kvault", version.ref = "kvault" }
+
+# Coil - Image Loading
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

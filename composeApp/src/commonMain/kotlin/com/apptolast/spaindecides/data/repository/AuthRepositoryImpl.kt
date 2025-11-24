@@ -13,6 +13,10 @@ import io.github.jan.supabase.auth.user.UserInfo
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.time.ExperimentalTime
 
 /**
@@ -24,7 +28,11 @@ class AuthRepositoryImpl(
 
     private val auth = SupabaseClientConfig.client.auth
 
-    override suspend fun signUpWithEmail(email: String, password: String): Result<Unit> {
+    override suspend fun signUpWithEmail(
+        email: String,
+        password: String,
+        fullName: String
+    ): Result<Unit> {
         return try {
             // Create the user account in Supabase
             // When email confirmation is enabled (default), Supabase will:
@@ -34,6 +42,13 @@ class AuthRepositoryImpl(
             auth.signUpWith(Email) {
                 this.email = email
                 this.password = password
+                // Store full name in user metadata
+                // This will be accessible via user.userMetadata["full_name"]
+                data = JsonObject(
+                    buildMap {
+                        put("full_name", JsonPrimitive(fullName))
+                    }
+                )
             }
 
             // Return success immediately - user will receive confirmation email
@@ -94,13 +109,6 @@ class AuthRepositoryImpl(
 
     override suspend fun deleteAccount(): Result<Unit> {
         return try {
-
-            // IMPORTANT: Sign out FIRST to prevent race condition
-            // This closes the session immediately so the auth observer doesn't
-            // detect the user as authenticated while the deletion RPC is processing
-            auth.signOut(scope = SignOutScope.GLOBAL)
-            secureStorage.clear()
-
             // Delete the current user from Supabase Auth
             // Calls the 'delete_own_account' SQL function created in Supabase.
             //
@@ -119,7 +127,15 @@ class AuthRepositoryImpl(
             // admin privileges even when called by a regular user.
             // auth.uid() returns the currently authenticated user's ID,
             // ensuring users can only delete their own account.
+            //
+            // IMPORTANT: This RPC call MUST happen BEFORE signOut()
+            // because auth.uid() needs an active session to return the user ID.
             client.postgrest.rpc("delete_own_account")
+
+            // Sign out AFTER deletion to clean up the session
+            // Use GLOBAL scope to clear ALL sessions including Supabase's internal storage
+            auth.signOut(scope = SignOutScope.GLOBAL)
+            secureStorage.clear()
 
             Result.success(Unit)
         } catch (e: Exception) {
@@ -135,8 +151,8 @@ class AuthRepositoryImpl(
         return AuthUser(
             id = id,
             email = email ?: "",
-            displayName = userMetadata?.get("full_name")?.toString(),
-            photoUrl = userMetadata?.get("avatar_url")?.toString(),
+            displayName = userMetadata?.get("full_name")?.jsonPrimitive?.contentOrNull,
+            photoUrl = userMetadata?.get("avatar_url")?.jsonPrimitive?.contentOrNull,
             emailVerified = emailConfirmedAt != null
         )
     }

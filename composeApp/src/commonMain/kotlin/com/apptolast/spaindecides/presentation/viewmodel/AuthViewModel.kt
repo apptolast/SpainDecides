@@ -136,7 +136,8 @@ class AuthViewModel(
 
         val result = authRepository.signUpWithEmail(
             email = email.value.trim(),
-            password = password.value
+            password = password.value,
+            fullName = name.value.trim()
         )
 
         isLoading.value = false

@@ -88,6 +88,10 @@ kotlin {
 
             // Secure Storage
             implementation(libs.kvault)
+
+            // Coil - Image Loading
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

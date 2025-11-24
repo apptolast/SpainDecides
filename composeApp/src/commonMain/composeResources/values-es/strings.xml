@@ -132,4 +132,8 @@
     <string name="settings_delete_account_cancel">Cancelar</string>
     <string name="settings_delete_account_success">Cuenta eliminada exitosamente</string>
     <string name="settings_delete_account_error">Error al eliminar la cuenta. Por favor, inténtalo de nuevo.</string>
+
+    <!-- Mensajes de Carga -->
+    <string name="loading_signing_out">Cerrando sesión...</string>
+    <string name="loading_deleting_account">Eliminando cuenta...</string>
 </resources>
