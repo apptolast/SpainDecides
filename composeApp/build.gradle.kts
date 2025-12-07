@@ -140,13 +140,53 @@ android {
         versionCode = 2
         versionName = "1.0.1"
     }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
     buildTypes {
+        getByName("debug") {
+            buildConfigField(
+                "String",
+                "SUPABASE_URL",
+                "\"${localProperties.getProperty("SUPABASE_URL_DEBUG") ?: localProperties.getProperty("SUPABASE_URL") ?: ""}\""
+            )
+            buildConfigField(
+                "String",
+                "SUPABASE_ANON_KEY",
+                "\"${localProperties.getProperty("SUPABASE_ANON_KEY_DEBUG") ?: localProperties.getProperty("SUPABASE_ANON_KEY") ?: ""}\""
+            )
+            buildConfigField(
+                "String",
+                "GOOGLE_WEB_CLIENT_ID",
+                "\"${localProperties.getProperty("GOOGLE_WEB_CLIENT_ID_DEBUG") ?: localProperties.getProperty("GOOGLE_WEB_CLIENT_ID") ?: ""}\""
+            )
+        }
+
         getByName("release") {
+            buildConfigField(
+                "String",
+                "SUPABASE_URL",
+                "\"${localProperties.getProperty("SUPABASE_URL_RELEASE") ?: localProperties.getProperty("SUPABASE_URL") ?: ""}\""
+            )
+            buildConfigField(
+                "String",
+                "SUPABASE_ANON_KEY",
+                "\"${localProperties.getProperty("SUPABASE_ANON_KEY_RELEASE") ?: localProperties.getProperty("SUPABASE_ANON_KEY") ?: ""}\""
+            )
+            buildConfigField(
+                "String",
+                "GOOGLE_WEB_CLIENT_ID",
+                "\"${localProperties.getProperty("GOOGLE_WEB_CLIENT_ID_RELEASE") ?: localProperties.getProperty("GOOGLE_WEB_CLIENT_ID") ?: ""}\""
+            )
+
             // Enable code shrinking, obfuscation, and optimization
             isMinifyEnabled = true
             isShrinkResources = true
