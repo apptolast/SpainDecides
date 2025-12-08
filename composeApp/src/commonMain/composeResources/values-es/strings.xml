@@ -136,4 +136,14 @@
     <!-- Mensajes de Carga -->
     <string name="loading_signing_out">Cerrando sesión...</string>
     <string name="loading_deleting_account">Eliminando cuenta...</string>
+
+    <!-- Reportar Contenido -->
+    <string name="report_content">Reportar contenido inapropiado</string>
+    <string name="report_dialog_title">Reportar Contenido</string>
+    <string name="report_dialog_proposal">Propuesta: %1$s</string>
+    <string name="report_dialog_select_reason">Selecciona el motivo del reporte:</string>
+    <string name="report_submit">Enviar Reporte</string>
+    <string name="report_cancel">Cancelar</string>
+    <string name="report_success">Reporte enviado correctamente. Gracias por ayudar a mantener nuestra comunidad segura.</string>
+    <string name="report_error">Error al enviar el reporte. Por favor, inténtalo de nuevo.</string>
 </resources>

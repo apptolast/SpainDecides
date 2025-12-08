@@ -11,6 +11,32 @@ plugins {
     alias(libs.plugins.buildkonfig)
 }
 
+// =============================================================================
+// Local Properties - Single load for reuse across the entire build script
+// =============================================================================
+val localProperties: Properties by lazy {
+    Properties().apply {
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.inputStream().use { load(it) }
+        }
+    }
+}
+
+// Helper function to get property with Debug/Release fallback
+fun Properties.getPropertyWithFallback(baseName: String, isRelease: Boolean): String {
+    val suffix = if (isRelease) "_RELEASE" else "_DEBUG"
+    return getProperty("$baseName$suffix") ?: getProperty(baseName) ?: ""
+}
+
+// Determine if this is a release build based on Gradle task names
+val isReleaseBuild: Boolean by lazy {
+    gradle.startParameter.taskNames.any { task ->
+        task.contains("release", ignoreCase = true) ||
+                task.contains("Release")
+    }
+}
+
 kotlin {
     compilerOptions.freeCompilerArgs.add("-Xexpect-actual-classes")
 
@@ -108,14 +134,6 @@ android {
     namespace = "com.apptolast.spaindecides"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
-    // Read signing properties from local.properties
-    val localProperties = Properties().apply {
-        val localPropertiesFile = rootProject.file("local.properties")
-        if (localPropertiesFile.exists()) {
-            load(localPropertiesFile.inputStream())
-        }
-    }
-
     // Signing configurations for release builds
     signingConfigs {
         create("release") {
@@ -147,46 +165,17 @@ android {
         }
     }
 
+    // Disable Android BuildConfig generation - we use BuildKonfig instead
     buildFeatures {
-        buildConfig = true
+        buildConfig = false
     }
 
     buildTypes {
         getByName("debug") {
-            buildConfigField(
-                "String",
-                "SUPABASE_URL",
-                "\"${localProperties.getProperty("SUPABASE_URL_DEBUG") ?: localProperties.getProperty("SUPABASE_URL") ?: ""}\""
-            )
-            buildConfigField(
-                "String",
-                "SUPABASE_ANON_KEY",
-                "\"${localProperties.getProperty("SUPABASE_ANON_KEY_DEBUG") ?: localProperties.getProperty("SUPABASE_ANON_KEY") ?: ""}\""
-            )
-            buildConfigField(
-                "String",
-                "GOOGLE_WEB_CLIENT_ID",
-                "\"${localProperties.getProperty("GOOGLE_WEB_CLIENT_ID_DEBUG") ?: localProperties.getProperty("GOOGLE_WEB_CLIENT_ID") ?: ""}\""
-            )
+            // Debug-specific configuration (no buildConfigField - handled by BuildKonfig)
         }
 
         getByName("release") {
-            buildConfigField(
-                "String",
-                "SUPABASE_URL",
-                "\"${localProperties.getProperty("SUPABASE_URL_RELEASE") ?: localProperties.getProperty("SUPABASE_URL") ?: ""}\""
-            )
-            buildConfigField(
-                "String",
-                "SUPABASE_ANON_KEY",
-                "\"${localProperties.getProperty("SUPABASE_ANON_KEY_RELEASE") ?: localProperties.getProperty("SUPABASE_ANON_KEY") ?: ""}\""
-            )
-            buildConfigField(
-                "String",
-                "GOOGLE_WEB_CLIENT_ID",
-                "\"${localProperties.getProperty("GOOGLE_WEB_CLIENT_ID_RELEASE") ?: localProperties.getProperty("GOOGLE_WEB_CLIENT_ID") ?: ""}\""
-            )
-
             // Enable code shrinking, obfuscation, and optimization
             isMinifyEnabled = true
             isShrinkResources = true
@@ -211,31 +200,48 @@ dependencies {
     debugImplementation(compose.uiTooling)
 }
 
-/**
- * BuildKonfig configuration
- * Reads sensitive credentials from local.properties and makes them available via BuildKonfig
- */
+// =============================================================================
+// BuildKonfig Configuration
+// Centralizes all API keys and secrets for commonMain (cross-platform)
+// =============================================================================
 buildkonfig {
     packageName = "com.apptolast.spaindecides"
 
-    // Read from local.properties
-    val localProperties = Properties()
-    val localPropertiesFile = rootProject.file("local.properties")
-    if (localPropertiesFile.exists()) {
-        localPropertiesFile.inputStream().use { localProperties.load(it) }
-    }
-
     defaultConfigs {
-        buildConfigField(STRING, "SUPABASE_URL", localProperties.getProperty("SUPABASE_URL", ""))
+        // Supabase Configuration
         buildConfigField(
             STRING,
-            "SUPABASE_ANON_KEY",
-            localProperties.getProperty("SUPABASE_ANON_KEY", "")
+            "SUPABASE_URL",
+            localProperties.getPropertyWithFallback("SUPABASE_URL", isReleaseBuild)
         )
         buildConfigField(
             STRING,
+            "SUPABASE_ANON_KEY",
+            localProperties.getPropertyWithFallback("SUPABASE_ANON_KEY", isReleaseBuild)
+        )
+
+        // Google OAuth Configuration
+        buildConfigField(
+            STRING,
             "GOOGLE_WEB_CLIENT_ID",
-            localProperties.getProperty("GOOGLE_WEB_CLIENT_ID", "")
+            localProperties.getPropertyWithFallback("GOOGLE_WEB_CLIENT_ID", isReleaseBuild)
+        )
+
+        // EmailJS Configuration (for content reporting)
+        buildConfigField(
+            STRING,
+            "EMAILJS_SERVICE_ID",
+            localProperties.getProperty("EMAILJS_SERVICE_ID", "")
+        )
+        buildConfigField(
+            STRING,
+            "EMAILJS_TEMPLATE_ID",
+            localProperties.getProperty("EMAILJS_TEMPLATE_ID", "")
+        )
+        buildConfigField(
+            STRING,
+            "EMAILJS_PUBLIC_KEY",
+            localProperties.getProperty("EMAILJS_PUBLIC_KEY", "")
         )
     }
 }

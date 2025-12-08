@@ -136,4 +136,14 @@
     <!-- Loading Messages -->
     <string name="loading_signing_out">Signing out...</string>
     <string name="loading_deleting_account">Deleting account...</string>
+
+    <!-- Report Content -->
+    <string name="report_content">Report inappropriate content</string>
+    <string name="report_dialog_title">Report Content</string>
+    <string name="report_dialog_proposal">Proposal: %1$s</string>
+    <string name="report_dialog_select_reason">Select the reason for reporting:</string>
+    <string name="report_submit">Submit Report</string>
+    <string name="report_cancel">Cancel</string>
+    <string name="report_success">Report submitted successfully. Thank you for helping keep our community safe.</string>
+    <string name="report_error">Failed to submit report. Please try again.</string>
 </resources>
