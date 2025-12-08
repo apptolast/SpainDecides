@@ -7,6 +7,7 @@ import com.apptolast.spaindecides.domain.model.AuthUser
 import com.apptolast.spaindecides.domain.repository.AuthRepository
 import io.github.jan.supabase.auth.SignOutScope
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.auth.status.SessionStatus
 import io.github.jan.supabase.auth.user.UserInfo
@@ -68,6 +69,18 @@ class AuthRepositoryImpl(
 
             val user = auth.currentUserOrNull()?.toAuthUser()
             user?.let { Result.success(it) } ?: Result.failure(Exception("Sign in failed"))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun signInWithGoogle(): Result<Unit> {
+        return try {
+            // This opens Safari/browser for OAuth flow on iOS
+            // The redirect URL is automatically constructed from Auth config:
+            // scheme://host (e.g., com.apptolast.spaindecides://auth-callback)
+            auth.signInWith(Google)
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }

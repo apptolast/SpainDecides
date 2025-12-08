@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -36,6 +37,7 @@ import spaindecides.composeapp.generated.resources.proposal_show_less
 import spaindecides.composeapp.generated.resources.proposal_show_more
 import spaindecides.composeapp.generated.resources.proposal_vote_down
 import spaindecides.composeapp.generated.resources.proposal_vote_up
+import spaindecides.composeapp.generated.resources.report_content
 
 /**
  * Card component for displaying a proposal with voting buttons and expandable description.
@@ -44,6 +46,7 @@ import spaindecides.composeapp.generated.resources.proposal_vote_up
  * @param onUpvote Callback when upvote is clicked
  * @param onDownvote Callback when downvote is clicked
  * @param onCardClick Callback when the card is clicked (navigates to detail screen)
+ * @param onReportClick Callback when report button is clicked
  * @param modifier Optional modifier
  */
 @Composable
@@ -52,6 +55,7 @@ fun ProposalCard(
     onUpvote: () -> Unit,
     onDownvote: () -> Unit,
     onCardClick: () -> Unit,
+    onReportClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // State for expansion (3 lines -> 6 lines)
@@ -135,14 +139,34 @@ fun ProposalCard(
                     .weight(1f)
                     .animateContentSize()
             ) {
-                // Proposal title
-                Text(
-                    text = proposal.title,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                // Header row with title and report button
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    // Proposal title
+                    Text(
+                        text = proposal.title,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    // Report button
+                    IconButton(
+                        onClick = onReportClick,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Flag,
+                            contentDescription = stringResource(Res.string.report_content),
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.padding(top = 4.dp))
 

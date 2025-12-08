@@ -11,6 +11,40 @@ plugins {
     alias(libs.plugins.buildkonfig)
 }
 
+// =============================================================================
+// Local Properties - Single load for reuse across the entire build script
+// =============================================================================
+val localProperties: Properties by lazy {
+    Properties().apply {
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.inputStream().use { load(it) }
+        }
+    }
+}
+
+// Helper function to get property with Debug/Release fallback
+fun Properties.getPropertyWithFallback(baseName: String, isRelease: Boolean): String {
+    val suffix = if (isRelease) "_RELEASE" else "_DEBUG"
+    return getProperty("$baseName$suffix") ?: getProperty(baseName) ?: ""
+}
+
+// Determine if this is a release build based on Gradle task names
+val isReleaseBuild: Boolean by lazy {
+    // 1. Detección para Android (basada en tareas)
+    val androidRelease = gradle.startParameter.taskNames.any {
+        it.contains("release", ignoreCase = true) || it.contains("Release")
+    }
+
+    // 2. Detección para iOS (basada en lo que Xcode nos envía)
+    // Cuando Xcode compila, envía la propiedad XCODE_CONFIGURATION (ej: "Debug" o "Release")
+    val xcodeConfig = project.findProperty("XCODE_CONFIGURATION") as? String ?: "Debug"
+    val iosRelease = xcodeConfig.equals("Release", ignoreCase = true)
+
+    // Es release si cualquiera de los dos dice que es release
+    androidRelease || iosRelease
+}
+
 kotlin {
     compilerOptions.freeCompilerArgs.add("-Xexpect-actual-classes")
 
@@ -106,15 +140,7 @@ kotlin {
 
 android {
     namespace = "com.apptolast.spaindecides"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-    // Read signing properties from local.properties
-    val localProperties = Properties().apply {
-        val localPropertiesFile = rootProject.file("local.properties")
-        if (localPropertiesFile.exists()) {
-            load(localPropertiesFile.inputStream())
-        }
-    }
+    compileSdkVersion(libs.versions.android.compileSdk.get().toInt())
 
     // Signing configurations for release builds
     signingConfigs {
@@ -137,15 +163,51 @@ android {
         applicationId = "com.apptolast.spaindecides"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.1.0"
     }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    // 1. Define una dimensión (categoría) para tus flavors
+    flavorDimensions.add("environment")
+
+    productFlavors {
+        // 2. Flavor de desarrollo
+        create("dev") {
+            dimension = "environment"
+            // Esto añade .dev al final de tu applicationId base
+            // Resultado: com.apptolast.spaindecides.dev
+            applicationIdSuffix = ".dev"
+
+            // Opcional: Cambiar el nombre de la app para distinguirla en el launcher
+            resValue("string", "app_name", "España Decide (DEV)")
+
+            // Opcional: poner un sufijo a la versión
+            versionNameSuffix = "-dev"
+        }
+
+        create("prod") {
+            dimension = "environment"
+            // No añadimos sufijo, se queda con el original
+            resValue("string", "app_name", "Spain Decides")
+        }
+    }
+
+    // Disable Android BuildConfig generation - we use BuildKonfig instead
+    buildFeatures {
+        buildConfig = false
+    }
+
     buildTypes {
+        getByName("debug") {
+            // Debug-specific configuration (no buildConfigField - handled by BuildKonfig)
+        }
+
         getByName("release") {
             // Enable code shrinking, obfuscation, and optimization
             isMinifyEnabled = true
@@ -161,6 +223,7 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -171,31 +234,48 @@ dependencies {
     debugImplementation(compose.uiTooling)
 }
 
-/**
- * BuildKonfig configuration
- * Reads sensitive credentials from local.properties and makes them available via BuildKonfig
- */
+// =============================================================================
+// BuildKonfig Configuration
+// Centralizes all API keys and secrets for commonMain (cross-platform)
+// =============================================================================
 buildkonfig {
     packageName = "com.apptolast.spaindecides"
 
-    // Read from local.properties
-    val localProperties = Properties()
-    val localPropertiesFile = rootProject.file("local.properties")
-    if (localPropertiesFile.exists()) {
-        localPropertiesFile.inputStream().use { localProperties.load(it) }
-    }
-
     defaultConfigs {
-        buildConfigField(STRING, "SUPABASE_URL", localProperties.getProperty("SUPABASE_URL", ""))
+        // Supabase Configuration
         buildConfigField(
             STRING,
-            "SUPABASE_ANON_KEY",
-            localProperties.getProperty("SUPABASE_ANON_KEY", "")
+            "SUPABASE_URL",
+            localProperties.getPropertyWithFallback("SUPABASE_URL", isReleaseBuild)
         )
         buildConfigField(
             STRING,
+            "SUPABASE_ANON_KEY",
+            localProperties.getPropertyWithFallback("SUPABASE_ANON_KEY", isReleaseBuild)
+        )
+
+        // Google OAuth Configuration
+        buildConfigField(
+            STRING,
             "GOOGLE_WEB_CLIENT_ID",
-            localProperties.getProperty("GOOGLE_WEB_CLIENT_ID", "")
+            localProperties.getPropertyWithFallback("GOOGLE_WEB_CLIENT_ID", isReleaseBuild)
+        )
+
+        // EmailJS Configuration (for content reporting)
+        buildConfigField(
+            STRING,
+            "EMAILJS_SERVICE_ID",
+            localProperties.getProperty("EMAILJS_SERVICE_ID", "")
+        )
+        buildConfigField(
+            STRING,
+            "EMAILJS_TEMPLATE_ID",
+            localProperties.getProperty("EMAILJS_TEMPLATE_ID", "")
+        )
+        buildConfigField(
+            STRING,
+            "EMAILJS_PUBLIC_KEY",
+            localProperties.getProperty("EMAILJS_PUBLIC_KEY", "")
         )
     }
 }

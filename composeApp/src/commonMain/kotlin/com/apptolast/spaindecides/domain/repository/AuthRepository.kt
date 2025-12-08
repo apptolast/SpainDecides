@@ -25,6 +25,13 @@ interface AuthRepository {
     suspend fun signInWithEmail(email: String, password: String): Result<AuthUser>
 
     /**
+     * Sign in with Google OAuth (for iOS - opens Safari)
+     * This initiates the OAuth flow and redirects to the callback URL.
+     * The session will be created when the deep link is handled.
+     */
+    suspend fun signInWithGoogle(): Result<Unit>
+
+    /**
      * Sign out the current user
      */
     suspend fun signOut(): Result<Unit>

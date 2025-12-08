@@ -155,6 +155,28 @@ class AuthViewModel(
     }
 
     /**
+     * Sign in with Google OAuth (for iOS - opens Safari)
+     * On Android, use the native Google Sign-In via ComposeAuth.
+     * Returns true if the OAuth flow was initiated successfully.
+     */
+    suspend fun signInWithGoogle(): Boolean {
+        isLoading.value = true
+        clearMessages()
+
+        val result = authRepository.signInWithGoogle()
+
+        isLoading.value = false
+
+        return result.fold(
+            onSuccess = { true },
+            onFailure = { exception ->
+                errorMessage.value = AuthErrorMapper.mapError(exception)
+                false
+            }
+        )
+    }
+
+    /**
      * Deletes the current user account permanently
      * Returns true if successful, false otherwise
      */
