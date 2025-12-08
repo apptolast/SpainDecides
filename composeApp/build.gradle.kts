@@ -31,10 +31,18 @@ fun Properties.getPropertyWithFallback(baseName: String, isRelease: Boolean): St
 
 // Determine if this is a release build based on Gradle task names
 val isReleaseBuild: Boolean by lazy {
-    gradle.startParameter.taskNames.any { task ->
-        task.contains("release", ignoreCase = true) ||
-                task.contains("Release")
+    // 1. Detección para Android (basada en tareas)
+    val androidRelease = gradle.startParameter.taskNames.any {
+        it.contains("release", ignoreCase = true) || it.contains("Release")
     }
+
+    // 2. Detección para iOS (basada en lo que Xcode nos envía)
+    // Cuando Xcode compila, envía la propiedad XCODE_CONFIGURATION (ej: "Debug" o "Release")
+    val xcodeConfig = project.findProperty("XCODE_CONFIGURATION") as? String ?: "Debug"
+    val iosRelease = xcodeConfig.equals("Release", ignoreCase = true)
+
+    // Es release si cualquiera de los dos dice que es release
+    androidRelease || iosRelease
 }
 
 kotlin {
@@ -132,7 +140,7 @@ kotlin {
 
 android {
     namespace = "com.apptolast.spaindecides"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
+    compileSdkVersion(libs.versions.android.compileSdk.get().toInt())
 
     // Signing configurations for release builds
     signingConfigs {
@@ -155,13 +163,38 @@ android {
         applicationId = "com.apptolast.spaindecides"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.1.0"
     }
 
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+
+    // 1. Define una dimensión (categoría) para tus flavors
+    flavorDimensions.add("environment")
+
+    productFlavors {
+        // 2. Flavor de desarrollo
+        create("dev") {
+            dimension = "environment"
+            // Esto añade .dev al final de tu applicationId base
+            // Resultado: com.apptolast.spaindecides.dev
+            applicationIdSuffix = ".dev"
+
+            // Opcional: Cambiar el nombre de la app para distinguirla en el launcher
+            resValue("string", "app_name", "España Decide (DEV)")
+
+            // Opcional: poner un sufijo a la versión
+            versionNameSuffix = "-dev"
+        }
+
+        create("prod") {
+            dimension = "environment"
+            // No añadimos sufijo, se queda con el original
+            resValue("string", "app_name", "Spain Decides")
         }
     }
 
@@ -190,6 +223,7 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11

@@ -49,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.apptolast.spaindecides.data.remote.SupabaseClientConfig
 import com.apptolast.spaindecides.presentation.viewmodel.AuthState
 import com.apptolast.spaindecides.presentation.viewmodel.AuthViewModel
+import com.apptolast.spaindecides.util.isIOS
 import io.github.jan.supabase.compose.auth.composable.NativeSignInResult
 import io.github.jan.supabase.compose.auth.composable.rememberSignInWithGoogle
 import io.github.jan.supabase.compose.auth.composeAuth
@@ -101,34 +102,39 @@ fun LoginScreen(
     // Resolve string resources (must be done in @Composable context)
     val googleSignInErrorText = stringResource(Res.string.error_google_signin)
 
-    // Google Sign-In
-    val googleSignInState = SupabaseClientConfig.client.composeAuth.rememberSignInWithGoogle(
-        onResult = { result ->
-            scope.launch {
-                when (result) {
-                    is NativeSignInResult.Success -> {
-                        // User successfully signed in with Google
-                        onLoginSuccess()
-                    }
+    // Google Sign-In for Android only (native Google One Tap)
+    // On iOS, we use the OAuth web flow via AuthRepository.signInWithGoogle()
+    val googleSignInState = if (!isIOS()) {
+        SupabaseClientConfig.client.composeAuth.rememberSignInWithGoogle(
+            onResult = { result ->
+                scope.launch {
+                    when (result) {
+                        is NativeSignInResult.Success -> {
+                            // User successfully signed in with Google
+                            onLoginSuccess()
+                        }
 
-                    is NativeSignInResult.ClosedByUser -> {
-                        // User closed the sign-in dialog
-                        // No action needed
-                    }
+                        is NativeSignInResult.ClosedByUser -> {
+                            // User closed the sign-in dialog
+                            // No action needed
+                        }
 
-                    is NativeSignInResult.Error -> {
-                        // Error occurred during sign-in
-                        snackbarHostState.showSnackbar(googleSignInErrorText)
-                    }
+                        is NativeSignInResult.Error -> {
+                            // Error occurred during sign-in
+                            snackbarHostState.showSnackbar(googleSignInErrorText)
+                        }
 
-                    is NativeSignInResult.NetworkError -> {
-                        // Network error occurred
-                        snackbarHostState.showSnackbar(googleSignInErrorText)
+                        is NativeSignInResult.NetworkError -> {
+                            // Network error occurred
+                            snackbarHostState.showSnackbar(googleSignInErrorText)
+                        }
                     }
                 }
             }
-        }
-    )
+        )
+    } else {
+        null
+    }
 
     // Show success message if provided (from registration)
     LaunchedEffect(successMessage) {
@@ -313,7 +319,18 @@ fun LoginScreen(
 
             // Google Sign-In button (standard Google style)
             OutlinedButton(
-                onClick = { googleSignInState.startFlow() },
+                onClick = {
+                    if (isIOS()) {
+                        // iOS: Use OAuth web flow via repository
+                        scope.launch {
+                            viewModel.signInWithGoogle()
+                            // Navigation happens via authState observer when OAuth completes
+                        }
+                    } else {
+                        // Android: Use native Google One Tap
+                        googleSignInState?.startFlow()
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
