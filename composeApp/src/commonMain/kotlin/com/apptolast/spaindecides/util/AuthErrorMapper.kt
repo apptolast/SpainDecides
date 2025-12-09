@@ -5,6 +5,7 @@ import spaindecides.composeapp.generated.resources.Res
 import spaindecides.composeapp.generated.resources.error_email_invalid
 import spaindecides.composeapp.generated.resources.error_email_not_confirmed
 import spaindecides.composeapp.generated.resources.error_email_required
+import spaindecides.composeapp.generated.resources.error_eula_required
 import spaindecides.composeapp.generated.resources.error_invalid_credentials
 import spaindecides.composeapp.generated.resources.error_name_required
 import spaindecides.composeapp.generated.resources.error_network
@@ -92,6 +93,7 @@ object AuthErrorMapper {
             ValidationError.PASSWORD_REQUIRED -> Res.string.error_password_required
             ValidationError.PASSWORD_SHORT -> Res.string.error_password_short
             ValidationError.NAME_REQUIRED -> Res.string.error_name_required
+            ValidationError.EULA_REQUIRED -> Res.string.error_eula_required
         }
     }
 }
@@ -104,5 +106,6 @@ enum class ValidationError {
     EMAIL_INVALID,
     PASSWORD_REQUIRED,
     PASSWORD_SHORT,
-    NAME_REQUIRED
+    NAME_REQUIRED,
+    EULA_REQUIRED
 }
