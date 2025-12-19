@@ -47,10 +47,10 @@
     <string name="register_login_link">Iniciar Sesión</string>
     <string name="register_privacy_policy_prefix">Acepto la </string>
     <string name="register_privacy_policy_link">Política de Privacidad</string>
-    <string name="register_privacy_policy_url">https://albertohidalgo.apptolast.com/privacy/spain-decides</string>
+    <string name="register_privacy_policy_url">https://albertohidalgo.apptolast.com/es/privacy/spain-decides</string>
     <string name="register_csae_prefix"> y la </string>
     <string name="register_csae_link">CSAE</string>
-    <string name="register_csae_url">https://albertohidalgo.apptolast.com/privacy/spain-decides-csae</string>
+    <string name="register_csae_url">https://albertohidalgo.apptolast.com/es/privacy/spain-decides-csae</string>
     <string name="success_registration">¡Cuenta creada exitosamente! Por favor revisa tu correo para verificar tu cuenta.</string>
     <string name="error_eula_required">Debes leer y aceptar las políticas para registrarte</string>
 
