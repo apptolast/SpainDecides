@@ -166,10 +166,9 @@ fun SettingsScreen(
 
     // Show loading dialog when an operation is in progress
     if (isLoading && currentOperation != null) {
-        val loadingMessage = when (currentOperation) {
+        val loadingMessage = when (currentOperation!!) {
             SettingsOperation.LOGOUT -> stringResource(Res.string.loading_signing_out)
             SettingsOperation.DELETE_ACCOUNT -> stringResource(Res.string.loading_deleting_account)
-            null -> "" // This shouldn't happen, but keeping it for safety
         }
         LoadingDialog(message = loadingMessage)
     }

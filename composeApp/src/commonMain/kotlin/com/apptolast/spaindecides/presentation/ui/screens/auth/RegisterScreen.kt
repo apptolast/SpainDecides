@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,9 +39,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import com.apptolast.spaindecides.presentation.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
@@ -52,8 +59,14 @@ import spaindecides.composeapp.generated.resources.field_name
 import spaindecides.composeapp.generated.resources.field_password
 import spaindecides.composeapp.generated.resources.hide_password
 import spaindecides.composeapp.generated.resources.register_button
+import spaindecides.composeapp.generated.resources.register_csae_link
+import spaindecides.composeapp.generated.resources.register_csae_prefix
+import spaindecides.composeapp.generated.resources.register_csae_url
 import spaindecides.composeapp.generated.resources.register_has_account
 import spaindecides.composeapp.generated.resources.register_login_link
+import spaindecides.composeapp.generated.resources.register_privacy_policy_link
+import spaindecides.composeapp.generated.resources.register_privacy_policy_prefix
+import spaindecides.composeapp.generated.resources.register_privacy_policy_url
 import spaindecides.composeapp.generated.resources.register_subtitle
 import spaindecides.composeapp.generated.resources.register_title
 import spaindecides.composeapp.generated.resources.show_password
@@ -77,6 +90,7 @@ fun RegisterScreen(
     val email by viewModel.email.collectAsState()
     val password by viewModel.password.collectAsState()
     val isPasswordVisible by viewModel.isPasswordVisible.collectAsState()
+    val eulaAccepted by viewModel.eulaAccepted.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
@@ -209,7 +223,51 @@ fun RegisterScreen(
                 enabled = !isLoading
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Policy acceptance checkbox (Privacy Policy + CSAE)
+            val privacyPrefix = stringResource(Res.string.register_privacy_policy_prefix)
+            val privacyLinkText = stringResource(Res.string.register_privacy_policy_link)
+            val privacyUrl = stringResource(Res.string.register_privacy_policy_url)
+            val csaePrefix = stringResource(Res.string.register_csae_prefix)
+            val csaeLinkText = stringResource(Res.string.register_csae_link)
+            val csaeUrl = stringResource(Res.string.register_csae_url)
+
+            val linkStyle = TextLinkStyles(
+                style = SpanStyle(
+                    color = MaterialTheme.colorScheme.primary,
+                    textDecoration = TextDecoration.Underline
+                )
+            )
+
+            val annotatedText = buildAnnotatedString {
+                append(privacyPrefix)
+                withLink(LinkAnnotation.Url(url = privacyUrl, styles = linkStyle)) {
+                    append(privacyLinkText)
+                }
+                append(csaePrefix)
+                withLink(LinkAnnotation.Url(url = csaeUrl, styles = linkStyle)) {
+                    append(csaeLinkText)
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = eulaAccepted,
+                    onCheckedChange = viewModel::updateEulaAccepted,
+                    enabled = !isLoading
+                )
+                Text(
+                    text = annotatedText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Register button
             Button(
@@ -223,7 +281,7 @@ fun RegisterScreen(
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !isLoading && name.isNotBlank() && email.isNotBlank() && password.isNotBlank()
+                enabled = !isLoading && name.isNotBlank() && email.isNotBlank() && password.isNotBlank() && eulaAccepted
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(

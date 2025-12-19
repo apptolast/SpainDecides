@@ -36,6 +36,9 @@ class AuthViewModel(
     val name: StateFlow<String> // For registration
         field: MutableStateFlow<String> = MutableStateFlow("")
 
+    val eulaAccepted: StateFlow<Boolean> // EULA acceptance for registration
+        field: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
     val isPasswordVisible: StateFlow<Boolean>
         field: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
@@ -86,6 +89,14 @@ class AuthViewModel(
     fun updateName(newName: String) {
         name.value = newName
         clearMessages() // Clear messages when user types
+    }
+
+    /**
+     * Updates the EULA acceptance state (for registration)
+     */
+    fun updateEulaAccepted(accepted: Boolean) {
+        eulaAccepted.value = accepted
+        clearMessages() // Clear messages when user interacts
     }
 
     /**
@@ -251,6 +262,7 @@ class AuthViewModel(
         email.value = ""
         password.value = ""
         name.value = ""
+        eulaAccepted.value = false
     }
 
     /**
@@ -334,6 +346,12 @@ class AuthViewModel(
             password.value.length < 6 -> {
                 errorMessage.value =
                     AuthErrorMapper.mapValidationError(ValidationError.PASSWORD_SHORT)
+                false
+            }
+
+            !eulaAccepted.value -> {
+                errorMessage.value =
+                    AuthErrorMapper.mapValidationError(ValidationError.EULA_REQUIRED)
                 false
             }
 

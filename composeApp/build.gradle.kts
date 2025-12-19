@@ -163,8 +163,8 @@ android {
         applicationId = "com.apptolast.spaindecides"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 3
-        versionName = "1.1.0"
+        versionCode = 5
+        versionName = "1.1.2"
     }
 
     packaging {
@@ -277,5 +277,20 @@ buildkonfig {
             "EMAILJS_PUBLIC_KEY",
             localProperties.getProperty("EMAILJS_PUBLIC_KEY", "")
         )
+    }
+}
+
+tasks.register("checkXcode") {
+    doLast {
+        println("--- Xcode Check ---")
+        exec {
+            commandLine("xcode-select", "-p")
+            isIgnoreExitValue = true
+        }
+        exec {
+            commandLine("xcrun", "--show-sdk-path", "--sdk", "iphonesimulator")
+            isIgnoreExitValue = true
+        }
+        println("-------------------")
     }
 }
