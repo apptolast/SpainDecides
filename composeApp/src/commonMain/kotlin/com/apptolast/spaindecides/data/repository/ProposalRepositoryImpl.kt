@@ -6,6 +6,7 @@ import com.apptolast.spaindecides.data.model.ProposalVote
 import com.apptolast.spaindecides.data.model.ProposalVoteUpsert
 import com.apptolast.spaindecides.data.model.ProposalWithUserVote
 import com.apptolast.spaindecides.data.remote.SupabaseClientConfig
+import com.apptolast.spaindecides.data.remote.notification.NotificationService
 import com.apptolast.spaindecides.domain.repository.ProposalRepository
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
@@ -34,7 +35,9 @@ import kotlin.random.Random
  * 2. RLS policies allow SELECT for authenticated users
  * 3. REPLICA IDENTITY set to FULL
  */
-class ProposalRepositoryImpl : ProposalRepository {
+class ProposalRepositoryImpl(
+    private val notificationService: NotificationService
+) : ProposalRepository {
 
     private val supabase = SupabaseClientConfig.client
 
@@ -151,12 +154,13 @@ class ProposalRepositoryImpl : ProposalRepository {
     override suspend fun createProposal(
         title: String,
         description: String,
-        categoryId: String
+        categoryId: String,
+        sendNotification: Boolean
     ): Proposal {
         val userId = supabase.auth.currentUserOrNull()?.id
             ?: throw IllegalStateException("User must be authenticated to create proposals")
 
-        return supabase
+        val proposal = supabase
             .from("proposals")
             .insert(
                 ProposalInsert(
@@ -169,6 +173,16 @@ class ProposalRepositoryImpl : ProposalRepository {
                 select()
             }
             .decodeSingle<Proposal>()
+
+        // Send push notification to all users subscribed to new_proposals topic
+        if (sendNotification) {
+            notificationService.sendNewProposalNotification(
+                title = proposal.title,
+                description = proposal.description
+            )
+        }
+
+        return proposal
     }
 
     override suspend fun voteOnProposal(proposalId: String, voteType: Int): ProposalWithUserVote? {

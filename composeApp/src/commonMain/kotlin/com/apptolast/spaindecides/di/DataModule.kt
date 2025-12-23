@@ -1,6 +1,7 @@
 package com.apptolast.spaindecides.di
 
 import com.apptolast.spaindecides.data.remote.ReportApiService
+import com.apptolast.spaindecides.data.remote.notification.NotificationService
 import com.apptolast.spaindecides.data.repository.CategoryRepositoryImpl
 import com.apptolast.spaindecides.data.repository.ProposalRepositoryImpl
 import com.apptolast.spaindecides.data.repository.ReportRepositoryImpl
@@ -20,7 +21,7 @@ import org.koin.dsl.module
  * Provides repository implementations.
  */
 val dataModule = module {
-    // HTTP Client for external APIs (EmailJS)
+    // HTTP Client for external APIs (EmailJS, Firebase Functions)
     single {
         HttpClient {
             install(ContentNegotiation) {
@@ -35,6 +36,7 @@ val dataModule = module {
 
     // API Services
     singleOf(::ReportApiService)
+    singleOf(::NotificationService)
 
     // Repository implementations
     singleOf(::CategoryRepositoryImpl) bind CategoryRepository::class
