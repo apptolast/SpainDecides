@@ -9,51 +9,57 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 // Set global options for all functions
 (0, v2_1.setGlobalOptions)({ region: "europe-west1" });
-// Define the secret reference for API key authentication
-const notificationsApiKey = (0, params_1.defineSecret)("NOTIFICATIONS_API_KEY");
+// Define the secret reference for webhook authentication
+const webhookSecret = (0, params_1.defineSecret)("SUPABASE_WEBHOOK_SECRET");
 /**
- * Cloud Function to send push notifications when a new proposal is created.
+ * Extracts the first sentence from text.
+ * A sentence ends with '.', '!' or '?'
+ */
+function extractFirstSentence(text) {
+    const trimmed = text.trim();
+    const match = trimmed.match(/^[^.!?]*[.!?]/);
+    if (match) {
+        return match[0];
+    }
+    // If no sentence ending found, take first 100 characters
+    return trimmed.length > 100 ? trimmed.substring(0, 100) + "..." : trimmed;
+}
+/**
+ * Cloud Function triggered by Supabase Database Webhook.
  *
- * This function receives a request from the mobile app and sends a notification
- * to all devices subscribed to the "new_proposals" topic.
- *
- * Request body:
- * {
- *   "title": "Proposal title",
- *   "body": "First sentence of description"
- * }
+ * Sends push notifications when a new proposal is inserted.
  *
  * Headers:
- * - x-api-key: API key for authentication
+ * - x-webhook-secret: Secret for authentication (configured in Supabase)
  */
-exports.sendNewProposalNotification = (0, https_1.onRequest)({ secrets: [notificationsApiKey] }, async (req, res) => {
-    // Enable CORS
-    res.set("Access-Control-Allow-Origin", "*");
-    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-    res.set("Access-Control-Allow-Headers", "Content-Type, x-api-key");
-    // Handle preflight requests
-    if (req.method === "OPTIONS") {
-        res.status(204).send("");
-        return;
-    }
+exports.sendNewProposalNotification = (0, https_1.onRequest)({ secrets: [webhookSecret] }, async (req, res) => {
     // Only allow POST requests
     if (req.method !== "POST") {
         res.status(405).json({ error: "Method not allowed" });
         return;
     }
-    // Validate API key using the secret
-    const API_KEY = notificationsApiKey.value();
-    const providedApiKey = req.headers["x-api-key"];
-    if (!API_KEY || providedApiKey !== API_KEY) {
+    // Validate webhook secret
+    const SECRET = webhookSecret.value();
+    const providedSecret = req.headers["x-webhook-secret"];
+    if (!SECRET || providedSecret !== SECRET) {
+        console.error("Unauthorized webhook call");
         res.status(401).json({ error: "Unauthorized" });
         return;
     }
-    // Validate request body
-    const { title, body } = req.body;
-    if (!title || !body) {
-        res.status(400).json({ error: "Missing title or body" });
+    // Parse Supabase webhook payload
+    const payload = req.body;
+    // Only process INSERT events on proposals table
+    if (payload.type !== "INSERT" || payload.table !== "proposals") {
+        res.status(200).json({ message: "Ignored - not an INSERT on proposals" });
         return;
     }
+    const record = payload.record;
+    if (!record) {
+        res.status(400).json({ error: "Missing record in payload" });
+        return;
+    }
+    const title = record.title;
+    const body = extractFirstSentence(record.description);
     try {
         // Build the notification message
         const message = {
@@ -64,6 +70,7 @@ exports.sendNewProposalNotification = (0, https_1.onRequest)({ secrets: [notific
             },
             data: {
                 type: "new_proposal",
+                proposalId: record.id,
                 title: title,
                 body: body,
             },
