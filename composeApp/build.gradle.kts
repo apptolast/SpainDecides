@@ -70,6 +70,10 @@ kotlin {
 
             // Ktor Client for Android (OkHttp engine supports WebSockets)
             implementation(libs.ktor.client.okhttp)
+
+            // Firebase (required for KMPNotifier push notifications)
+            implementation(project.dependencies.platform(libs.firebase.bom))
+            implementation(libs.firebase.messaging)
         }
 
         iosMain.dependencies {

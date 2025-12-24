@@ -56,7 +56,7 @@ class NotificationService(
         val endIndex = trimmed.indexOfFirst { it == '.' || it == '!' || it == '?' }
 
         return if (endIndex != -1) {
-            trimmed.substring(0, endIndex + 1)
+            trimmed.take(endIndex + 1)
         } else {
             // If no sentence ending found, take first 100 characters
             trimmed.take(100).let {

@@ -40,7 +40,7 @@
 
         <!-- Firebase Cloud Messaging Service -->
         <service
-            android:name="com.mmk.kmpnotifier.firebase.FirebaseCloudMessagingService"
+            android:name="com.mmk.kmpnotifier.firebase.MyFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

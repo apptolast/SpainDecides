@@ -80,6 +80,10 @@ coil-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.re
 # Push Notifications
 kmpnotifier = { module = "io.github.mirzemehdi:kmpnotifier", version.ref = "kmpnotifier" }
 
+# Firebase (required for KMPNotifier on Android)
+firebase-bom = { module = "com.google.firebase:firebase-bom", version = "33.7.0" }
+firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
+
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
