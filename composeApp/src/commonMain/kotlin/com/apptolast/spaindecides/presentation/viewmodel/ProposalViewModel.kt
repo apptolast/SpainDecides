@@ -3,7 +3,12 @@ package com.apptolast.spaindecides.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.apptolast.spaindecides.data.model.ProposalWithUserVote
+import com.apptolast.spaindecides.domain.repository.AuthRepository
+import com.apptolast.spaindecides.domain.repository.DuplicateProposal
+import com.apptolast.spaindecides.domain.repository.N8nWebhookClient
+import com.apptolast.spaindecides.domain.repository.ProposalProcessingRequest
 import com.apptolast.spaindecides.domain.repository.ProposalRepository
+import com.apptolast.spaindecides.domain.repository.ProposalStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -29,7 +34,9 @@ import kotlinx.coroutines.launch
  */
 class ProposalViewModel(
     private val categoryId: String,
-    private val proposalRepository: ProposalRepository
+    private val proposalRepository: ProposalRepository,
+    private val n8nClient: N8nWebhookClient,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     // Direct subscription to proposals for this category
@@ -70,6 +77,16 @@ class ProposalViewModel(
     val isCreating: StateFlow<Boolean>
         field: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
+    // ============== NUEVO: Estados para duplicados ==============
+
+    val duplicatesFound: StateFlow<List<DuplicateProposal>>
+        field: MutableStateFlow<List<DuplicateProposal>> = MutableStateFlow(emptyList())
+
+    val showDuplicatesDialog: StateFlow<Boolean>
+        field: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
+    // ============== CÓDIGO EXISTENTE (sin cambios) ==============
+
     /**
      * Votes on a proposal
      * @param proposalId ID of the proposal to vote on
@@ -103,61 +120,196 @@ class ProposalViewModel(
         }
     }
 
+
     /**
-     * Creates a new proposal in the current category
+     * Creates a new proposal - first checks for duplicates via AI
+     * @return true if created successfully, false if error or duplicates found
      */
     suspend fun createProposal(): Boolean {
-        // Validate title
-        if (newProposalTitle.value.isBlank()) {
-            error.value = "El título no puede estar vacío"
-            return false
-        }
-
-        if (newProposalTitle.value.length < 10) {
-            error.value = "El título debe tener al menos 10 caracteres"
-            return false
-        }
-
-        if (newProposalTitle.value.length > 100) {
-            error.value = "El título no puede tener más de 100 caracteres"
-            return false
-        }
-
-        // Validate description
-        if (newProposalDescription.value.isBlank()) {
-            error.value = "La descripción no puede estar vacía"
-            return false
-        }
-
-        if (newProposalDescription.value.length < 10) {
-            error.value = "La descripción debe tener al menos 10 caracteres"
-            return false
-        }
-
-        if (newProposalDescription.value.length > 1000) {
-            error.value = "La descripción no puede tener más de 1000 caracteres"
-            return false
-        }
+        // Validaciones existentes (sin cambios)
+        if (!validateProposal()) return false
 
         isCreating.value = true
         error.value = null
 
         return try {
-            proposalRepository.createProposal(
-                title = newProposalTitle.value.trim(),
-                description = newProposalDescription.value.trim(),
-                categoryId = categoryId
+            val userId = authRepository.getCurrentUser()?.id
+                ?: throw IllegalStateException("Usuario no autenticado")
+
+            val result = n8nClient.processProposal(
+                ProposalProcessingRequest(
+                    title = newProposalTitle.value.trim(),
+                    description = newProposalDescription.value.trim(),
+                    categoryId = categoryId,
+                    userId = userId
+                )
             )
-            newProposalTitle.value = "" // Clear the title field
-            newProposalDescription.value = "" // Clear the description field
-            isCreating.value = false
-            true
+
+            when (result.status) {
+                ProposalStatus.CREATED -> {
+                    clearNewProposalFields()
+                    isCreating.value = false
+                    true
+                }
+
+                ProposalStatus.DUPLICATE_FOUND -> {
+                    duplicatesFound.value = result.duplicates
+                    showDuplicatesDialog.value = true
+                    isCreating.value = false
+                    false // No se creó, hay duplicados para mostrar
+                }
+
+                ProposalStatus.ERROR -> {
+                    error.value = result.message ?: "Error al procesar propuesta"
+                    isCreating.value = false
+                    false
+                }
+            }
         } catch (e: Exception) {
             error.value = e.message ?: "Error al crear propuesta"
             isCreating.value = false
             false
         }
     }
+
+    // ============== NUEVO: Extraída validación a método privado ==============
+
+    private fun validateProposal(): Boolean {
+        if (newProposalTitle.value.isBlank()) {
+            error.value = "El título no puede estar vacío"
+            return false
+        }
+        if (newProposalTitle.value.length < 10) {
+            error.value = "El título debe tener al menos 10 caracteres"
+            return false
+        }
+        if (newProposalTitle.value.length > 100) {
+            error.value = "El título no puede tener más de 100 caracteres"
+            return false
+        }
+        if (newProposalDescription.value.isBlank()) {
+            error.value = "La descripción no puede estar vacía"
+            return false
+        }
+        if (newProposalDescription.value.length < 10) {
+            error.value = "La descripción debe tener al menos 10 caracteres"
+            return false
+        }
+        if (newProposalDescription.value.length > 1000) {
+            error.value = "La descripción no puede tener más de 1000 caracteres"
+            return false
+        }
+        return true
+    }
+
+    // ============== NUEVO: Métodos para manejo de duplicados ==============
+
+    /**
+     * User chose to create their proposal despite duplicates
+     */
+    fun createIgnoringDuplicates() {
+        viewModelScope.launch {
+            showDuplicatesDialog.value = false
+            isCreating.value = true
+
+            try {
+                // Crear directamente en Supabase (sin pasar por n8n de nuevo)
+                proposalRepository.createProposal(
+                    title = newProposalTitle.value.trim(),
+                    description = newProposalDescription.value.trim(),
+                    categoryId = categoryId,
+                    sendNotification = true
+                )
+                clearNewProposalFields()
+            } catch (e: Exception) {
+                error.value = e.message ?: "Error al crear propuesta"
+            } finally {
+                isCreating.value = false
+            }
+        }
+    }
+
+    /**
+     * User selected an existing proposal instead of creating new one
+     */
+    fun selectExistingProposal(proposalId: String) {
+        viewModelScope.launch {
+            showDuplicatesDialog.value = false
+
+            try {
+                // Votar positivo en la propuesta existente
+                proposalRepository.voteOnProposal(proposalId, 1)
+                clearNewProposalFields()
+            } catch (e: Exception) {
+                error.value = e.message ?: "Error al seleccionar propuesta"
+            }
+        }
+    }
+
+    /**
+     * Dismiss the duplicates dialog
+     */
+    fun dismissDuplicatesDialog() {
+        showDuplicatesDialog.value = false
+        duplicatesFound.value = emptyList()
+    }
+
+
+//    /**
+//     * Creates a new proposal in the current category
+//     */
+//    suspend fun createProposal(): Boolean {
+//        // Validate title
+//        if (newProposalTitle.value.isBlank()) {
+//            error.value = "El título no puede estar vacío"
+//            return false
+//        }
+//
+//        if (newProposalTitle.value.length < 10) {
+//            error.value = "El título debe tener al menos 10 caracteres"
+//            return false
+//        }
+//
+//        if (newProposalTitle.value.length > 100) {
+//            error.value = "El título no puede tener más de 100 caracteres"
+//            return false
+//        }
+//
+//        // Validate description
+//        if (newProposalDescription.value.isBlank()) {
+//            error.value = "La descripción no puede estar vacía"
+//            return false
+//        }
+//
+//        if (newProposalDescription.value.length < 10) {
+//            error.value = "La descripción debe tener al menos 10 caracteres"
+//            return false
+//        }
+//
+//        if (newProposalDescription.value.length > 1000) {
+//            error.value = "La descripción no puede tener más de 1000 caracteres"
+//            return false
+//        }
+//
+//        isCreating.value = true
+//        error.value = null
+//
+//        return try {
+//            proposalRepository.createProposal(
+//                title = newProposalTitle.value.trim(),
+//                description = newProposalDescription.value.trim(),
+//                categoryId = categoryId
+//            )
+//            newProposalTitle.value = "" // Clear the title field
+//            newProposalDescription.value = "" // Clear the description field
+//            isCreating.value = false
+//            true
+//        } catch (e: Exception) {
+//            error.value = e.message ?: "Error al crear propuesta"
+//            isCreating.value = false
+//            false
+//        }
+//    }
 
     /**
      * Clears the new proposal title and description

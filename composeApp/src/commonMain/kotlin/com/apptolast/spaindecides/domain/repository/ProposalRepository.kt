@@ -52,4 +52,22 @@ interface ProposalRepository {
      * @return The proposal with vote information if found, null otherwise
      */
     suspend fun getProposalById(proposalId: String): ProposalWithUserVote?
+
+
+    /**
+     * Processes a new proposal through the AI pipeline.
+     * This will:
+     * 1. Generate embeddings for semantic search
+     * 2. Check for duplicate/similar proposals
+     * 3. If no duplicates: create the proposal and send notification
+     * 4. If duplicates found: return them for user to choose
+     *
+     * @return ProposalProcessingResult with status and any found duplicates
+     */
+    suspend fun processNewProposal(
+        title: String,
+        description: String,
+        categoryId: String,
+        sendNotification: Boolean = true
+    ): ProposalProcessingResult
 }

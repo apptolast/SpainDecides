@@ -1,5 +1,6 @@
 package com.apptolast.spaindecides.presentation.ui.screens.proposals
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,6 +9,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -78,6 +82,11 @@ fun CreateProposalScreen(
     val isCreating by viewModel.isCreating.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
 
+    // ===== NUEVO: Estados para duplicados =====
+    val showDuplicatesDialog by viewModel.showDuplicatesDialog.collectAsStateWithLifecycle()
+    val duplicates by viewModel.duplicatesFound.collectAsStateWithLifecycle()
+    // ==========================================
+
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -85,6 +94,76 @@ fun CreateProposalScreen(
     LaunchedEffect(Unit) {
         viewModel.clearNewProposalFields()
     }
+
+    // ===== NUEVO: Diálogo de duplicados =====
+    if (showDuplicatesDialog && duplicates.isNotEmpty()) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissDuplicatesDialog() },
+            title = {
+                Text("Propuestas similares encontradas")
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "Hemos encontrado propuestas parecidas a la tuya. ¿Quieres apoyar alguna existente?",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    duplicates.forEach { duplicate ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                                .clickable {
+                                    viewModel.selectExistingProposal(duplicate.id)
+                                    onProposalCreated() // Cerrar pantalla
+                                },
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Text(
+                                    text = duplicate.title,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = duplicate.description.take(100) + if (duplicate.description.length > 100) "..." else "",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "${(duplicate.similarity * 100).toInt()}% similar",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.createIgnoringDuplicates()
+                        onProposalCreated() // Cerrar pantalla después de crear
+                    }
+                ) {
+                    Text("Crear de todos modos")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissDuplicatesDialog() }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+    // =========================================
 
     Scaffold(
         topBar = {
@@ -110,11 +189,11 @@ fun CreateProposalScreen(
                                 val success = viewModel.createProposal()
                                 if (success) {
                                     onProposalCreated()
-                                } else {
-                                    error?.let {
-                                        snackbarHostState.showSnackbar(it)
-                                    }
+                                } else if (error != null && !showDuplicatesDialog) {
+                                    // Solo mostrar snackbar si hay error Y no es por duplicados
+                                    snackbarHostState.showSnackbar(error!!)
                                 }
+                                // Si hay duplicados, el diálogo se muestra automáticamente
                             }
                         },
                         enabled = !isCreating && proposalTitle.isNotBlank() && proposalDescription.isNotBlank()

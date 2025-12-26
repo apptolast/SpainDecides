@@ -6,6 +6,7 @@ import com.apptolast.spaindecides.data.repository.CategoryRepositoryImpl
 import com.apptolast.spaindecides.data.repository.ProposalRepositoryImpl
 import com.apptolast.spaindecides.data.repository.ReportRepositoryImpl
 import com.apptolast.spaindecides.domain.repository.CategoryRepository
+import com.apptolast.spaindecides.domain.repository.N8nWebhookClient
 import com.apptolast.spaindecides.domain.repository.ProposalRepository
 import com.apptolast.spaindecides.domain.repository.ReportRepository
 import io.ktor.client.HttpClient
@@ -37,6 +38,9 @@ val dataModule = module {
     // API Services
     singleOf(::ReportApiService)
     singleOf(::NotificationService)
+
+    // Webhook clients
+    singleOf(::N8nWebhookClient)
 
     // Repository implementations
     singleOf(::CategoryRepositoryImpl) bind CategoryRepository::class

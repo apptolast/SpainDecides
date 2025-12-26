@@ -24,7 +24,13 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         }
 
         // Initialize KMPNotifier
-        NotifierManager.shared.initialize(configuration: NotificationPlatformConfigurationIos.shared)
+        NotifierManager.shared.initialize(
+            configuration: NotificationPlatformConfigurationIos(
+                showPushNotification: true,
+                askNotificationPermissionOnStart: false, // We handle permissions manually above
+                notificationSoundName: nil
+            )
+        )
 
         return true
     }

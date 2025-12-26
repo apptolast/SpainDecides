@@ -7,6 +7,10 @@ import com.apptolast.spaindecides.data.model.ProposalVoteUpsert
 import com.apptolast.spaindecides.data.model.ProposalWithUserVote
 import com.apptolast.spaindecides.data.remote.SupabaseClientConfig
 import com.apptolast.spaindecides.data.remote.notification.NotificationService
+import com.apptolast.spaindecides.domain.repository.AuthRepository
+import com.apptolast.spaindecides.domain.repository.N8nWebhookClient
+import com.apptolast.spaindecides.domain.repository.ProposalProcessingRequest
+import com.apptolast.spaindecides.domain.repository.ProposalProcessingResult
 import com.apptolast.spaindecides.domain.repository.ProposalRepository
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
@@ -36,7 +40,10 @@ import kotlin.random.Random
  * 3. REPLICA IDENTITY set to FULL
  */
 class ProposalRepositoryImpl(
-    private val notificationService: NotificationService
+    private val notificationService: NotificationService,
+    private val n8nClient: N8nWebhookClient,
+    private val authRepository: AuthRepository // Para obtener el userId actual
+
 ) : ProposalRepository {
 
     private val supabase = SupabaseClientConfig.client
@@ -265,5 +272,25 @@ class ProposalRepositoryImpl(
             println("Error fetching proposal by ID: ${e.message}")
             null
         }
+    }
+
+    override suspend fun processNewProposal(
+        title: String,
+        description: String,
+        categoryId: String,
+        sendNotification: Boolean
+    ): ProposalProcessingResult {
+        val userId = authRepository.getCurrentUser()?.id
+            ?: throw IllegalStateException("User not authenticated")
+
+        val request = ProposalProcessingRequest(
+            title = title,
+            description = description,
+            categoryId = categoryId,
+            userId = userId,
+            sendNotification = sendNotification
+        )
+
+        return n8nClient.processProposal(request)
     }
 }

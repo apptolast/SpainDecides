@@ -23,7 +23,9 @@ val presentationModule = module {
     viewModel { parameters ->
         ProposalViewModel(
             categoryId = parameters.get(),
-            proposalRepository = get()
+            proposalRepository = get(),
+            n8nClient = get(),
+            authRepository = get()
         )
     }
 }
