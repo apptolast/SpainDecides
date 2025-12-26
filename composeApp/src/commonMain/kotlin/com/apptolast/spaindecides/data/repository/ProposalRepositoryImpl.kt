@@ -2,15 +2,16 @@ package com.apptolast.spaindecides.data.repository
 
 import com.apptolast.spaindecides.data.model.Proposal
 import com.apptolast.spaindecides.data.model.ProposalInsert
+import com.apptolast.spaindecides.data.model.ProposalProcessingRequest
+import com.apptolast.spaindecides.data.model.ProposalProcessingStatus
 import com.apptolast.spaindecides.data.model.ProposalVote
 import com.apptolast.spaindecides.data.model.ProposalVoteUpsert
 import com.apptolast.spaindecides.data.model.ProposalWithUserVote
+import com.apptolast.spaindecides.data.remote.N8nWebhookClient
+import com.apptolast.spaindecides.data.remote.N8nWebhookException
 import com.apptolast.spaindecides.data.remote.SupabaseClientConfig
 import com.apptolast.spaindecides.data.remote.notification.NotificationService
-import com.apptolast.spaindecides.domain.repository.AuthRepository
-import com.apptolast.spaindecides.domain.repository.N8nWebhookClient
-import com.apptolast.spaindecides.domain.repository.ProposalProcessingRequest
-import com.apptolast.spaindecides.domain.repository.ProposalProcessingResult
+import com.apptolast.spaindecides.domain.repository.CreateProposalResult
 import com.apptolast.spaindecides.domain.repository.ProposalRepository
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
@@ -28,60 +29,41 @@ import kotlin.random.Random
 /**
  * Implementation of ProposalRepository using Supabase as the backend.
  *
+ * ## Architecture:
+ * - Uses n8n webhook for AI-powered duplicate detection before creating proposals
+ * - Falls back to direct creation if n8n is unavailable
+ * - Sends push notifications via Firebase Cloud Functions
+ *
  * ## Realtime Synchronization:
  * - Uses Supabase Postgres Changes to receive database updates via WebSocket
  * - Each Flow subscription creates a unique channel (prevents reuse conflicts)
  * - Automatically re-fetches data when proposals or votes change
- * - Vote counts updated by database triggers
  *
- * ## Requirements:
- * 1. Tables added to `supabase_realtime` publication
- * 2. RLS policies allow SELECT for authenticated users
- * 3. REPLICA IDENTITY set to FULL
+ * @param notificationService Service for sending push notifications
+ * @param n8nWebhookClient Client for n8n webhook communication
  */
 class ProposalRepositoryImpl(
     private val notificationService: NotificationService,
-    private val n8nClient: N8nWebhookClient,
-    private val authRepository: AuthRepository // Para obtener el userId actual
-
+    private val n8nWebhookClient: N8nWebhookClient
 ) : ProposalRepository {
 
     private val supabase = SupabaseClientConfig.client
 
-    /**
-     * Returns a Flow of proposals for a specific category with real-time updates.
-     *
-     * This Flow will emit:
-     * 1. Initial data immediately when collected
-     * 2. Updated data whenever a proposal or vote changes in the database
-     *
-     * The Flow stays active as long as it's being collected, maintaining a WebSocket
-     * connection to Supabase Realtime server.
-     *
-     * @param categoryId The ID of the category to fetch proposals for
-     * @return Flow emitting lists of proposals with user vote information
-     */
     override fun getProposalsByCategory(categoryId: String): Flow<List<ProposalWithUserVote>> =
         callbackFlow {
-            // Store reference to the coroutine scope for cleanup
             val flowScope = this
 
-            // Helper function to fetch proposals with user votes
             suspend fun fetchProposalsWithVotes(): List<ProposalWithUserVote> {
                 val currentUserId = supabase.auth.currentUserOrNull()?.id
 
-                // Fetch all proposals for the category
                 val proposals = supabase
                     .from("proposals")
                     .select {
-                        filter {
-                            eq("category_id", categoryId)
-                        }
+                        filter { eq("category_id", categoryId) }
                         order("created_at", Order.DESCENDING)
                     }
                     .decodeList<Proposal>()
 
-                // If user is authenticated, fetch their votes for these proposals
                 val proposalsWithVotes = if (currentUserId != null && proposals.isNotEmpty()) {
                     val proposalIds = proposals.map { it.id }
 
@@ -95,29 +77,22 @@ class ProposalRepositoryImpl(
                         }
                         .decodeList<ProposalVote>()
 
-                    // Map votes by proposal ID for quick lookup
                     val votesByProposalId = userVotes.associateBy { it.proposalId }
 
-                    // Combine proposals with user votes
                     proposals.map { proposal ->
                         val userVote = votesByProposalId[proposal.id]?.voteType ?: 0
                         ProposalWithUserVote(proposal, userVote)
                     }
                 } else {
-                    // No user or no proposals - return proposals with no votes
                     proposals.map { ProposalWithUserVote(it, 0) }
                 }
 
-                // Sort by net votes (descending)
                 return proposalsWithVotes.sortedByDescending { it.netVotes }
             }
 
-            // Create a unique Realtime channel to avoid reuse conflicts
-            // Each Flow gets its own channel, preventing "cannot call postgresChangeFlow after joining" errors
             val channelId = "proposals_${Random.nextLong()}"
             val channel = supabase.channel(channelId)
 
-            // Set up postgresChangeFlow() BEFORE calling subscribe()
             val proposalChanges = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
                 table = "proposals"
             }
@@ -126,39 +101,124 @@ class ProposalRepositoryImpl(
                 table = "proposal_votes"
             }
 
-            // Subscribe to the channel to start receiving events
             channel.subscribe()
 
-            // Emit initial data immediately
             try {
                 val initialData = fetchProposalsWithVotes()
                 send(initialData)
             } catch (e: Exception) {
-                println("❌ Error fetching proposals: ${e.message}")
+                println("Error fetching proposals: ${e.message}")
                 send(emptyList())
             }
 
-            // Collect changes from both flows and reload data
             try {
                 merge(proposalChanges, voteChanges).collect {
-                    // Reload and send updated data on any change
                     val updatedData = fetchProposalsWithVotes()
                     send(updatedData)
                 }
             } catch (e: Exception) {
-                println("❌ Error in Realtime flow: ${e.message}")
+                println("Error in Realtime flow: ${e.message}")
                 send(emptyList())
             }
 
-            // Cleanup: Unsubscribe from channel when Flow is cancelled
             awaitClose {
-                flowScope.launch {
-                    channel.unsubscribe()
-                }
+                flowScope.launch { channel.unsubscribe() }
             }
         }
 
+    /**
+     * Creates a new proposal with AI-powered duplicate detection.
+     *
+     * Flow:
+     * 1. Get current user ID
+     * 2. Send proposal to n8n for duplicate detection
+     * 3. Based on n8n response:
+     *    - CREATED: Return success (n8n already created it)
+     *    - DUPLICATE_FOUND: Return duplicates for user decision
+     *    - ERROR: Return error with message
+     * 4. If n8n fails (network error), return error with isNetworkError=true
+     */
     override suspend fun createProposal(
+        title: String,
+        description: String,
+        categoryId: String
+    ): CreateProposalResult {
+        val userId = supabase.auth.currentUserOrNull()?.id
+            ?: return CreateProposalResult.Error("Usuario no autenticado")
+
+        val request = ProposalProcessingRequest(
+            title = title,
+            description = description,
+            categoryId = categoryId,
+            userId = userId,
+            sendNotification = true
+        )
+
+        return n8nWebhookClient.processProposal(request).fold(
+            onSuccess = { response ->
+                when (response.status) {
+                    ProposalProcessingStatus.CREATED -> {
+                        // n8n created the proposal, fetch it from DB
+                        val proposalId = response.proposalId
+                        if (proposalId != null) {
+                            val proposal = fetchProposalById(proposalId)
+                            if (proposal != null) {
+                                CreateProposalResult.Success(proposal)
+                            } else {
+                                // Proposal was created but we couldn't fetch it
+                                // This is unusual but not a failure
+                                CreateProposalResult.Success(
+                                    Proposal(
+                                        id = proposalId,
+                                        title = title,
+                                        description = description,
+                                        categoryId = categoryId,
+                                        userId = userId,
+                                        upvotes = 0,
+                                        downvotes = 0,
+                                        createdAt = ""
+                                    )
+                                )
+                            }
+                        } else {
+                            CreateProposalResult.Error("Propuesta creada pero sin ID")
+                        }
+                    }
+
+                    ProposalProcessingStatus.DUPLICATE_FOUND -> {
+                        CreateProposalResult.DuplicatesFound(response.duplicates)
+                    }
+
+                    ProposalProcessingStatus.ERROR -> {
+                        CreateProposalResult.Error(
+                            response.message ?: "Error al procesar la propuesta"
+                        )
+                    }
+                }
+            },
+            onFailure = { exception ->
+                val isNetworkError = exception is N8nWebhookException.NetworkError ||
+                        exception is N8nWebhookException.Timeout
+
+                CreateProposalResult.Error(
+                    message = when (exception) {
+                        is N8nWebhookException.NetworkError -> "Sin conexión al servidor"
+                        is N8nWebhookException.Timeout -> "El servidor tardó demasiado en responder"
+                        is N8nWebhookException.ServerError -> "Error del servidor: ${exception.statusCode}"
+                        is N8nWebhookException.ParseError -> "Respuesta inválida del servidor"
+                        else -> exception.message ?: "Error desconocido"
+                    },
+                    isNetworkError = isNetworkError
+                )
+            }
+        )
+    }
+
+    /**
+     * Creates a proposal directly in Supabase without duplicate checking.
+     * Used when user chooses to create despite seeing duplicates.
+     */
+    override suspend fun createProposalDirectly(
         title: String,
         description: String,
         categoryId: String,
@@ -181,7 +241,6 @@ class ProposalRepositoryImpl(
             }
             .decodeSingle<Proposal>()
 
-        // Send push notification to all users subscribed to new_proposals topic
         if (sendNotification) {
             notificationService.sendNewProposalNotification(
                 title = proposal.title,
@@ -199,7 +258,6 @@ class ProposalRepositoryImpl(
 
             when (voteType) {
                 0 -> {
-                    // Remove vote - delete from proposal_votes
                     supabase
                         .from("proposal_votes")
                         .delete {
@@ -211,8 +269,6 @@ class ProposalRepositoryImpl(
                 }
 
                 1, -1 -> {
-                    // Upsert vote (insert or update)
-                    // Note: We use upsert to handle both new votes and vote changes
                     supabase
                         .from("proposal_votes")
                         .upsert(
@@ -229,8 +285,6 @@ class ProposalRepositoryImpl(
                 else -> throw IllegalArgumentException("voteType must be -1, 0, or 1")
             }
 
-            // Fetch the updated proposal with new vote counts
-            // (counts are automatically updated by database trigger)
             return getProposalById(proposalId)
         } catch (e: Exception) {
             println("Error voting on proposal: ${e.message}")
@@ -242,17 +296,13 @@ class ProposalRepositoryImpl(
         return try {
             val currentUserId = supabase.auth.currentUserOrNull()?.id
 
-            // Fetch the proposal
             val proposal = supabase
                 .from("proposals")
                 .select {
-                    filter {
-                        eq("id", proposalId)
-                    }
+                    filter { eq("id", proposalId) }
                 }
                 .decodeSingleOrNull<Proposal>() ?: return null
 
-            // Fetch user's vote if authenticated
             val userVote = if (currentUserId != null) {
                 supabase
                     .from("proposal_votes")
@@ -274,23 +324,20 @@ class ProposalRepositoryImpl(
         }
     }
 
-    override suspend fun processNewProposal(
-        title: String,
-        description: String,
-        categoryId: String,
-        sendNotification: Boolean
-    ): ProposalProcessingResult {
-        val userId = authRepository.getCurrentUser()?.id
-            ?: throw IllegalStateException("User not authenticated")
-
-        val request = ProposalProcessingRequest(
-            title = title,
-            description = description,
-            categoryId = categoryId,
-            userId = userId,
-            sendNotification = sendNotification
-        )
-
-        return n8nClient.processProposal(request)
+    /**
+     * Internal helper to fetch a proposal by ID without user vote info.
+     */
+    private suspend fun fetchProposalById(proposalId: String): Proposal? {
+        return try {
+            supabase
+                .from("proposals")
+                .select {
+                    filter { eq("id", proposalId) }
+                }
+                .decodeSingleOrNull<Proposal>()
+        } catch (e: Exception) {
+            println("Error fetching proposal: ${e.message}")
+            null
+        }
     }
 }

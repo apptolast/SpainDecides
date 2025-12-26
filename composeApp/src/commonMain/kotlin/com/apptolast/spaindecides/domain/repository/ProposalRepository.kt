@@ -2,6 +2,7 @@ package com.apptolast.spaindecides.domain.repository
 
 import com.apptolast.spaindecides.data.model.Proposal
 import com.apptolast.spaindecides.data.model.ProposalWithUserVote
+import com.apptolast.spaindecides.data.model.SimilarProposal
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -20,15 +21,35 @@ interface ProposalRepository {
     fun getProposalsByCategory(categoryId: String): Flow<List<ProposalWithUserVote>>
 
     /**
-     * Creates a new proposal in a specific category.
+     * Creates a new proposal, checking for duplicates via AI.
+     *
+     * This method:
+     * 1. Sends the proposal to n8n for duplicate detection
+     * 2. If no duplicates found, creates the proposal and sends notification
+     * 3. If duplicates found, returns them for user decision
      *
      * @param title Brief title of the proposal (10-100 characters)
      * @param description Detailed description of the proposal (10-1000 characters)
      * @param categoryId The ID of the category
-     * @param sendNotification Whether to send a push notification to all users (default: true)
-     * @return The created proposal
+     * @return CreateProposalResult indicating success, duplicates found, or error
      */
     suspend fun createProposal(
+        title: String,
+        description: String,
+        categoryId: String
+    ): CreateProposalResult
+
+    /**
+     * Creates a proposal directly without duplicate check.
+     * Use this when user has already seen duplicates and chooses to proceed.
+     *
+     * @param title Brief title of the proposal
+     * @param description Detailed description
+     * @param categoryId The ID of the category
+     * @param sendNotification Whether to send push notification (default: true)
+     * @return The created proposal
+     */
+    suspend fun createProposalDirectly(
         title: String,
         description: String,
         categoryId: String,
@@ -52,22 +73,32 @@ interface ProposalRepository {
      * @return The proposal with vote information if found, null otherwise
      */
     suspend fun getProposalById(proposalId: String): ProposalWithUserVote?
+}
 
+/**
+ * Sealed class representing the result of creating a proposal.
+ * Provides type-safe handling of different outcomes.
+ */
+sealed class CreateProposalResult {
+    /**
+     * Proposal was created successfully.
+     * @param proposal The created proposal
+     */
+    data class Success(val proposal: Proposal) : CreateProposalResult()
 
     /**
-     * Processes a new proposal through the AI pipeline.
-     * This will:
-     * 1. Generate embeddings for semantic search
-     * 2. Check for duplicate/similar proposals
-     * 3. If no duplicates: create the proposal and send notification
-     * 4. If duplicates found: return them for user to choose
-     *
-     * @return ProposalProcessingResult with status and any found duplicates
+     * Similar proposals were found. User should decide whether to proceed.
+     * @param duplicates List of similar proposals with similarity scores
      */
-    suspend fun processNewProposal(
-        title: String,
-        description: String,
-        categoryId: String,
-        sendNotification: Boolean = true
-    ): ProposalProcessingResult
+    data class DuplicatesFound(val duplicates: List<SimilarProposal>) : CreateProposalResult()
+
+    /**
+     * An error occurred during proposal creation.
+     * @param message Human-readable error message
+     * @param isNetworkError True if the error was due to network issues
+     */
+    data class Error(
+        val message: String,
+        val isNetworkError: Boolean = false
+    ) : CreateProposalResult()
 }
