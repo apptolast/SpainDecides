@@ -202,6 +202,7 @@ class ProposalRepositoryImpl(
 
                 CreateProposalResult.Error(
                     message = when (exception) {
+                        is N8nWebhookException.Unauthorized -> exception.message ?: "Sesión no válida"
                         is N8nWebhookException.NetworkError -> "Sin conexión al servidor"
                         is N8nWebhookException.Timeout -> "El servidor tardó demasiado en responder"
                         is N8nWebhookException.ServerError -> "Error del servidor: ${exception.statusCode}"

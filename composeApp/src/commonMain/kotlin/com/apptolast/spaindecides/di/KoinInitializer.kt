@@ -12,10 +12,12 @@ fun initKoin(appDeclaration: KoinAppDeclaration? = null) {
         // Platform-specific configuration (optional)
         appDeclaration?.invoke(this)
 
+        // Order matters: authModule must be loaded before dataModule
+        // because N8nWebhookClient depends on AuthRepository
         modules(
+            createAuthModule(),
             dataModule,
-            presentationModule,
-            createAuthModule()
+            presentationModule
         )
     }
 }

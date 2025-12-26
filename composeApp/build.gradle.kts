@@ -124,9 +124,6 @@ kotlin {
             implementation(libs.supabase.postgrest)
             implementation(libs.supabase.realtime)
 
-            // Secure Storage
-            implementation(libs.kvault)
-
             // Coil - Image Loading
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor)
