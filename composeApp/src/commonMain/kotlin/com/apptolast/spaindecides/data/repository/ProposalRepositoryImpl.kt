@@ -1,7 +1,6 @@
 package com.apptolast.spaindecides.data.repository
 
 import com.apptolast.spaindecides.data.model.Proposal
-import com.apptolast.spaindecides.data.model.ProposalInsert
 import com.apptolast.spaindecides.data.model.ProposalProcessingRequest
 import com.apptolast.spaindecides.data.model.ProposalProcessingStatus
 import com.apptolast.spaindecides.data.model.ProposalVote
@@ -10,7 +9,6 @@ import com.apptolast.spaindecides.data.model.ProposalWithUserVote
 import com.apptolast.spaindecides.data.remote.N8nWebhookClient
 import com.apptolast.spaindecides.data.remote.N8nWebhookException
 import com.apptolast.spaindecides.data.remote.SupabaseClientConfig
-import com.apptolast.spaindecides.data.remote.notification.NotificationService
 import com.apptolast.spaindecides.domain.repository.CreateProposalResult
 import com.apptolast.spaindecides.domain.repository.ProposalRepository
 import io.github.jan.supabase.auth.auth
@@ -43,7 +41,6 @@ import kotlin.random.Random
  * @param n8nWebhookClient Client for n8n webhook communication
  */
 class ProposalRepositoryImpl(
-    private val notificationService: NotificationService,
     private val n8nWebhookClient: N8nWebhookClient
 ) : ProposalRepository {
 
@@ -141,7 +138,8 @@ class ProposalRepositoryImpl(
     override suspend fun createProposal(
         title: String,
         description: String,
-        categoryId: String
+        categoryId: String,
+        forceCreation: Boolean
     ): CreateProposalResult {
         val userId = supabase.auth.currentUserOrNull()?.id
             ?: return CreateProposalResult.Error("Usuario no autenticado")
@@ -151,7 +149,7 @@ class ProposalRepositoryImpl(
             description = description,
             categoryId = categoryId,
             userId = userId,
-            sendNotification = true
+            forceCreation = forceCreation,
         )
 
         return n8nWebhookClient.processProposal(request).fold(
@@ -213,43 +211,6 @@ class ProposalRepositoryImpl(
                 )
             }
         )
-    }
-
-    /**
-     * Creates a proposal directly in Supabase without duplicate checking.
-     * Used when user chooses to create despite seeing duplicates.
-     */
-    override suspend fun createProposalDirectly(
-        title: String,
-        description: String,
-        categoryId: String,
-        sendNotification: Boolean
-    ): Proposal {
-        val userId = supabase.auth.currentUserOrNull()?.id
-            ?: throw IllegalStateException("User must be authenticated to create proposals")
-
-        val proposal = supabase
-            .from("proposals")
-            .insert(
-                ProposalInsert(
-                    title = title,
-                    description = description,
-                    categoryId = categoryId,
-                    userId = userId
-                )
-            ) {
-                select()
-            }
-            .decodeSingle<Proposal>()
-
-        if (sendNotification) {
-            notificationService.sendNewProposalNotification(
-                title = proposal.title,
-                description = proposal.description
-            )
-        }
-
-        return proposal
     }
 
     override suspend fun voteOnProposal(proposalId: String, voteType: Int): ProposalWithUserVote? {

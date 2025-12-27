@@ -139,7 +139,7 @@ class ProposalViewModel(
      *
      * @return true if created successfully, false if error or duplicates found
      */
-    suspend fun createProposal(): Boolean {
+    suspend fun createProposal(forceCreation: Boolean = false): Boolean {
         if (!validateProposal()) return false
 
         isCreating.value = true
@@ -148,7 +148,8 @@ class ProposalViewModel(
         val result = proposalRepository.createProposal(
             title = newProposalTitle.value.trim(),
             description = newProposalDescription.value.trim(),
-            categoryId = categoryId
+            categoryId = categoryId,
+            forceCreation = forceCreation
         )
 
         return when (result) {
@@ -169,30 +170,6 @@ class ProposalViewModel(
                 error.value = result.message
                 isCreating.value = false
                 false
-            }
-        }
-    }
-
-    /**
-     * Creates proposal ignoring duplicates (user confirmed).
-     */
-    fun createIgnoringDuplicates() {
-        viewModelScope.launch {
-            showDuplicatesDialog.value = false
-            isCreating.value = true
-
-            try {
-                proposalRepository.createProposalDirectly(
-                    title = newProposalTitle.value.trim(),
-                    description = newProposalDescription.value.trim(),
-                    categoryId = categoryId,
-                    sendNotification = true
-                )
-                clearNewProposalFields()
-            } catch (e: Exception) {
-                error.value = e.message ?: "Error al crear propuesta"
-            } finally {
-                isCreating.value = false
             }
         }
     }

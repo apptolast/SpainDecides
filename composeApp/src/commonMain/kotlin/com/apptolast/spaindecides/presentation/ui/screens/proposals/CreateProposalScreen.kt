@@ -149,8 +149,10 @@ fun CreateProposalScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.createIgnoringDuplicates()
-                        onProposalCreated() // Cerrar pantalla después de crear
+                        scope.launch {
+                            viewModel.createProposal(true)
+                            onProposalCreated() // Cerrar pantalla después de crear
+                        }
                     }
                 ) {
                     Text("Crear de todos modos")

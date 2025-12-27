@@ -11,7 +11,7 @@ data class ProposalProcessingRequest(
     val description: String,
     val categoryId: String,
     val userId: String,
-    val sendNotification: Boolean = true
+    val forceCreation: Boolean,
 )
 
 /**
@@ -23,7 +23,7 @@ data class ProposalProcessingResponse(
     val status: ProposalProcessingStatus,
     val proposalId: String? = null,
     val duplicates: List<SimilarProposal> = emptyList(),
-    val message: String? = null
+    val message: String? = null,
 )
 
 /**

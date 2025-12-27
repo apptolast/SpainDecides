@@ -2,7 +2,6 @@ package com.apptolast.spaindecides.di
 
 import com.apptolast.spaindecides.data.remote.N8nWebhookClient
 import com.apptolast.spaindecides.data.remote.ReportApiService
-import com.apptolast.spaindecides.data.remote.notification.NotificationService
 import com.apptolast.spaindecides.data.repository.CategoryRepositoryImpl
 import com.apptolast.spaindecides.data.repository.ProposalRepositoryImpl
 import com.apptolast.spaindecides.data.repository.ReportRepositoryImpl
@@ -37,7 +36,6 @@ val dataModule = module {
 
     // API Services
     singleOf(::ReportApiService)
-    singleOf(::NotificationService)
 
     // Webhook clients
     singleOf(::N8nWebhookClient)

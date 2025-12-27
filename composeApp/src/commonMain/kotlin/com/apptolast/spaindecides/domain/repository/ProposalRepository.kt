@@ -36,25 +36,9 @@ interface ProposalRepository {
     suspend fun createProposal(
         title: String,
         description: String,
-        categoryId: String
-    ): CreateProposalResult
-
-    /**
-     * Creates a proposal directly without duplicate check.
-     * Use this when user has already seen duplicates and chooses to proceed.
-     *
-     * @param title Brief title of the proposal
-     * @param description Detailed description
-     * @param categoryId The ID of the category
-     * @param sendNotification Whether to send push notification (default: true)
-     * @return The created proposal
-     */
-    suspend fun createProposalDirectly(
-        title: String,
-        description: String,
         categoryId: String,
-        sendNotification: Boolean = true
-    ): Proposal
+        forceCreation: Boolean
+    ): CreateProposalResult
 
     /**
      * Votes on a proposal. This will insert or update a vote in the proposal_votes table.
