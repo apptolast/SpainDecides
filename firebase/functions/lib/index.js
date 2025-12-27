@@ -12,7 +12,7 @@ admin.initializeApp();
 // Define the secret reference for webhook authentication
 const webhookSecret = (0, params_1.defineSecret)("SUPABASE_WEBHOOK_SECRET");
 /**
- * Extracts the first sentence from text.
+ * Extracts the first sentence from text (fallback when short_description is not available).
  * A sentence ends with '.', '!' or '?'
  */
 function extractFirstSentence(text) {
@@ -23,6 +23,17 @@ function extractFirstSentence(text) {
     }
     // If no sentence ending found, take first 100 characters
     return trimmed.length > 100 ? trimmed.substring(0, 100) + "..." : trimmed;
+}
+/**
+ * Gets the notification body text from the proposal record.
+ * Prioritizes short_description, falls back to extracting from description.
+ */
+function getNotificationBody(record) {
+    if (record.short_description && record.short_description.trim().length > 0) {
+        return record.short_description;
+    }
+    // Fallback to first sentence of description
+    return extractFirstSentence(record.description);
 }
 /**
  * Cloud Function triggered by Supabase Database Webhook.
@@ -59,7 +70,7 @@ exports.sendNewProposalNotification = (0, https_1.onRequest)({ secrets: [webhook
         return;
     }
     const title = record.title;
-    const body = extractFirstSentence(record.description);
+    const body = getNotificationBody(record);
     try {
         // Build the notification message
         const message = {

@@ -23,6 +23,7 @@ interface SupabaseWebhookPayload {
         id: string;
         title: string;
         description: string;
+        short_description: string | null;
         category_id: string;
         user_id: string;
         created_at: string;
@@ -43,6 +44,18 @@ function extractFirstSentence(text: string): string {
     }
     // If no sentence ending found, take first 100 characters
     return trimmed.length > 100 ? trimmed.substring(0, 100) + "..." : trimmed;
+}
+
+/**
+ * Gets the notification body text from the proposal record.
+ * Prioritizes short_description, falls back to extracting from description.
+ */
+function getNotificationBody(record: NonNullable<SupabaseWebhookPayload["record"]>): string {
+    if (record.short_description && record.short_description.trim().length > 0) {
+        return record.short_description;
+    }
+    // Fallback to first sentence of description
+    return extractFirstSentence(record.description);
 }
 
 /**
@@ -88,7 +101,7 @@ export const sendNewProposalNotification = onRequest(
     }
 
     const title = record.title;
-    const body = extractFirstSentence(record.description);
+    const body = record.getNotificationBody(record);
 
     try {
         // Build the notification message

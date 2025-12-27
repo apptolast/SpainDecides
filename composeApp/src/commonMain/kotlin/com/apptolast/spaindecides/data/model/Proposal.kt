@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
  * @property id Unique identifier for the proposal (UUID)
  * @property title Brief title of the proposal (10-100 characters)
  * @property description Detailed description of the proposal (10-1000 characters)
+ * @property shortDescription Brief summary for notifications (max 150 characters)
  * @property categoryId ID of the category this proposal belongs to
  * @property userId ID of the user who created this proposal
  * @property upvotes Number of positive votes (automatically updated by database trigger)
@@ -24,6 +25,7 @@ data class Proposal(
     val id: String,
     val title: String,
     val description: String,
+    @SerialName("short_description") val shortDescription: String? = null,
     @SerialName("category_id") val categoryId: String,
     @SerialName("user_id") val userId: String,
     val upvotes: Int = 0,

@@ -25,12 +25,13 @@ interface ProposalRepository {
      *
      * This method:
      * 1. Sends the proposal to n8n for duplicate detection
-     * 2. If no duplicates found, creates the proposal and sends notification
+     * 2. If no duplicates found, n8n creates the proposal (generates short_description with AI)
      * 3. If duplicates found, returns them for user decision
      *
      * @param title Brief title of the proposal (10-100 characters)
      * @param description Detailed description of the proposal (10-1000 characters)
      * @param categoryId The ID of the category
+     * @param forceCreation If true, skips duplicate check and creates immediately
      * @return CreateProposalResult indicating success, duplicates found, or error
      */
     suspend fun createProposal(
