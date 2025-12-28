@@ -302,4 +302,83 @@ class ProposalRepositoryImpl(
             null
         }
     }
+
+    override fun getProposalsByIds(proposalIds: List<String>): Flow<List<ProposalWithUserVote>> =
+        callbackFlow {
+            if (proposalIds.isEmpty()) {
+                send(emptyList())
+                awaitClose { }
+                return@callbackFlow
+            }
+
+            val flowScope = this
+
+            suspend fun fetchProposalsWithVotes(): List<ProposalWithUserVote> {
+                val currentUserId = supabase.auth.currentUserOrNull()?.id
+
+                val proposals = supabase
+                    .from("proposals")
+                    .select {
+                        filter { isIn("id", proposalIds) }
+                    }
+                    .decodeList<Proposal>()
+
+                val proposalsWithVotes = if (currentUserId != null && proposals.isNotEmpty()) {
+                    val userVotes = supabase
+                        .from("proposal_votes")
+                        .select {
+                            filter {
+                                eq("user_id", currentUserId)
+                                isIn("proposal_id", proposalIds)
+                            }
+                        }
+                        .decodeList<ProposalVote>()
+
+                    val votesByProposalId = userVotes.associateBy { it.proposalId }
+
+                    proposals.map { proposal ->
+                        val userVote = votesByProposalId[proposal.id]?.voteType ?: 0
+                        ProposalWithUserVote(proposal, userVote)
+                    }
+                } else {
+                    proposals.map { ProposalWithUserVote(it, 0) }
+                }
+
+                return proposalsWithVotes
+            }
+
+            val channelId = "duplicates_${Random.nextLong()}"
+            val channel = supabase.channel(channelId)
+
+            val proposalChanges = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
+                table = "proposals"
+            }
+
+            val voteChanges = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
+                table = "proposal_votes"
+            }
+
+            channel.subscribe()
+
+            try {
+                val initialData = fetchProposalsWithVotes()
+                send(initialData)
+            } catch (e: Exception) {
+                println("Error fetching duplicate proposals: ${e.message}")
+                send(emptyList())
+            }
+
+            try {
+                merge(proposalChanges, voteChanges).collect {
+                    val updatedData = fetchProposalsWithVotes()
+                    send(updatedData)
+                }
+            } catch (e: Exception) {
+                println("Error in Realtime flow for duplicates: ${e.message}")
+            }
+
+            awaitClose {
+                flowScope.launch { channel.unsubscribe() }
+            }
+        }
 }

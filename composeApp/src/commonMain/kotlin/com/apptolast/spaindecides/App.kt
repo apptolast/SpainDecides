@@ -1,12 +1,14 @@
 package com.apptolast.spaindecides
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.apptolast.spaindecides.navigation.CategoriesRoute
 import com.apptolast.spaindecides.navigation.CreateProposalRoute
+import com.apptolast.spaindecides.navigation.DuplicateProposalsRoute
 import com.apptolast.spaindecides.navigation.LoginRoute
 import com.apptolast.spaindecides.navigation.ProposalDetailRoute
 import com.apptolast.spaindecides.navigation.ProposalListRoute
@@ -16,10 +18,14 @@ import com.apptolast.spaindecides.presentation.ui.screens.auth.LoginScreen
 import com.apptolast.spaindecides.presentation.ui.screens.auth.RegisterScreen
 import com.apptolast.spaindecides.presentation.ui.screens.home.CategoriesScreen
 import com.apptolast.spaindecides.presentation.ui.screens.proposals.CreateProposalScreen
+import com.apptolast.spaindecides.presentation.ui.screens.proposals.DuplicateProposalsScreen
 import com.apptolast.spaindecides.presentation.ui.screens.proposals.ProposalDetailScreen
 import com.apptolast.spaindecides.presentation.ui.screens.proposals.ProposalListScreen
 import com.apptolast.spaindecides.presentation.ui.screens.settings.SettingsScreen
 import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
+import com.apptolast.spaindecides.presentation.viewmodel.ProposalViewModel
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 /**
  * Main App composable with navigation.
@@ -115,14 +121,69 @@ fun App() {
             // Create proposal screen
             composable<CreateProposalRoute> { backStackEntry ->
                 val route: CreateProposalRoute = backStackEntry.toRoute()
+
+                // Get ViewModel scoped to ProposalListRoute (shared with DuplicateProposalsScreen)
+                val proposalListEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry(
+                        ProposalListRoute(
+                            categoryId = route.categoryId,
+                            categoryKey = route.categoryKey
+                        )
+                    )
+                }
+                val viewModel: ProposalViewModel = koinViewModel(
+                    viewModelStoreOwner = proposalListEntry
+                ) { parametersOf(route.categoryId) }
+
                 CreateProposalScreen(
                     categoryId = route.categoryId,
                     categoryKey = route.categoryKey,
+                    viewModel = viewModel,
                     onClose = {
                         navController.popBackStack()
                     },
                     onProposalCreated = {
                         navController.popBackStack()
+                    },
+                    onDuplicatesFound = {
+                        navController.navigate(
+                            DuplicateProposalsRoute(
+                                categoryId = route.categoryId,
+                                categoryKey = route.categoryKey
+                            )
+                        )
+                    }
+                )
+            }
+
+            // Duplicate proposals screen
+            composable<DuplicateProposalsRoute> { backStackEntry ->
+                val route: DuplicateProposalsRoute = backStackEntry.toRoute()
+
+                // Get ViewModel scoped to ProposalListRoute (shared with CreateProposalScreen)
+                val proposalListEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry(
+                        ProposalListRoute(
+                            categoryId = route.categoryId,
+                            categoryKey = route.categoryKey
+                        )
+                    )
+                }
+                val viewModel: ProposalViewModel = koinViewModel(
+                    viewModelStoreOwner = proposalListEntry
+                ) { parametersOf(route.categoryId) }
+
+                DuplicateProposalsScreen(
+                    categoryId = route.categoryId,
+                    categoryKey = route.categoryKey,
+                    viewModel = viewModel,
+                    onCancel = {
+                        // Pop back to ProposalListScreen (remove CreateProposal and DuplicateProposals)
+                        navController.popBackStack<ProposalListRoute>(inclusive = false)
+                    },
+                    onProposalCreated = {
+                        // Pop back to ProposalListScreen (remove CreateProposal and DuplicateProposals)
+                        navController.popBackStack<ProposalListRoute>(inclusive = false)
                     }
                 )
             }

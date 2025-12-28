@@ -144,6 +144,12 @@
     <string name="loading_signing_out">Cerrando sesión...</string>
     <string name="loading_deleting_account">Eliminando cuenta...</string>
 
+    <!-- Pantalla de Propuestas Duplicadas -->
+    <string name="duplicates_title">Propuestas similares</string>
+    <string name="duplicates_cancel">Cancelar</string>
+    <string name="duplicates_create_anyway">Crear de todos modos</string>
+    <string name="duplicates_similarity">%1$d%% similar</string>
+
     <!-- Reportar Contenido -->
     <string name="report_content">Reportar contenido inapropiado</string>
     <string name="report_dialog_title">Reportar Contenido</string>

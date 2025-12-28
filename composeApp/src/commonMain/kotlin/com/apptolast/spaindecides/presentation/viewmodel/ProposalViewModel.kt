@@ -6,6 +6,7 @@ import com.apptolast.spaindecides.data.model.ProposalWithUserVote
 import com.apptolast.spaindecides.data.model.SimilarProposal
 import com.apptolast.spaindecides.domain.repository.CreateProposalResult
 import com.apptolast.spaindecides.domain.repository.ProposalRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -82,6 +83,32 @@ class ProposalViewModel(
 
     val showDuplicatesDialog: StateFlow<Boolean>
         field: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
+    /**
+     * Real-time data for duplicate proposals from Supabase.
+     * Contains actual vote counts and user vote state.
+     */
+    val duplicateProposals: StateFlow<List<ProposalWithUserVote>>
+        field: MutableStateFlow<List<ProposalWithUserVote>> = MutableStateFlow(emptyList())
+
+    private var duplicatesJob: Job? = null
+
+    /**
+     * Starts real-time subscription for duplicate proposals.
+     * Called when duplicates are found to get live vote counts.
+     */
+    private fun subscribeToDuplicates(duplicateIds: List<String>) {
+        duplicatesJob?.cancel()
+        duplicatesJob = viewModelScope.launch {
+            proposalRepository.getProposalsByIds(duplicateIds)
+                .catch { e ->
+                    error.value = e.message ?: "Error al cargar propuestas"
+                }
+                .collect { proposals ->
+                    duplicateProposals.value = proposals
+                }
+        }
+    }
 
     // ==================== Voting ====================
 
@@ -162,6 +189,9 @@ class ProposalViewModel(
             is CreateProposalResult.DuplicatesFound -> {
                 duplicatesFound.value = result.duplicates
                 showDuplicatesDialog.value = true
+                // Start real-time subscription for live vote counts
+                val duplicateIds = result.duplicates.map { it.id }
+                subscribeToDuplicates(duplicateIds)
                 isCreating.value = false
                 false
             }
@@ -196,6 +226,40 @@ class ProposalViewModel(
     fun dismissDuplicatesDialog() {
         showDuplicatesDialog.value = false
         duplicatesFound.value = emptyList()
+    }
+
+    /**
+     * Votes on a duplicate proposal.
+     * Real-time subscription automatically updates the UI when the vote is persisted.
+     *
+     * @param proposalId ID of the duplicate proposal to vote on
+     * @param voteType 1 for upvote, -1 for downvote (toggles if already voted)
+     */
+    fun voteOnDuplicate(proposalId: String, voteType: Int) {
+        // Find current vote from real-time data
+        val currentVote = duplicateProposals.value
+            .find { it.id == proposalId }?.userVote ?: 0
+        val newVote = if (currentVote == voteType) 0 else voteType
+
+        viewModelScope.launch {
+            try {
+                // Real-time subscription handles UI update automatically
+                proposalRepository.voteOnProposal(proposalId, newVote)
+            } catch (e: Exception) {
+                error.value = e.message ?: "Error al votar"
+            }
+        }
+    }
+
+    /**
+     * Clears duplicate proposals state. Called when leaving the duplicates screen.
+     */
+    fun clearDuplicatesState() {
+        duplicatesJob?.cancel()
+        duplicatesJob = null
+        showDuplicatesDialog.value = false
+        duplicatesFound.value = emptyList()
+        duplicateProposals.value = emptyList()
     }
 
     // ==================== Helpers ====================

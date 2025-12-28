@@ -58,6 +58,15 @@ interface ProposalRepository {
      * @return The proposal with vote information if found, null otherwise
      */
     suspend fun getProposalById(proposalId: String): ProposalWithUserVote?
+
+    /**
+     * Gets proposals by their IDs with real-time synchronization.
+     * Used for duplicate proposals screen to show live vote counts.
+     *
+     * @param proposalIds List of proposal IDs to fetch
+     * @return Flow emitting list of proposals with user vote information
+     */
+    fun getProposalsByIds(proposalIds: List<String>): Flow<List<ProposalWithUserVote>>
 }
 
 /**

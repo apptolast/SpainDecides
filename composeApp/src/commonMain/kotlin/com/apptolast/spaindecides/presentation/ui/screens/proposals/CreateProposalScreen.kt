@@ -1,6 +1,5 @@
 package com.apptolast.spaindecides.presentation.ui.screens.proposals
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,9 +8,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -58,6 +54,7 @@ import spaindecides.composeapp.generated.resources.create_proposal_title_placeho
  * @param categoryKey i18n key for resolving localized name (e.g., "economy", "health")
  * @param onClose Callback to close the screen
  * @param onProposalCreated Callback when proposal is successfully created
+ * @param onDuplicatesFound Callback when duplicates are detected (navigates to DuplicateProposalsScreen)
  * @param viewModel Proposal ViewModel (injected via Koin with categoryId parameter)
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,6 +65,7 @@ fun CreateProposalScreen(
     viewModel: ProposalViewModel = koinViewModel { parametersOf(categoryId) },
     onClose: () -> Unit,
     onProposalCreated: () -> Unit,
+    onDuplicatesFound: () -> Unit,
 ) {
 //    // Reconstruct minimal Category object for using extension functions
 //    val category = Category(
@@ -81,11 +79,7 @@ fun CreateProposalScreen(
     val proposalDescription by viewModel.newProposalDescription.collectAsStateWithLifecycle()
     val isCreating by viewModel.isCreating.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
-
-    // ===== NUEVO: Estados para duplicados =====
     val showDuplicatesDialog by viewModel.showDuplicatesDialog.collectAsStateWithLifecycle()
-    val duplicates by viewModel.duplicatesFound.collectAsStateWithLifecycle()
-    // ==========================================
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -95,77 +89,12 @@ fun CreateProposalScreen(
         viewModel.clearNewProposalFields()
     }
 
-    // ===== NUEVO: Diálogo de duplicados =====
-    if (showDuplicatesDialog && duplicates.isNotEmpty()) {
-        AlertDialog(
-            onDismissRequest = { viewModel.dismissDuplicatesDialog() },
-            title = {
-                Text("Propuestas similares encontradas")
-            },
-            text = {
-                Column {
-                    Text(
-                        text = "Hemos encontrado propuestas parecidas a la tuya. ¿Quieres apoyar alguna existente?",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    duplicates.forEach { duplicate ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp)
-                                .clickable {
-                                    viewModel.selectExistingProposal(duplicate.id)
-                                    onProposalCreated() // Cerrar pantalla
-                                },
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant
-                            )
-                        ) {
-                            Column(modifier = Modifier.padding(12.dp)) {
-                                Text(
-                                    text = duplicate.title,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = duplicate.description.take(100) + if (duplicate.description.length > 100) "..." else "",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "${(duplicate.similarity * 100).toInt()}% similar",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        scope.launch {
-                            viewModel.createProposal(true)
-                            onProposalCreated() // Cerrar pantalla después de crear
-                        }
-                    }
-                ) {
-                    Text("Crear de todos modos")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { viewModel.dismissDuplicatesDialog() }) {
-                    Text("Cancelar")
-                }
-            }
-        )
+    // Navigate to DuplicateProposalsScreen when duplicates are found
+    LaunchedEffect(showDuplicatesDialog) {
+        if (showDuplicatesDialog) {
+            onDuplicatesFound()
+        }
     }
-    // =========================================
 
     Scaffold(
         topBar = {
@@ -192,10 +121,10 @@ fun CreateProposalScreen(
                                 if (success) {
                                     onProposalCreated()
                                 } else if (error != null && !showDuplicatesDialog) {
-                                    // Solo mostrar snackbar si hay error Y no es por duplicados
+                                    // Only show snackbar if there's an error and it's not due to duplicates
                                     snackbarHostState.showSnackbar(error!!)
                                 }
-                                // Si hay duplicados, el diálogo se muestra automáticamente
+                                // If duplicates are found, LaunchedEffect will navigate to DuplicateProposalsScreen
                             }
                         },
                         enabled = !isCreating && proposalTitle.isNotBlank() && proposalDescription.isNotBlank()
