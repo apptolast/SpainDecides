@@ -1,5 +1,4 @@
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
 plugins {
@@ -9,6 +8,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.buildkonfig)
+    alias(libs.plugins.googleServices)
 }
 
 // =============================================================================
@@ -48,11 +48,7 @@ val isReleaseBuild: Boolean by lazy {
 kotlin {
     compilerOptions.freeCompilerArgs.add("-Xexpect-actual-classes")
 
-    androidTarget {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
-        }
-    }
+    androidTarget()
 
     listOf(
         iosArm64(),
@@ -61,6 +57,8 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
+            // Export KMPNotifier for iOS
+            export(libs.kmpnotifier)
         }
     }
 
@@ -72,11 +70,17 @@ kotlin {
 
             // Ktor Client for Android (OkHttp engine supports WebSockets)
             implementation(libs.ktor.client.okhttp)
+
+            // Firebase (required for KMPNotifier push notifications)
+            implementation(project.dependencies.platform(libs.firebase.bom))
+            implementation(libs.firebase.messaging)
         }
 
         iosMain.dependencies {
             // Ktor Client for iOS
             implementation(libs.ktor.client.darwin)
+            // KMPNotifier for iOS (exported to Swift)
+            api(libs.kmpnotifier)
         }
 
         commonMain.dependencies {
@@ -120,12 +124,12 @@ kotlin {
             implementation(libs.supabase.postgrest)
             implementation(libs.supabase.realtime)
 
-            // Secure Storage
-            implementation(libs.kvault)
-
             // Coil - Image Loading
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor)
+
+            // Push Notifications
+            api(libs.kmpnotifier)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -277,20 +281,44 @@ buildkonfig {
             "EMAILJS_PUBLIC_KEY",
             localProperties.getProperty("EMAILJS_PUBLIC_KEY", "")
         )
+
+        // Firebase Cloud Function Configuration (for push notifications)
+        buildConfigField(
+            STRING,
+            "FIREBASE_FUNCTION_URL",
+            localProperties.getPropertyWithFallback("FIREBASE_FUNCTION_URL", isReleaseBuild)
+        )
+        buildConfigField(
+            STRING,
+            "FIREBASE_FUNCTION_API_KEY",
+            localProperties.getPropertyWithFallback("FIREBASE_FUNCTION_API_KEY", isReleaseBuild)
+        )
     }
 }
 
-tasks.register("checkXcode") {
-    doLast {
+// Definimos una clase abstracta que inyecta ExecOperations
+abstract class CheckXcodeTask @Inject constructor(
+    private val execOperations: ExecOperations
+) : DefaultTask() {
+
+    @TaskAction
+    fun action() {
         println("--- Xcode Check ---")
-        exec {
+
+        // Usamos execOperations en lugar de project.exec
+        execOperations.exec {
             commandLine("xcode-select", "-p")
             isIgnoreExitValue = true
         }
-        exec {
+
+        execOperations.exec {
             commandLine("xcrun", "--show-sdk-path", "--sdk", "iphonesimulator")
             isIgnoreExitValue = true
         }
+
         println("-------------------")
     }
 }
+
+// Registramos la tarea usando la clase que acabamos de crear
+tasks.register<CheckXcodeTask>("checkXcode")

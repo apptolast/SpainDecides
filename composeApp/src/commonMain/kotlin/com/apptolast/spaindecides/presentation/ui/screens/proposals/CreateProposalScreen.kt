@@ -54,6 +54,7 @@ import spaindecides.composeapp.generated.resources.create_proposal_title_placeho
  * @param categoryKey i18n key for resolving localized name (e.g., "economy", "health")
  * @param onClose Callback to close the screen
  * @param onProposalCreated Callback when proposal is successfully created
+ * @param onDuplicatesFound Callback when duplicates are detected (navigates to DuplicateProposalsScreen)
  * @param viewModel Proposal ViewModel (injected via Koin with categoryId parameter)
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,6 +65,7 @@ fun CreateProposalScreen(
     viewModel: ProposalViewModel = koinViewModel { parametersOf(categoryId) },
     onClose: () -> Unit,
     onProposalCreated: () -> Unit,
+    onDuplicatesFound: () -> Unit,
 ) {
 //    // Reconstruct minimal Category object for using extension functions
 //    val category = Category(
@@ -77,6 +79,7 @@ fun CreateProposalScreen(
     val proposalDescription by viewModel.newProposalDescription.collectAsStateWithLifecycle()
     val isCreating by viewModel.isCreating.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
+    val showDuplicatesDialog by viewModel.showDuplicatesDialog.collectAsStateWithLifecycle()
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -84,6 +87,13 @@ fun CreateProposalScreen(
     // Clear fields when screen is opened
     LaunchedEffect(Unit) {
         viewModel.clearNewProposalFields()
+    }
+
+    // Navigate to DuplicateProposalsScreen when duplicates are found
+    LaunchedEffect(showDuplicatesDialog) {
+        if (showDuplicatesDialog) {
+            onDuplicatesFound()
+        }
     }
 
     Scaffold(
@@ -110,11 +120,11 @@ fun CreateProposalScreen(
                                 val success = viewModel.createProposal()
                                 if (success) {
                                     onProposalCreated()
-                                } else {
-                                    error?.let {
-                                        snackbarHostState.showSnackbar(it)
-                                    }
+                                } else if (error != null && !showDuplicatesDialog) {
+                                    // Only show snackbar if there's an error and it's not due to duplicates
+                                    snackbarHostState.showSnackbar(error!!)
                                 }
+                                // If duplicates are found, LaunchedEffect will navigate to DuplicateProposalsScreen
                             }
                         },
                         enabled = !isCreating && proposalTitle.isNotBlank() && proposalDescription.isNotBlank()

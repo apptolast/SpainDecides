@@ -8,15 +8,15 @@ import org.koin.dsl.module
  * Koin module for authentication dependencies.
  *
  * Provides:
- * - SecureStorage (platform-specific)
- * - AuthRepository implementation
+ * - AuthRepository implementation (uses Supabase for session/token management)
  */
 expect fun createAuthModule(): org.koin.core.module.Module
 
 /**
- * Common auth module that can be extended by platform-specific modules
+ * Common auth module that can be extended by platform-specific modules.
+ * Note: Supabase handles token persistence automatically, no SecureStorage needed.
  */
 internal fun authModuleCommon() = module {
-    // AuthRepository implementation
-    single<AuthRepository> { AuthRepositoryImpl(get()) }
+    // AuthRepository implementation (no dependencies - Supabase manages sessions internally)
+    single<AuthRepository> { AuthRepositoryImpl() }
 }

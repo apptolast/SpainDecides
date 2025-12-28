@@ -132,6 +132,21 @@
 }
 
 # ===========================
+# KMPNotifier & Firebase
+# ===========================
+# Keep KMPNotifier classes (push notifications)
+-keep class com.mmk.kmpnotifier.** { *; }
+-keepclassmembers class com.mmk.kmpnotifier.** { *; }
+
+# Keep Firebase Messaging classes
+-keep class com.google.firebase.** { *; }
+-keep class com.google.firebase.messaging.** { *; }
+-keepclassmembers class com.google.firebase.messaging.** { *; }
+
+# Keep the FirebaseCloudMessagingService specifically
+-keep class com.mmk.kmpnotifier.firebase.FirebaseCloudMessagingService { *; }
+
+# ===========================
 # Security & Encryption
 # ===========================
 # Keep KVault (secure storage)

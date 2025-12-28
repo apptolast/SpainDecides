@@ -2,7 +2,6 @@ package com.apptolast.spaindecides.data.repository
 
 import com.apptolast.spaindecides.data.remote.SupabaseClientConfig
 import com.apptolast.spaindecides.data.remote.SupabaseClientConfig.client
-import com.apptolast.spaindecides.data.storage.SecureStorage
 import com.apptolast.spaindecides.domain.model.AuthUser
 import com.apptolast.spaindecides.domain.repository.AuthRepository
 import io.github.jan.supabase.auth.SignOutScope
@@ -21,11 +20,10 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlin.time.ExperimentalTime
 
 /**
- * Implementation of AuthRepository using Supabase
+ * Implementation of AuthRepository using Supabase.
+ * Session/token management is handled automatically by Supabase Auth.
  */
-class AuthRepositoryImpl(
-    private val secureStorage: SecureStorage
-) : AuthRepository {
+class AuthRepositoryImpl : AuthRepository {
 
     private val auth = SupabaseClientConfig.client.auth
 
@@ -91,7 +89,6 @@ class AuthRepositoryImpl(
             // Use GLOBAL scope to clear ALL sessions including Supabase's internal storage
             // This prevents automatic session restoration after logout
             auth.signOut(scope = SignOutScope.GLOBAL)
-            secureStorage.clear()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -148,12 +145,15 @@ class AuthRepositoryImpl(
             // Sign out AFTER deletion to clean up the session
             // Use GLOBAL scope to clear ALL sessions including Supabase's internal storage
             auth.signOut(scope = SignOutScope.GLOBAL)
-            secureStorage.clear()
 
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    override suspend fun getAccessToken(): String? {
+        return auth.currentSessionOrNull()?.accessToken
     }
 
     /**

@@ -100,7 +100,10 @@ fun CategoriesScreen(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(categories) { category ->
+                    items(
+                        items = categories,
+                        key = { category -> category.id }
+                    ) { category ->
                         CategoryCard(
                             category = category,
                             onClick = {

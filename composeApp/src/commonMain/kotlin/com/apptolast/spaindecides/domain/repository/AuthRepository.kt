@@ -56,4 +56,12 @@ interface AuthRepository {
      * This will delete the user from Supabase Auth and all associated data
      */
     suspend fun deleteAccount(): Result<Unit>
+
+    /**
+     * Get the current session's access token (JWT).
+     * Used for authenticating requests to external services (n8n webhooks, etc.)
+     *
+     * @return The JWT access token if user is authenticated, null otherwise
+     */
+    suspend fun getAccessToken(): String?
 }

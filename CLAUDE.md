@@ -1371,3 +1371,39 @@ When implementing new features or troubleshooting, consult these official resour
 - **Koin Documentation**: https://insert-koin.io
 - **Koin KMP Guide**: https://insert-koin.io/docs/reference/koin-mp/kmp/
 - **Koin Compose**: https://insert-koin.io/docs/reference/koin-compose/compose/
+
+### Push Notifications
+
+- **KMPNotifier Library**: https://github.com/mirzemehdi/KMPNotifier
+- **Firebase Cloud Messaging**: https://firebase.google.com/docs/cloud-messaging
+- **Setup Guide**: See `docs/PUSH_NOTIFICATIONS_SETUP.md`
+
+## Push Notifications Architecture
+
+The app uses **Firebase Cloud Messaging (FCM)** via the **KMPNotifier** library to send push notifications when a new
+proposal is created.
+
+### How It Works
+
+1. **Topic Subscription**: All app instances automatically subscribe to the `new_proposals` FCM topic on startup
+2. **Proposal Creation**: When a user creates a proposal, the app calls a Firebase Cloud Function
+3. **Notification Dispatch**: The Cloud Function sends a notification to all subscribers of the topic
+4. **Notification Display**: All devices receive and display the notification
+
+### Key Components
+
+- `NotificationInitializer` (commonMain): Manages topic subscription and notification listeners
+- `NotificationService` (commonMain): Sends notifications via Firebase Cloud Function
+- `SpainDecidesApplication` (Android): Initializes KMPNotifier on app start
+- `iOSApp.swift` (iOS): Configures Firebase and notification permissions
+- `firebase/functions/src/index.ts`: Cloud Function that sends FCM messages
+
+### Configuration Required
+
+1. **Firebase Project**: Create in Firebase Console
+2. **Android**: Add `google-services.json` to `composeApp/`
+3. **iOS**: Add `GoogleService-Info.plist` to `iosApp/iosApp/`
+4. **Cloud Function**: Deploy with API key
+5. **local.properties**: Add `FIREBASE_FUNCTION_URL` and `FIREBASE_FUNCTION_API_KEY`
+
+See `docs/PUSH_NOTIFICATIONS_SETUP.md` for detailed setup instructions.

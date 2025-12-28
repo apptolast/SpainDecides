@@ -1,5 +1,7 @@
 package com.apptolast.spaindecides.presentation.ui.screens.proposals
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -207,7 +209,8 @@ fun ProposalListScreen(
                 ) {
                     items(
                         items = proposals,
-                        key = { proposal -> proposal.id }
+                        key = { proposal -> proposal.id },
+                        contentType = { "proposal" }
                     ) { proposal ->
                         ProposalCard(
                             proposal = proposal,
@@ -226,7 +229,14 @@ fun ProposalListScreen(
                                 selectedProposal = proposal
                                 showReportDialog = true
                             },
-                            modifier = Modifier.animateItem()
+                            modifier = Modifier.animateItem(
+                                fadeInSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                                fadeOutSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                                placementSpec = spring(
+                                    dampingRatio = Spring.DampingRatioNoBouncy,
+                                    stiffness = Spring.StiffnessMediumLow
+                                )
+                            )
                         )
                     }
                 }

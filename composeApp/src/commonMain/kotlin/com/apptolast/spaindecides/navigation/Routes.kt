@@ -66,6 +66,17 @@ data class ProposalDetailRoute(
 ) : Route
 
 /**
+ * Duplicate proposals screen route - displays similar proposals for user review
+ * @param categoryId ID of the category (UUID from database)
+ * @param categoryKey i18n key for resolving localized name (e.g., "economy", "health")
+ */
+@Serializable
+data class DuplicateProposalsRoute(
+    val categoryId: String,
+    val categoryKey: String
+) : Route
+
+/**
  * Settings screen route
  */
 @Serializable

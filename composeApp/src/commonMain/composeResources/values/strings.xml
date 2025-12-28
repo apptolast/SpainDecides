@@ -144,6 +144,12 @@
     <string name="loading_signing_out">Signing out...</string>
     <string name="loading_deleting_account">Deleting account...</string>
 
+    <!-- Duplicate Proposals Screen -->
+    <string name="duplicates_title">Similar proposals</string>
+    <string name="duplicates_cancel">Cancel</string>
+    <string name="duplicates_create_anyway">Create anyway</string>
+    <string name="duplicates_similarity">%1$d%% similar</string>
+
     <!-- Report Content -->
     <string name="report_content">Report inappropriate content</string>
     <string name="report_dialog_title">Report Content</string>

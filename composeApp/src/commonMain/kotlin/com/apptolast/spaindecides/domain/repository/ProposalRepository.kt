@@ -2,6 +2,7 @@ package com.apptolast.spaindecides.domain.repository
 
 import com.apptolast.spaindecides.data.model.Proposal
 import com.apptolast.spaindecides.data.model.ProposalWithUserVote
+import com.apptolast.spaindecides.data.model.SimilarProposal
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -20,14 +21,25 @@ interface ProposalRepository {
     fun getProposalsByCategory(categoryId: String): Flow<List<ProposalWithUserVote>>
 
     /**
-     * Creates a new proposal in a specific category.
+     * Creates a new proposal, checking for duplicates via AI.
+     *
+     * This method:
+     * 1. Sends the proposal to n8n for duplicate detection
+     * 2. If no duplicates found, n8n creates the proposal (generates short_description with AI)
+     * 3. If duplicates found, returns them for user decision
      *
      * @param title Brief title of the proposal (10-100 characters)
      * @param description Detailed description of the proposal (10-1000 characters)
      * @param categoryId The ID of the category
-     * @return The created proposal
+     * @param forceCreation If true, skips duplicate check and creates immediately
+     * @return CreateProposalResult indicating success, duplicates found, or error
      */
-    suspend fun createProposal(title: String, description: String, categoryId: String): Proposal
+    suspend fun createProposal(
+        title: String,
+        description: String,
+        categoryId: String,
+        forceCreation: Boolean
+    ): CreateProposalResult
 
     /**
      * Votes on a proposal. This will insert or update a vote in the proposal_votes table.
@@ -46,4 +58,41 @@ interface ProposalRepository {
      * @return The proposal with vote information if found, null otherwise
      */
     suspend fun getProposalById(proposalId: String): ProposalWithUserVote?
+
+    /**
+     * Gets proposals by their IDs with real-time synchronization.
+     * Used for duplicate proposals screen to show live vote counts.
+     *
+     * @param proposalIds List of proposal IDs to fetch
+     * @return Flow emitting list of proposals with user vote information
+     */
+    fun getProposalsByIds(proposalIds: List<String>): Flow<List<ProposalWithUserVote>>
+}
+
+/**
+ * Sealed class representing the result of creating a proposal.
+ * Provides type-safe handling of different outcomes.
+ */
+sealed class CreateProposalResult {
+    /**
+     * Proposal was created successfully.
+     * @param proposal The created proposal
+     */
+    data class Success(val proposal: Proposal) : CreateProposalResult()
+
+    /**
+     * Similar proposals were found. User should decide whether to proceed.
+     * @param duplicates List of similar proposals with similarity scores
+     */
+    data class DuplicatesFound(val duplicates: List<SimilarProposal>) : CreateProposalResult()
+
+    /**
+     * An error occurred during proposal creation.
+     * @param message Human-readable error message
+     * @param isNetworkError True if the error was due to network issues
+     */
+    data class Error(
+        val message: String,
+        val isNetworkError: Boolean = false
+    ) : CreateProposalResult()
 }

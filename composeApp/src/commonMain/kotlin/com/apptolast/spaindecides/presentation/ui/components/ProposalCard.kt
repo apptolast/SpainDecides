@@ -1,6 +1,8 @@
 package com.apptolast.spaindecides.presentation.ui.components
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -137,7 +139,12 @@ fun ProposalCard(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .animateContentSize()
+                    .animateContentSize(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioNoBouncy,
+                            stiffness = Spring.StiffnessMedium
+                        )
+                    )
             ) {
                 // Header row with title and report button
                 Row(
