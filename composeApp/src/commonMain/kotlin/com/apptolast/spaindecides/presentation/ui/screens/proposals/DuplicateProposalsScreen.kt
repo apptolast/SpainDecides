@@ -190,7 +190,8 @@ fun DuplicateProposalsScreen(
                 // Horizontal pager for proposal content
                 HorizontalPager(
                     state = pagerState,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    key = { page -> duplicates[page].id }
                 ) { page ->
                     val similarProposal = duplicates[page]
                     val realData = proposalDataMap[similarProposal.id]

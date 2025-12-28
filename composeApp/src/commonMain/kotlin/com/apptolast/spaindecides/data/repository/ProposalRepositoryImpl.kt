@@ -84,7 +84,12 @@ class ProposalRepositoryImpl(
                     proposals.map { ProposalWithUserVote(it, 0) }
                 }
 
-                return proposalsWithVotes.sortedByDescending { it.netVotes }
+                // Sort by netVotes descending, then by id for stable ordering
+                // This prevents items with same vote count from jumping positions
+                return proposalsWithVotes.sortedWith(
+                    compareByDescending<ProposalWithUserVote> { it.netVotes }
+                        .thenBy { it.id }
+                )
             }
 
             val channelId = "proposals_${Random.nextLong()}"
