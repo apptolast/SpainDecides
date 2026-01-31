@@ -14,7 +14,8 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,13 +33,16 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
+import com.apptolast.spaindecides.presentation.util.getLocalizedCategoryName
 import com.apptolast.spaindecides.presentation.viewmodel.ProposalViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -47,10 +51,15 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import spaindecides.composeapp.generated.resources.Res
-import spaindecides.composeapp.generated.resources.close
+import spaindecides.composeapp.generated.resources.back
+import spaindecides.composeapp.generated.resources.create_proposal_category
 import spaindecides.composeapp.generated.resources.create_proposal_description_counter
 import spaindecides.composeapp.generated.resources.create_proposal_description_label
 import spaindecides.composeapp.generated.resources.create_proposal_description_placeholder
+import spaindecides.composeapp.generated.resources.create_proposal_discard_cancel
+import spaindecides.composeapp.generated.resources.create_proposal_discard_confirm
+import spaindecides.composeapp.generated.resources.create_proposal_discard_message
+import spaindecides.composeapp.generated.resources.create_proposal_discard_title
 import spaindecides.composeapp.generated.resources.create_proposal_publish
 import spaindecides.composeapp.generated.resources.create_proposal_title
 import spaindecides.composeapp.generated.resources.create_proposal_title_counter
@@ -88,10 +97,8 @@ fun CreateProposalScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Clear fields when screen is opened
-    LaunchedEffect(Unit) {
-        viewModel.clearNewProposalFields()
-    }
+    // Resolve localized category name
+    val categoryName = getLocalizedCategoryName(categoryKey)
 
     // Navigate to DuplicateProposalsScreen when duplicates are found
     LaunchedEffect(showDuplicatesDialog) {
@@ -101,6 +108,7 @@ fun CreateProposalScreen(
     }
 
     CreateProposalContent(
+        categoryName = categoryName,
         proposalTitle = proposalTitle,
         proposalDescription = proposalDescription,
         titleCharacterCount = viewModel.titleCharacterCount,
@@ -130,6 +138,7 @@ fun CreateProposalScreen(
  * It has no dependencies on ViewModels or other stateful components, making it
  * easy to preview and test.
  *
+ * @param categoryName Localized name of the category
  * @param proposalTitle Current title text
  * @param proposalDescription Current description text
  * @param titleCharacterCount Current character count for title
@@ -145,6 +154,7 @@ fun CreateProposalScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateProposalContent(
+    categoryName: String,
     proposalTitle: String,
     proposalDescription: String,
     titleCharacterCount: Int,
@@ -158,6 +168,19 @@ fun CreateProposalContent(
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
+    var showDiscardDialog by remember { mutableStateOf(false) }
+
+    // Check if there's any content to discard
+    val hasContent = proposalTitle.isNotBlank() || proposalDescription.isNotBlank()
+
+    // Handle back button press
+    val handleBack: () -> Unit = {
+        if (hasContent) {
+            showDiscardDialog = true
+        } else {
+            onClose()
+        }
+    }
 
     // Auto-scroll to bottom when keyboard appears (keeps cursor visible)
     LaunchedEffect(scrollState.maxValue) {
@@ -165,6 +188,30 @@ fun CreateProposalContent(
             delay(100) // Small delay for smooth transition
             scrollState.animateScrollTo(scrollState.maxValue)
         }
+    }
+
+    // Discard confirmation dialog
+    if (showDiscardDialog) {
+        AlertDialog(
+            onDismissRequest = { showDiscardDialog = false },
+            title = { Text(stringResource(Res.string.create_proposal_discard_title)) },
+            text = { Text(stringResource(Res.string.create_proposal_discard_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDiscardDialog = false
+                        onClose()
+                    }
+                ) {
+                    Text(stringResource(Res.string.create_proposal_discard_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardDialog = false }) {
+                    Text(stringResource(Res.string.create_proposal_discard_cancel))
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -177,10 +224,10 @@ fun CreateProposalContent(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onClose) {
+                    IconButton(onClick = handleBack) {
                         Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = stringResource(Res.string.close)
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(Res.string.back)
                         )
                     }
                 },
@@ -212,6 +259,15 @@ fun CreateProposalContent(
                 .verticalScroll(scrollState)
                 .padding(16.dp)
         ) {
+            // Category name indicator
+            Text(
+                text = stringResource(Res.string.create_proposal_category, categoryName),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Title label
             Text(
                 text = stringResource(Res.string.create_proposal_title_label),
@@ -311,6 +367,7 @@ fun CreateProposalContent(
 private fun CreateProposalContentPreview() {
     SpainDecidesTheme {
         CreateProposalContent(
+            categoryName = "Economía y Empleo",
             proposalTitle = "Reducir impuestos a las PYMES",
             proposalDescription = "Propuesta para reducir la carga fiscal de las pequeñas y medianas empresas.",
             titleCharacterCount = 28,
@@ -330,6 +387,7 @@ private fun CreateProposalContentPreview() {
 private fun CreateProposalContentEmptyPreview() {
     SpainDecidesTheme {
         CreateProposalContent(
+            categoryName = "Sanidad Pública",
             proposalTitle = "",
             proposalDescription = "",
             titleCharacterCount = 0,
@@ -349,6 +407,7 @@ private fun CreateProposalContentEmptyPreview() {
 private fun CreateProposalContentCreatingPreview() {
     SpainDecidesTheme {
         CreateProposalContent(
+            categoryName = "Economía y Empleo",
             proposalTitle = "Reducir impuestos a las PYMES",
             proposalDescription = "Propuesta para reducir la carga fiscal de las pequeñas y medianas empresas.",
             titleCharacterCount = 28,
@@ -368,6 +427,7 @@ private fun CreateProposalContentCreatingPreview() {
 private fun CreateProposalContentOverLimitPreview() {
     SpainDecidesTheme {
         CreateProposalContent(
+            categoryName = "Medio Ambiente",
             proposalTitle = "Este es un título muy largo que supera el límite de caracteres permitido para una propuesta ciudadana",
             proposalDescription = "Descripción de ejemplo",
             titleCharacterCount = 105,

@@ -1,5 +1,6 @@
 package com.apptolast.spaindecides.presentation.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.apptolast.spaindecides.data.model.ProposalWithUserVote
@@ -34,7 +35,8 @@ import kotlinx.coroutines.launch
  */
 class ProposalViewModel(
     private val categoryId: String,
-    private val proposalRepository: ProposalRepository
+    private val proposalRepository: ProposalRepository,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     // ==================== Proposals List State ====================
@@ -67,11 +69,15 @@ class ProposalViewModel(
 
     // ==================== Create Proposal State ====================
 
-    val newProposalTitle: StateFlow<String>
-        field: MutableStateFlow<String> = MutableStateFlow("")
+    val newProposalTitle: StateFlow<String> = savedStateHandle.getStateFlow(
+        key = KEY_PROPOSAL_TITLE,
+        initialValue = ""
+    )
 
-    val newProposalDescription: StateFlow<String>
-        field: MutableStateFlow<String> = MutableStateFlow("")
+    val newProposalDescription: StateFlow<String> = savedStateHandle.getStateFlow(
+        key = KEY_PROPOSAL_DESCRIPTION,
+        initialValue = ""
+    )
 
     val isCreating: StateFlow<Boolean>
         field: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -134,7 +140,7 @@ class ProposalViewModel(
      */
     fun updateNewProposalTitle(text: String) {
         if (text.length <= MAX_TITLE_LENGTH) {
-            newProposalTitle.value = text
+            savedStateHandle[KEY_PROPOSAL_TITLE] = text
         }
     }
 
@@ -143,7 +149,7 @@ class ProposalViewModel(
      */
     fun updateNewProposalDescription(text: String) {
         if (text.length <= MAX_DESCRIPTION_LENGTH) {
-            newProposalDescription.value = text
+            savedStateHandle[KEY_PROPOSAL_DESCRIPTION] = text
         }
     }
 
@@ -268,8 +274,8 @@ class ProposalViewModel(
      * Clears the new proposal form fields.
      */
     fun clearNewProposalFields() {
-        newProposalTitle.value = ""
-        newProposalDescription.value = ""
+        savedStateHandle[KEY_PROPOSAL_TITLE] = ""
+        savedStateHandle[KEY_PROPOSAL_DESCRIPTION] = ""
     }
 
     /**
@@ -326,5 +332,9 @@ class ProposalViewModel(
         const val MAX_TITLE_LENGTH = 100
         const val MIN_DESCRIPTION_LENGTH = 10
         const val MAX_DESCRIPTION_LENGTH = 1000
+
+        // SavedStateHandle keys for state persistence across process death
+        private const val KEY_PROPOSAL_TITLE = "proposal_title"
+        private const val KEY_PROPOSAL_DESCRIPTION = "proposal_description"
     }
 }

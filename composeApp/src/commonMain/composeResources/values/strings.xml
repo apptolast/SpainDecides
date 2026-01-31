@@ -104,7 +104,7 @@
 
     <!-- Create Proposal Screen -->
     <string name="create_proposal_title">New Proposal</string>
-    <string name="create_proposal_category">Category: %s</string>
+    <string name="create_proposal_category">%1$s</string>
     <string name="create_proposal_title_label">Title</string>
     <string name="create_proposal_title_placeholder">Write a brief title (10-100 characters)...</string>
     <string name="create_proposal_title_counter">%1$d/100</string>
@@ -112,6 +112,10 @@
     <string name="create_proposal_description_placeholder">Describe your proposal in detail (10-1000 characters)...</string>
     <string name="create_proposal_description_counter">%1$d/1000</string>
     <string name="create_proposal_publish">Publish</string>
+    <string name="create_proposal_discard_title">Discard Proposal?</string>
+    <string name="create_proposal_discard_message">You have unsaved changes. Are you sure you want to discard this proposal?</string>
+    <string name="create_proposal_discard_confirm">Discard</string>
+    <string name="create_proposal_discard_cancel">Keep Editing</string>
 
     <!-- Common Navigation -->
     <string name="back">Back</string>
