@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -41,10 +42,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.apptolast.spaindecides.data.model.ProposalWithUserVote
 import com.apptolast.spaindecides.data.model.SimilarProposal
+import com.apptolast.spaindecides.presentation.ui.preview.SampleData
+import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 import com.apptolast.spaindecides.presentation.viewmodel.ProposalViewModel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import spaindecides.composeapp.generated.resources.Res
@@ -57,13 +62,10 @@ import spaindecides.composeapp.generated.resources.proposal_vote_down
 import spaindecides.composeapp.generated.resources.proposal_vote_up
 
 /**
- * Duplicate proposals screen - displays similar proposals for user review.
+ * Stateful Duplicate proposals screen - displays similar proposals for user review.
  *
- * Features:
- * - TabRow with similarity percentages (swipe + click navigation)
- * - HorizontalPager for full proposal content
- * - Voting capability on each proposal
- * - Fixed bottom bar with Cancel and Create anyway buttons
+ * This composable handles ViewModel injection and state collection,
+ * delegating the actual UI rendering to [DuplicateProposalsContent].
  *
  * @param categoryId ID of the category
  * @param categoryKey i18n key for category name
@@ -71,7 +73,6 @@ import spaindecides.composeapp.generated.resources.proposal_vote_up
  * @param onCancel Callback when user cancels (navigates back to proposal list)
  * @param onProposalCreated Callback when proposal is created anyway
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DuplicateProposalsScreen(
     categoryId: String,
@@ -90,6 +91,69 @@ fun DuplicateProposalsScreen(
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { duplicates.size })
 
+    DuplicateProposalsContent(
+        duplicates = duplicates,
+        proposalDataMap = proposalDataMap,
+        isCreating = isCreating,
+        pagerState = pagerState,
+        onCancel = {
+            viewModel.clearDuplicatesState()
+            onCancel()
+        },
+        onCreateAnyway = {
+            scope.launch {
+                val success = viewModel.createProposal(forceCreation = true)
+                if (success) {
+                    viewModel.clearDuplicatesState()
+                    onProposalCreated()
+                }
+            }
+        },
+        onVote = { proposalId, vote -> viewModel.voteOnDuplicate(proposalId, vote) },
+        onPageSelected = { page ->
+            scope.launch {
+                pagerState.animateScrollToPage(page)
+            }
+        }
+    )
+}
+
+/**
+ * Stateless Duplicate proposals content composable.
+ *
+ * This composable is responsible for rendering the UI based on the provided state.
+ * It has no dependencies on ViewModels or other stateful components, making it
+ * easy to preview and test.
+ *
+ * Features:
+ * - TabRow with similarity percentages (swipe + click navigation)
+ * - HorizontalPager for full proposal content
+ * - Voting capability on each proposal
+ * - Fixed bottom bar with Cancel and Create anyway buttons
+ *
+ * @param duplicates List of similar proposals found
+ * @param proposalDataMap Map of proposal IDs to their real-time data
+ * @param isCreating Whether a proposal is being created
+ * @param pagerState State for the horizontal pager
+ * @param onCancel Callback when cancel button is clicked
+ * @param onCreateAnyway Callback when "create anyway" button is clicked
+ * @param onVote Callback when user votes on a proposal (proposalId, vote)
+ * @param onPageSelected Callback when a tab is clicked
+ * @param modifier Optional modifier
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DuplicateProposalsContent(
+    duplicates: List<SimilarProposal>,
+    proposalDataMap: Map<String, ProposalWithUserVote>,
+    isCreating: Boolean,
+    pagerState: PagerState,
+    onCancel: () -> Unit,
+    onCreateAnyway: () -> Unit,
+    onVote: (proposalId: String, vote: Int) -> Unit,
+    onPageSelected: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -100,10 +164,7 @@ fun DuplicateProposalsScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = {
-                        viewModel.clearDuplicatesState()
-                        onCancel()
-                    }) {
+                    IconButton(onClick = onCancel) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(Res.string.back)
@@ -128,10 +189,7 @@ fun DuplicateProposalsScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     OutlinedButton(
-                        onClick = {
-                            viewModel.clearDuplicatesState()
-                            onCancel()
-                        },
+                        onClick = onCancel,
                         modifier = Modifier.weight(1f),
                         enabled = !isCreating
                     ) {
@@ -139,15 +197,7 @@ fun DuplicateProposalsScreen(
                     }
 
                     Button(
-                        onClick = {
-                            scope.launch {
-                                val success = viewModel.createProposal(forceCreation = true)
-                                if (success) {
-                                    viewModel.clearDuplicatesState()
-                                    onProposalCreated()
-                                }
-                            }
-                        },
+                        onClick = onCreateAnyway,
                         modifier = Modifier.weight(1f),
                         enabled = !isCreating
                     ) {
@@ -155,7 +205,8 @@ fun DuplicateProposalsScreen(
                     }
                 }
             }
-        }
+        },
+        modifier = modifier
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -174,11 +225,7 @@ fun DuplicateProposalsScreen(
                     duplicates.forEachIndexed { index, duplicate ->
                         Tab(
                             selected = pagerState.currentPage == index,
-                            onClick = {
-                                scope.launch {
-                                    pagerState.animateScrollToPage(index)
-                                }
-                            },
+                            onClick = { onPageSelected(index) },
                             text = {
                                 Text(
                                     text = stringResource(
@@ -204,8 +251,8 @@ fun DuplicateProposalsScreen(
                         proposal = similarProposal,
                         votesCount = realData?.netVotes ?: similarProposal.votesCount,
                         userVote = realData?.userVote ?: 0,
-                        onUpvote = { viewModel.voteOnDuplicate(similarProposal.id, 1) },
-                        onDownvote = { viewModel.voteOnDuplicate(similarProposal.id, -1) }
+                        onUpvote = { onVote(similarProposal.id, 1) },
+                        onDownvote = { onVote(similarProposal.id, -1) }
                     )
                 }
             }
@@ -337,5 +384,56 @@ private fun VotingSection(
                 )
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun DuplicateProposalsContentPreview() {
+    SpainDecidesTheme {
+        DuplicateProposalsContent(
+            duplicates = SampleData.sampleSimilarProposals,
+            proposalDataMap = emptyMap(),
+            isCreating = false,
+            pagerState = rememberPagerState(pageCount = { SampleData.sampleSimilarProposals.size }),
+            onCancel = {},
+            onCreateAnyway = {},
+            onVote = { _, _ -> },
+            onPageSelected = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun DuplicateProposalsContentCreatingPreview() {
+    SpainDecidesTheme {
+        DuplicateProposalsContent(
+            duplicates = SampleData.sampleSimilarProposals,
+            proposalDataMap = emptyMap(),
+            isCreating = true,
+            pagerState = rememberPagerState(pageCount = { SampleData.sampleSimilarProposals.size }),
+            onCancel = {},
+            onCreateAnyway = {},
+            onVote = { _, _ -> },
+            onPageSelected = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun DuplicateProposalsContentEmptyPreview() {
+    SpainDecidesTheme {
+        DuplicateProposalsContent(
+            duplicates = emptyList(),
+            proposalDataMap = emptyMap(),
+            isCreating = false,
+            pagerState = rememberPagerState(pageCount = { 0 }),
+            onCancel = {},
+            onCreateAnyway = {},
+            onVote = { _, _ -> },
+            onPageSelected = {}
+        )
     }
 }

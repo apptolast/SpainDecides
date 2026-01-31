@@ -36,8 +36,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.apptolast.spaindecides.data.model.Category
+import com.apptolast.spaindecides.presentation.ui.preview.SampleData
+import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 import com.apptolast.spaindecides.presentation.util.getLocalizedDescription
 import com.apptolast.spaindecides.presentation.util.getLocalizedName
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 /**
  * Maps icon name strings to Material Icons.
@@ -149,5 +152,41 @@ fun CategoryCard(
                 modifier = Modifier.size(24.dp)
             )
         }
+    }
+}
+
+@Preview
+@Composable
+private fun CategoryCardPreview() {
+    SpainDecidesTheme {
+        CategoryCard(
+            category = SampleData.sampleCategory,
+            proposalCount = 42,
+            onClick = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun CategoryCardNoCountPreview() {
+    SpainDecidesTheme {
+        CategoryCard(
+            category = SampleData.sampleCategory,
+            proposalCount = null,
+            onClick = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun CategoryCardHealthPreview() {
+    SpainDecidesTheme {
+        CategoryCard(
+            category = SampleData.sampleCategories[1], // Health category
+            proposalCount = 128,
+            onClick = {}
+        )
     }
 }

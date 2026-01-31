@@ -34,7 +34,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import spaindecides.composeapp.generated.resources.Res
 import spaindecides.composeapp.generated.resources.back
 import spaindecides.composeapp.generated.resources.settings_delete_account_button
@@ -198,5 +200,50 @@ fun SettingsContent(
                 )
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun SettingsContentPreview() {
+    SpainDecidesTheme {
+        SettingsContent(
+            userName = "Juan García",
+            userEmail = "juan@example.com",
+            photoUrl = null,
+            onBack = {},
+            onLogout = {},
+            onDeleteAccount = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun SettingsContentWithPhotoPreview() {
+    SpainDecidesTheme {
+        SettingsContent(
+            userName = "María López",
+            userEmail = "maria@example.com",
+            photoUrl = "https://example.com/photo.jpg",
+            onBack = {},
+            onLogout = {},
+            onDeleteAccount = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun SettingsContentNoNamePreview() {
+    SpainDecidesTheme {
+        SettingsContent(
+            userName = null,
+            userEmail = "anonymous@example.com",
+            photoUrl = null,
+            onBack = {},
+            onLogout = {},
+            onDeleteAccount = {}
+        )
     }
 }

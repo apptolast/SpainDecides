@@ -41,13 +41,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.apptolast.spaindecides.data.model.ProposalWithUserVote
 import com.apptolast.spaindecides.presentation.ui.components.ReportDialog
+import com.apptolast.spaindecides.presentation.ui.preview.SampleData
+import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 import com.apptolast.spaindecides.presentation.viewmodel.AuthState
 import com.apptolast.spaindecides.presentation.viewmodel.AuthViewModel
 import com.apptolast.spaindecides.presentation.viewmodel.ProposalViewModel
 import com.apptolast.spaindecides.presentation.viewmodel.ReportUiState
 import com.apptolast.spaindecides.presentation.viewmodel.ReportViewModel
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import spaindecides.composeapp.generated.resources.Res
@@ -63,13 +67,10 @@ import spaindecides.composeapp.generated.resources.report_error
 import spaindecides.composeapp.generated.resources.report_success
 
 /**
- * Proposal detail screen - displays full proposal with voting capability.
+ * Stateful Proposal detail screen - displays full proposal with voting capability.
  *
- * Features:
- * - Voting buttons in AppBar (always visible)
- * - Compact statistics below title
- * - Full description with scroll
- * - Report button for inappropriate content
+ * This composable handles ViewModel injection and state collection,
+ * delegating the actual UI rendering to [ProposalDetailContent].
  *
  * @param proposalId ID of the proposal to display
  * @param categoryId ID of the category (for ViewModel)
@@ -79,7 +80,6 @@ import spaindecides.composeapp.generated.resources.report_success
  * @param authViewModel Auth ViewModel for getting current user info
  * @param reportViewModel Report ViewModel for handling content reports
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProposalDetailScreen(
     proposalId: String,
@@ -128,6 +128,77 @@ fun ProposalDetailScreen(
         }
     }
 
+    ProposalDetailContent(
+        proposal = proposal,
+        snackbarHostState = snackbarHostState,
+        onBack = onBack,
+        onUpvote = {
+            proposal?.let {
+                val newVote = if (it.userVote == 1) 0 else 1
+                viewModel.vote(it.id, newVote)
+            }
+        },
+        onDownvote = {
+            proposal?.let {
+                val newVote = if (it.userVote == -1) 0 else -1
+                viewModel.vote(it.id, newVote)
+            }
+        },
+        onReportClick = { showReportDialog = true }
+    )
+
+    // Report dialog
+    if (showReportDialog && proposal != null) {
+        ReportDialog(
+            proposalTitle = proposal.title,
+            onDismiss = { showReportDialog = false },
+            onConfirm = { reason ->
+                reportViewModel.submitReport(
+                    proposalId = proposal.id,
+                    proposalTitle = proposal.title,
+                    proposalDescription = proposal.description,
+                    reason = reason,
+                    currentUserId = currentUserId,
+                    currentUserEmail = currentUserEmail
+                )
+            },
+            isLoading = reportUiState is ReportUiState.Loading
+        )
+    }
+}
+
+/**
+ * Stateless Proposal detail content composable.
+ *
+ * This composable is responsible for rendering the UI based on the provided state.
+ * It has no dependencies on ViewModels or other stateful components, making it
+ * easy to preview and test.
+ *
+ * Features:
+ * - Voting buttons in AppBar (always visible)
+ * - Compact statistics below title
+ * - Full description with scroll
+ * - Report button for inappropriate content
+ *
+ * @param proposal The proposal to display (null if not found)
+ * @param snackbarHostState State for showing snackbar messages
+ * @param onBack Callback when back button is clicked
+ * @param onUpvote Callback when upvote button is clicked
+ * @param onDownvote Callback when downvote button is clicked
+ * @param onReportClick Callback when report button is clicked
+ * @param modifier Optional modifier
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProposalDetailContent(
+    proposal: ProposalWithUserVote?,
+    snackbarHostState: SnackbarHostState,
+    onBack: () -> Unit,
+    onUpvote: () -> Unit,
+    onDownvote: () -> Unit,
+    onReportClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
@@ -150,10 +221,7 @@ fun ProposalDetailScreen(
                     if (proposal != null) {
                         // Upvote button
                         IconButton(
-                            onClick = {
-                                val newVote = if (proposal.userVote == 1) 0 else 1
-                                viewModel.vote(proposal.id, newVote)
-                            },
+                            onClick = onUpvote,
                             colors = IconButtonDefaults.iconButtonColors(
                                 contentColor = if (proposal.userVote == 1) {
                                     MaterialTheme.colorScheme.primary
@@ -182,10 +250,7 @@ fun ProposalDetailScreen(
 
                         // Downvote button
                         IconButton(
-                            onClick = {
-                                val newVote = if (proposal.userVote == -1) 0 else -1
-                                viewModel.vote(proposal.id, newVote)
-                            },
+                            onClick = onDownvote,
                             colors = IconButtonDefaults.iconButtonColors(
                                 contentColor = if (proposal.userVote == -1) {
                                     MaterialTheme.colorScheme.error
@@ -202,9 +267,7 @@ fun ProposalDetailScreen(
                         }
 
                         // Report button
-                        IconButton(
-                            onClick = { showReportDialog = true }
-                        ) {
+                        IconButton(onClick = onReportClick) {
                             Icon(
                                 imageVector = Icons.Outlined.Flag,
                                 contentDescription = stringResource(Res.string.report_content),
@@ -219,7 +282,8 @@ fun ProposalDetailScreen(
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
-        }
+        },
+        modifier = modifier
     ) { paddingValues ->
         if (proposal != null) {
             Column(
@@ -295,23 +359,49 @@ fun ProposalDetailScreen(
             }
         }
     }
+}
 
-    // Report dialog
-    if (showReportDialog && proposal != null) {
-        ReportDialog(
-            proposalTitle = proposal.title,
-            onDismiss = { showReportDialog = false },
-            onConfirm = { reason ->
-                reportViewModel.submitReport(
-                    proposalId = proposal.id,
-                    proposalTitle = proposal.title,
-                    proposalDescription = proposal.description,
-                    reason = reason,
-                    currentUserId = currentUserId,
-                    currentUserEmail = currentUserEmail
-                )
-            },
-            isLoading = reportUiState is ReportUiState.Loading
+@Preview
+@Composable
+private fun ProposalDetailContentPreview() {
+    SpainDecidesTheme {
+        ProposalDetailContent(
+            proposal = SampleData.sampleProposalWithVote,
+            snackbarHostState = remember { SnackbarHostState() },
+            onBack = {},
+            onUpvote = {},
+            onDownvote = {},
+            onReportClick = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ProposalDetailContentDownvotedPreview() {
+    SpainDecidesTheme {
+        ProposalDetailContent(
+            proposal = SampleData.sampleProposalsWithVotes[2], // Downvoted
+            snackbarHostState = remember { SnackbarHostState() },
+            onBack = {},
+            onUpvote = {},
+            onDownvote = {},
+            onReportClick = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ProposalDetailContentNotFoundPreview() {
+    SpainDecidesTheme {
+        ProposalDetailContent(
+            proposal = null,
+            snackbarHostState = remember { SnackbarHostState() },
+            onBack = {},
+            onUpvote = {},
+            onDownvote = {},
+            onReportClick = {}
         )
     }
 }

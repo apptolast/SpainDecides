@@ -17,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 /**
  * Reusable loading dialog component
@@ -65,5 +67,27 @@ fun LoadingDialog(
                 }
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun LoadingDialogPreview() {
+    SpainDecidesTheme {
+        LoadingDialog(
+            message = "Cargando...",
+            onDismissRequest = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun LoadingDialogNoMessagePreview() {
+    SpainDecidesTheme {
+        LoadingDialog(
+            message = null,
+            onDismissRequest = {}
+        )
     }
 }

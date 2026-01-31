@@ -38,10 +38,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 import com.apptolast.spaindecides.presentation.viewmodel.ProposalViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import spaindecides.composeapp.generated.resources.Res
@@ -56,7 +58,10 @@ import spaindecides.composeapp.generated.resources.create_proposal_title_label
 import spaindecides.composeapp.generated.resources.create_proposal_title_placeholder
 
 /**
- * Create proposal screen - Form to create a new proposal.
+ * Stateful Create proposal screen - Form to create a new proposal.
+ *
+ * This composable handles ViewModel injection and state collection,
+ * delegating the actual UI rendering to [CreateProposalContent].
  *
  * @param categoryId ID of the category to create the proposal in (UUID from database)
  * @param categoryKey i18n key for resolving localized name (e.g., "economy", "health")
@@ -65,7 +70,6 @@ import spaindecides.composeapp.generated.resources.create_proposal_title_placeho
  * @param onDuplicatesFound Callback when duplicates are detected (navigates to DuplicateProposalsScreen)
  * @param viewModel Proposal ViewModel (injected via Koin with categoryId parameter)
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateProposalScreen(
     categoryId: String,
@@ -75,14 +79,6 @@ fun CreateProposalScreen(
     onProposalCreated: () -> Unit,
     onDuplicatesFound: () -> Unit,
 ) {
-//    // Reconstruct minimal Category object for using extension functions
-//    val category = Category(
-//        id = categoryId,
-//        key = categoryKey,
-//        iconName = "", // Not needed for CreateProposalScreen
-//        sortOrder = 0  // Not needed for CreateProposalScreen
-//    )
-
     val proposalTitle by viewModel.newProposalTitle.collectAsStateWithLifecycle()
     val proposalDescription by viewModel.newProposalDescription.collectAsStateWithLifecycle()
     val isCreating by viewModel.isCreating.collectAsStateWithLifecycle()
@@ -104,6 +100,63 @@ fun CreateProposalScreen(
         }
     }
 
+    CreateProposalContent(
+        proposalTitle = proposalTitle,
+        proposalDescription = proposalDescription,
+        titleCharacterCount = viewModel.titleCharacterCount,
+        descriptionCharacterCount = viewModel.descriptionCharacterCount,
+        isCreating = isCreating,
+        snackbarHostState = snackbarHostState,
+        onTitleChange = viewModel::updateNewProposalTitle,
+        onDescriptionChange = viewModel::updateNewProposalDescription,
+        onClose = onClose,
+        onPublish = {
+            scope.launch {
+                val success = viewModel.createProposal()
+                if (success) {
+                    onProposalCreated()
+                } else if (error != null && !showDuplicatesDialog) {
+                    snackbarHostState.showSnackbar(error!!)
+                }
+            }
+        }
+    )
+}
+
+/**
+ * Stateless Create proposal content composable.
+ *
+ * This composable is responsible for rendering the UI based on the provided state.
+ * It has no dependencies on ViewModels or other stateful components, making it
+ * easy to preview and test.
+ *
+ * @param proposalTitle Current title text
+ * @param proposalDescription Current description text
+ * @param titleCharacterCount Current character count for title
+ * @param descriptionCharacterCount Current character count for description
+ * @param isCreating Whether proposal is being created
+ * @param snackbarHostState State for showing snackbar messages
+ * @param onTitleChange Callback when title text changes
+ * @param onDescriptionChange Callback when description text changes
+ * @param onClose Callback when close button is clicked
+ * @param onPublish Callback when publish button is clicked
+ * @param modifier Optional modifier
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CreateProposalContent(
+    proposalTitle: String,
+    proposalDescription: String,
+    titleCharacterCount: Int,
+    descriptionCharacterCount: Int,
+    isCreating: Boolean,
+    snackbarHostState: SnackbarHostState,
+    onTitleChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onClose: () -> Unit,
+    onPublish: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val scrollState = rememberScrollState()
 
     // Auto-scroll to bottom when keyboard appears (keeps cursor visible)
@@ -133,18 +186,7 @@ fun CreateProposalScreen(
                 },
                 actions = {
                     TextButton(
-                        onClick = {
-                            scope.launch {
-                                val success = viewModel.createProposal()
-                                if (success) {
-                                    onProposalCreated()
-                                } else if (error != null && !showDuplicatesDialog) {
-                                    // Only show snackbar if there's an error and it's not due to duplicates
-                                    snackbarHostState.showSnackbar(error!!)
-                                }
-                                // If duplicates are found, LaunchedEffect will navigate to DuplicateProposalsScreen
-                            }
-                        },
+                        onClick = onPublish,
                         enabled = !isCreating && proposalTitle.isNotBlank() && proposalDescription.isNotBlank()
                     ) {
                         Text(stringResource(Res.string.create_proposal_publish))
@@ -158,7 +200,8 @@ fun CreateProposalScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         // Don't let Scaffold consume bottom insets - we'll handle them manually
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        modifier = modifier
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -169,24 +212,6 @@ fun CreateProposalScreen(
                 .verticalScroll(scrollState)
                 .padding(16.dp)
         ) {
-//            // Category chip
-//            Surface(
-//                shape = MaterialTheme.shapes.small,
-//                color = MaterialTheme.colorScheme.primaryContainer
-//            ) {
-//                Text(
-//                    text = stringResource(
-//                        Res.string.create_proposal_category,
-//                        category.getLocalizedName()
-//                    ),
-//                    style = MaterialTheme.typography.labelMedium,
-//                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-//                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-//                )
-//            }
-//
-//            Spacer(modifier = Modifier.height(16.dp))
-
             // Title label
             Text(
                 text = stringResource(Res.string.create_proposal_title_label),
@@ -199,7 +224,7 @@ fun CreateProposalScreen(
             // Title input field
             OutlinedTextField(
                 value = proposalTitle,
-                onValueChange = viewModel::updateNewProposalTitle,
+                onValueChange = onTitleChange,
                 placeholder = { Text(stringResource(Res.string.create_proposal_title_placeholder)) },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !isCreating,
@@ -217,10 +242,10 @@ fun CreateProposalScreen(
             Text(
                 text = stringResource(
                     Res.string.create_proposal_title_counter,
-                    viewModel.titleCharacterCount
+                    titleCharacterCount
                 ),
                 style = MaterialTheme.typography.bodySmall,
-                color = if (viewModel.titleCharacterCount > 100) {
+                color = if (titleCharacterCount > 100) {
                     MaterialTheme.colorScheme.error
                 } else {
                     MaterialTheme.colorScheme.onSurfaceVariant
@@ -242,7 +267,7 @@ fun CreateProposalScreen(
             // Description input field
             OutlinedTextField(
                 value = proposalDescription,
-                onValueChange = viewModel::updateNewProposalDescription,
+                onValueChange = onDescriptionChange,
                 placeholder = { Text(stringResource(Res.string.create_proposal_description_placeholder)) },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -260,10 +285,10 @@ fun CreateProposalScreen(
             Text(
                 text = stringResource(
                     Res.string.create_proposal_description_counter,
-                    viewModel.descriptionCharacterCount
+                    descriptionCharacterCount
                 ),
                 style = MaterialTheme.typography.bodySmall,
-                color = if (viewModel.descriptionCharacterCount > 1000) {
+                color = if (descriptionCharacterCount > 1000) {
                     MaterialTheme.colorScheme.error
                 } else {
                     MaterialTheme.colorScheme.onSurfaceVariant
@@ -278,5 +303,81 @@ fun CreateProposalScreen(
                 )
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun CreateProposalContentPreview() {
+    SpainDecidesTheme {
+        CreateProposalContent(
+            proposalTitle = "Reducir impuestos a las PYMES",
+            proposalDescription = "Propuesta para reducir la carga fiscal de las pequeñas y medianas empresas.",
+            titleCharacterCount = 28,
+            descriptionCharacterCount = 75,
+            isCreating = false,
+            snackbarHostState = remember { SnackbarHostState() },
+            onTitleChange = {},
+            onDescriptionChange = {},
+            onClose = {},
+            onPublish = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun CreateProposalContentEmptyPreview() {
+    SpainDecidesTheme {
+        CreateProposalContent(
+            proposalTitle = "",
+            proposalDescription = "",
+            titleCharacterCount = 0,
+            descriptionCharacterCount = 0,
+            isCreating = false,
+            snackbarHostState = remember { SnackbarHostState() },
+            onTitleChange = {},
+            onDescriptionChange = {},
+            onClose = {},
+            onPublish = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun CreateProposalContentCreatingPreview() {
+    SpainDecidesTheme {
+        CreateProposalContent(
+            proposalTitle = "Reducir impuestos a las PYMES",
+            proposalDescription = "Propuesta para reducir la carga fiscal de las pequeñas y medianas empresas.",
+            titleCharacterCount = 28,
+            descriptionCharacterCount = 75,
+            isCreating = true,
+            snackbarHostState = remember { SnackbarHostState() },
+            onTitleChange = {},
+            onDescriptionChange = {},
+            onClose = {},
+            onPublish = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun CreateProposalContentOverLimitPreview() {
+    SpainDecidesTheme {
+        CreateProposalContent(
+            proposalTitle = "Este es un título muy largo que supera el límite de caracteres permitido para una propuesta ciudadana",
+            proposalDescription = "Descripción de ejemplo",
+            titleCharacterCount = 105,
+            descriptionCharacterCount = 22,
+            isCreating = false,
+            snackbarHostState = remember { SnackbarHostState() },
+            onTitleChange = {},
+            onDescriptionChange = {},
+            onClose = {},
+            onPublish = {}
+        )
     }
 }

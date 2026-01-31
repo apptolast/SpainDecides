@@ -37,12 +37,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.apptolast.spaindecides.data.model.Category
 import com.apptolast.spaindecides.data.model.ProposalWithUserVote
 import com.apptolast.spaindecides.presentation.ui.components.ProposalCard
 import com.apptolast.spaindecides.presentation.ui.components.ReportDialog
+import com.apptolast.spaindecides.presentation.ui.preview.SampleData
+import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 import com.apptolast.spaindecides.presentation.util.getLocalizedName
 import com.apptolast.spaindecides.presentation.viewmodel.AuthState
 import com.apptolast.spaindecides.presentation.viewmodel.AuthViewModel
@@ -50,6 +53,7 @@ import com.apptolast.spaindecides.presentation.viewmodel.ProposalViewModel
 import com.apptolast.spaindecides.presentation.viewmodel.ReportUiState
 import com.apptolast.spaindecides.presentation.viewmodel.ReportViewModel
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import spaindecides.composeapp.generated.resources.Res
@@ -61,7 +65,10 @@ import spaindecides.composeapp.generated.resources.report_error
 import spaindecides.composeapp.generated.resources.report_success
 
 /**
- * Proposal list screen - Shows proposals for a specific category.
+ * Stateful Proposal list screen - Shows proposals for a specific category.
+ *
+ * This composable handles ViewModel injection and state collection,
+ * delegating the actual UI rendering to [ProposalListContent].
  *
  * @param categoryId ID of the category (UUID from database)
  * @param categoryKey i18n key for resolving localized name (e.g., "economy", "health")
@@ -72,7 +79,6 @@ import spaindecides.composeapp.generated.resources.report_success
  * @param onCreateProposal Callback to navigate to create proposal screen
  * @param onProposalClick Callback when a proposal card is clicked (navigate to detail)
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProposalListScreen(
     categoryId: String,
@@ -88,8 +94,8 @@ fun ProposalListScreen(
     val category = Category(
         id = categoryId,
         key = categoryKey,
-        iconName = "", // Not needed for ProposalListScreen
-        sortOrder = 0  // Not needed for ProposalListScreen
+        iconName = "",
+        sortOrder = 0
     )
 
     val proposals by viewModel.proposals.collectAsState()
@@ -131,13 +137,92 @@ fun ProposalListScreen(
         }
     }
 
+    ProposalListContent(
+        categoryName = category.getLocalizedName(),
+        proposals = proposals,
+        isLoading = isLoading,
+        snackbarHostState = snackbarHostState,
+        onBack = onBack,
+        onCreateProposal = onCreateProposal,
+        onProposalClick = onProposalClick,
+        onUpvote = { proposalId, currentVote ->
+            val newVote = if (currentVote == 1) 0 else 1
+            viewModel.vote(proposalId, newVote)
+        },
+        onDownvote = { proposalId, currentVote ->
+            val newVote = if (currentVote == -1) 0 else -1
+            viewModel.vote(proposalId, newVote)
+        },
+        onReportClick = { proposal ->
+            selectedProposal = proposal
+            showReportDialog = true
+        }
+    )
+
+    // Report dialog
+    if (showReportDialog && selectedProposal != null) {
+        ReportDialog(
+            proposalTitle = selectedProposal!!.title,
+            onDismiss = {
+                showReportDialog = false
+                selectedProposal = null
+            },
+            onConfirm = { reason ->
+                reportViewModel.submitReport(
+                    proposalId = selectedProposal!!.id,
+                    proposalTitle = selectedProposal!!.title,
+                    proposalDescription = selectedProposal!!.description,
+                    reason = reason,
+                    currentUserId = currentUserId,
+                    currentUserEmail = currentUserEmail
+                )
+            },
+            isLoading = reportUiState is ReportUiState.Loading
+        )
+    }
+}
+
+/**
+ * Stateless Proposal list content composable.
+ *
+ * This composable is responsible for rendering the UI based on the provided state.
+ * It has no dependencies on ViewModels or other stateful components, making it
+ * easy to preview and test.
+ *
+ * @param categoryName Localized name of the category to display in the title
+ * @param proposals List of proposals with user vote status
+ * @param isLoading Whether data is being loaded
+ * @param snackbarHostState State for showing snackbar messages
+ * @param onBack Callback when back button is clicked
+ * @param onCreateProposal Callback when FAB is clicked
+ * @param onProposalClick Callback when a proposal card is clicked
+ * @param onUpvote Callback when upvote is clicked (proposalId, currentVote)
+ * @param onDownvote Callback when downvote is clicked (proposalId, currentVote)
+ * @param onReportClick Callback when report button is clicked
+ * @param modifier Optional modifier
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProposalListContent(
+    categoryName: String,
+    proposals: List<ProposalWithUserVote>,
+    isLoading: Boolean,
+    snackbarHostState: SnackbarHostState,
+    onBack: () -> Unit,
+    onCreateProposal: () -> Unit,
+    onProposalClick: (String) -> Unit,
+    onUpvote: (proposalId: String, currentVote: Int) -> Unit,
+    onDownvote: (proposalId: String, currentVote: Int) -> Unit,
+    onReportClick: (ProposalWithUserVote) -> Unit,
+    modifier: Modifier = Modifier
+) {
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = category.getLocalizedName(),
+                        text = categoryName,
                         style = MaterialTheme.typography.titleLarge
                     )
                 },
@@ -165,7 +250,8 @@ fun ProposalListScreen(
                     contentDescription = stringResource(Res.string.proposal_new)
                 )
             }
-        }
+        },
+        modifier = modifier
     ) { paddingValues ->
         when {
             isLoading -> {
@@ -173,7 +259,7 @@ fun ProposalListScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
-                    contentAlignment = androidx.compose.ui.Alignment.Center
+                    contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
                 }
@@ -185,7 +271,7 @@ fun ProposalListScreen(
                         .fillMaxSize()
                         .padding(paddingValues)
                         .padding(16.dp),
-                    horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
@@ -224,21 +310,10 @@ fun ProposalListScreen(
                     ) { proposal ->
                         ProposalCard(
                             proposal = proposal,
-                            onUpvote = {
-                                val newVote = if (proposal.userVote == 1) 0 else 1
-                                viewModel.vote(proposal.id, newVote)
-                            },
-                            onDownvote = {
-                                val newVote = if (proposal.userVote == -1) 0 else -1
-                                viewModel.vote(proposal.id, newVote)
-                            },
-                            onCardClick = {
-                                onProposalClick(proposal.id)
-                            },
-                            onReportClick = {
-                                selectedProposal = proposal
-                                showReportDialog = true
-                            },
+                            onUpvote = { onUpvote(proposal.id, proposal.userVote) },
+                            onDownvote = { onDownvote(proposal.id, proposal.userVote) },
+                            onCardClick = { onProposalClick(proposal.id) },
+                            onReportClick = { onReportClick(proposal) },
                             modifier = Modifier.animateItem(
                                 fadeInSpec = spring(stiffness = Spring.StiffnessMediumLow),
                                 fadeOutSpec = spring(stiffness = Spring.StiffnessMediumLow),
@@ -253,26 +328,61 @@ fun ProposalListScreen(
             }
         }
     }
+}
 
-    // Report dialog
-    if (showReportDialog && selectedProposal != null) {
-        ReportDialog(
-            proposalTitle = selectedProposal!!.title,
-            onDismiss = {
-                showReportDialog = false
-                selectedProposal = null
-            },
-            onConfirm = { reason ->
-                reportViewModel.submitReport(
-                    proposalId = selectedProposal!!.id,
-                    proposalTitle = selectedProposal!!.title,
-                    proposalDescription = selectedProposal!!.description,
-                    reason = reason,
-                    currentUserId = currentUserId,
-                    currentUserEmail = currentUserEmail
-                )
-            },
-            isLoading = reportUiState is ReportUiState.Loading
+@Preview
+@Composable
+private fun ProposalListContentPreview() {
+    SpainDecidesTheme {
+        ProposalListContent(
+            categoryName = "Economía",
+            proposals = SampleData.sampleProposalsWithVotes,
+            isLoading = false,
+            snackbarHostState = remember { SnackbarHostState() },
+            onBack = {},
+            onCreateProposal = {},
+            onProposalClick = {},
+            onUpvote = { _, _ -> },
+            onDownvote = { _, _ -> },
+            onReportClick = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ProposalListContentLoadingPreview() {
+    SpainDecidesTheme {
+        ProposalListContent(
+            categoryName = "Economía",
+            proposals = emptyList(),
+            isLoading = true,
+            snackbarHostState = remember { SnackbarHostState() },
+            onBack = {},
+            onCreateProposal = {},
+            onProposalClick = {},
+            onUpvote = { _, _ -> },
+            onDownvote = { _, _ -> },
+            onReportClick = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ProposalListContentEmptyPreview() {
+    SpainDecidesTheme {
+        ProposalListContent(
+            categoryName = "Economía",
+            proposals = emptyList(),
+            isLoading = false,
+            snackbarHostState = remember { SnackbarHostState() },
+            onBack = {},
+            onCreateProposal = {},
+            onProposalClick = {},
+            onUpvote = { _, _ -> },
+            onDownvote = { _, _ -> },
+            onReportClick = {}
         )
     }
 }

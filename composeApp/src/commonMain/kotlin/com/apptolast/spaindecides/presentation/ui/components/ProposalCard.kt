@@ -33,7 +33,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.apptolast.spaindecides.data.model.ProposalWithUserVote
+import com.apptolast.spaindecides.presentation.ui.preview.SampleData
+import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import spaindecides.composeapp.generated.resources.Res
 import spaindecides.composeapp.generated.resources.proposal_show_less
 import spaindecides.composeapp.generated.resources.proposal_show_more
@@ -146,34 +149,17 @@ fun ProposalCard(
                         )
                     )
             ) {
-                // Header row with title and report button
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    // Proposal title
-                    Text(
-                        text = proposal.title,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f)
-                    )
 
-                    // Report button
-                    IconButton(
-                        onClick = onReportClick,
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Flag,
-                            contentDescription = stringResource(Res.string.report_content),
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
+                // Proposal title
+                Text(
+                    text = proposal.title,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+
 
                 Spacer(modifier = Modifier.padding(top = 4.dp))
 
@@ -207,6 +193,75 @@ fun ProposalCard(
                     }
                 }
             }
+
+            // Report button
+            IconButton(
+                onClick = onReportClick,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Flag,
+                    contentDescription = stringResource(Res.string.report_content),
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun ProposalCardPreview() {
+    SpainDecidesTheme {
+        ProposalCard(
+            proposal = SampleData.sampleProposalWithVote,
+            onUpvote = {},
+            onDownvote = {},
+            onCardClick = {},
+            onReportClick = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ProposalCardUpvotedPreview() {
+    SpainDecidesTheme {
+        ProposalCard(
+            proposal = SampleData.sampleProposalsWithVotes[0], // Upvoted
+            onUpvote = {},
+            onDownvote = {},
+            onCardClick = {},
+            onReportClick = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ProposalCardDownvotedPreview() {
+    SpainDecidesTheme {
+        ProposalCard(
+            proposal = SampleData.sampleProposalsWithVotes[2], // Downvoted
+            onUpvote = {},
+            onDownvote = {},
+            onCardClick = {},
+            onReportClick = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ProposalCardNoVotePreview() {
+    SpainDecidesTheme {
+        ProposalCard(
+            proposal = SampleData.sampleProposalsWithVotes[1], // No vote
+            onUpvote = {},
+            onDownvote = {},
+            onCardClick = {},
+            onReportClick = {}
+        )
     }
 }

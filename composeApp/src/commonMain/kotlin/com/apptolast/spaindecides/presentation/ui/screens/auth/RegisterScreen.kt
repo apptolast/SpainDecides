@@ -45,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -55,9 +56,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
+import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 import com.apptolast.spaindecides.presentation.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import spaindecides.composeapp.generated.resources.Res
 import spaindecides.composeapp.generated.resources.field_email
@@ -79,8 +82,10 @@ import spaindecides.composeapp.generated.resources.show_password
 import spaindecides.composeapp.generated.resources.success_registration
 
 /**
- * Registration screen composable.
- * Allows users to create a new account (UI only for now).
+ * Stateful Registration screen composable.
+ *
+ * This composable handles ViewModel injection and state collection,
+ * delegating the actual UI rendering to [RegisterContent].
  *
  * @param onRegisterSuccess Callback when registration is successful (navigates to login with success message)
  * @param onNavigateBack Callback to navigate back to login
@@ -106,6 +111,32 @@ fun RegisterScreen(
     // Resolve string resources (must be done in @Composable context)
     val successMessageText = stringResource(Res.string.success_registration)
 
+    // Build the policy annotated text with links
+    val privacyPrefix = stringResource(Res.string.register_privacy_policy_prefix)
+    val privacyLinkText = stringResource(Res.string.register_privacy_policy_link)
+    val privacyUrl = stringResource(Res.string.register_privacy_policy_url)
+    val csaePrefix = stringResource(Res.string.register_csae_prefix)
+    val csaeLinkText = stringResource(Res.string.register_csae_link)
+    val csaeUrl = stringResource(Res.string.register_csae_url)
+
+    val linkStyle = TextLinkStyles(
+        style = SpanStyle(
+            color = MaterialTheme.colorScheme.primary,
+            textDecoration = TextDecoration.Underline
+        )
+    )
+
+    val policyAnnotatedText = buildAnnotatedString {
+        append(privacyPrefix)
+        withLink(LinkAnnotation.Url(url = privacyUrl, styles = linkStyle)) {
+            append(privacyLinkText)
+        }
+        append(csaePrefix)
+        withLink(LinkAnnotation.Url(url = csaeUrl, styles = linkStyle)) {
+            append(csaeLinkText)
+        }
+    }
+
     // Show error message when it changes
     val currentErrorMessage = errorMessage?.let { stringResource(it) }
     LaunchedEffect(currentErrorMessage) {
@@ -115,9 +146,79 @@ fun RegisterScreen(
         }
     }
 
+    RegisterContent(
+        name = name,
+        email = email,
+        password = password,
+        isPasswordVisible = isPasswordVisible,
+        eulaAccepted = eulaAccepted,
+        isLoading = isLoading,
+        policyAnnotatedText = policyAnnotatedText,
+        snackbarHostState = snackbarHostState,
+        onNameChange = viewModel::updateName,
+        onEmailChange = viewModel::updateEmail,
+        onPasswordChange = viewModel::updatePassword,
+        onTogglePasswordVisibility = viewModel::togglePasswordVisibility,
+        onEulaAcceptedChange = viewModel::updateEulaAccepted,
+        onRegister = {
+            scope.launch {
+                val success = viewModel.register()
+                if (success) {
+                    onRegisterSuccess(successMessageText)
+                }
+            }
+        },
+        onNavigateBack = onNavigateBack
+    )
+}
+
+/**
+ * Stateless Registration content composable.
+ *
+ * This composable is responsible for rendering the UI based on the provided state.
+ * It has no dependencies on ViewModels or other stateful components, making it
+ * easy to preview and test.
+ *
+ * @param name Current name text
+ * @param email Current email text
+ * @param password Current password text
+ * @param isPasswordVisible Whether password is visible
+ * @param eulaAccepted Whether EULA is accepted
+ * @param isLoading Whether registration is in progress
+ * @param policyAnnotatedText The annotated text for policy links
+ * @param snackbarHostState State for showing snackbar messages
+ * @param onNameChange Callback when name text changes
+ * @param onEmailChange Callback when email text changes
+ * @param onPasswordChange Callback when password text changes
+ * @param onTogglePasswordVisibility Callback to toggle password visibility
+ * @param onEulaAcceptedChange Callback when EULA checkbox changes
+ * @param onRegister Callback when register button is clicked
+ * @param onNavigateBack Callback to navigate back to login
+ * @param modifier Optional modifier
+ */
+@Composable
+fun RegisterContent(
+    name: String,
+    email: String,
+    password: String,
+    isPasswordVisible: Boolean,
+    eulaAccepted: Boolean,
+    isLoading: Boolean,
+    policyAnnotatedText: AnnotatedString,
+    snackbarHostState: SnackbarHostState,
+    onNameChange: (String) -> Unit,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onTogglePasswordVisibility: () -> Unit,
+    onEulaAcceptedChange: (Boolean) -> Unit,
+    onRegister: () -> Unit,
+    onNavigateBack: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        modifier = modifier
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -171,7 +272,7 @@ fun RegisterScreen(
             // Name field
             OutlinedTextField(
                 value = name,
-                onValueChange = viewModel::updateName,
+                onValueChange = onNameChange,
                 label = { Text(stringResource(Res.string.field_name)) },
                 leadingIcon = {
                     Icon(
@@ -189,7 +290,7 @@ fun RegisterScreen(
             // Email field
             OutlinedTextField(
                 value = email,
-                onValueChange = viewModel::updateEmail,
+                onValueChange = onEmailChange,
                 label = { Text(stringResource(Res.string.field_email)) },
                 leadingIcon = {
                     Icon(
@@ -208,7 +309,7 @@ fun RegisterScreen(
             // Password field
             OutlinedTextField(
                 value = password,
-                onValueChange = viewModel::updatePassword,
+                onValueChange = onPasswordChange,
                 label = { Text(stringResource(Res.string.field_password)) },
                 leadingIcon = {
                     Icon(
@@ -217,7 +318,7 @@ fun RegisterScreen(
                     )
                 },
                 trailingIcon = {
-                    IconButton(onClick = viewModel::togglePasswordVisibility) {
+                    IconButton(onClick = onTogglePasswordVisibility) {
                         Icon(
                             imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                             contentDescription = if (isPasswordVisible) stringResource(Res.string.hide_password) else stringResource(
@@ -235,43 +336,18 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Policy acceptance checkbox (Privacy Policy + CSAE)
-            val privacyPrefix = stringResource(Res.string.register_privacy_policy_prefix)
-            val privacyLinkText = stringResource(Res.string.register_privacy_policy_link)
-            val privacyUrl = stringResource(Res.string.register_privacy_policy_url)
-            val csaePrefix = stringResource(Res.string.register_csae_prefix)
-            val csaeLinkText = stringResource(Res.string.register_csae_link)
-            val csaeUrl = stringResource(Res.string.register_csae_url)
-
-            val linkStyle = TextLinkStyles(
-                style = SpanStyle(
-                    color = MaterialTheme.colorScheme.primary,
-                    textDecoration = TextDecoration.Underline
-                )
-            )
-
-            val annotatedText = buildAnnotatedString {
-                append(privacyPrefix)
-                withLink(LinkAnnotation.Url(url = privacyUrl, styles = linkStyle)) {
-                    append(privacyLinkText)
-                }
-                append(csaePrefix)
-                withLink(LinkAnnotation.Url(url = csaeUrl, styles = linkStyle)) {
-                    append(csaeLinkText)
-                }
-            }
-
+            // Policy acceptance checkbox
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Checkbox(
                     checked = eulaAccepted,
-                    onCheckedChange = viewModel::updateEulaAccepted,
+                    onCheckedChange = onEulaAcceptedChange,
                     enabled = !isLoading
                 )
                 Text(
-                    text = annotatedText,
+                    text = policyAnnotatedText,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -281,15 +357,7 @@ fun RegisterScreen(
 
             // Register button
             Button(
-                onClick = {
-                    scope.launch {
-                        val success = viewModel.register()
-                        if (success) {
-                            // Navigate to login with success message (LoginScreen will show the snackbar)
-                            onRegisterSuccess(successMessageText)
-                        }
-                    }
-                },
+                onClick = onRegister,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !isLoading && name.isNotBlank() && email.isNotBlank() && password.isNotBlank() && eulaAccepted
             ) {
@@ -319,5 +387,101 @@ fun RegisterScreen(
                 }
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun RegisterContentPreview() {
+    SpainDecidesTheme {
+        RegisterContent(
+            name = "Juan García",
+            email = "juan@example.com",
+            password = "password123",
+            isPasswordVisible = false,
+            eulaAccepted = true,
+            isLoading = false,
+            policyAnnotatedText = AnnotatedString("Acepto la Política de Privacidad y el CSAE"),
+            snackbarHostState = remember { SnackbarHostState() },
+            onNameChange = {},
+            onEmailChange = {},
+            onPasswordChange = {},
+            onTogglePasswordVisibility = {},
+            onEulaAcceptedChange = {},
+            onRegister = {},
+            onNavigateBack = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun RegisterContentEmptyPreview() {
+    SpainDecidesTheme {
+        RegisterContent(
+            name = "",
+            email = "",
+            password = "",
+            isPasswordVisible = false,
+            eulaAccepted = false,
+            isLoading = false,
+            policyAnnotatedText = AnnotatedString("Acepto la Política de Privacidad y el CSAE"),
+            snackbarHostState = remember { SnackbarHostState() },
+            onNameChange = {},
+            onEmailChange = {},
+            onPasswordChange = {},
+            onTogglePasswordVisibility = {},
+            onEulaAcceptedChange = {},
+            onRegister = {},
+            onNavigateBack = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun RegisterContentLoadingPreview() {
+    SpainDecidesTheme {
+        RegisterContent(
+            name = "Juan García",
+            email = "juan@example.com",
+            password = "password123",
+            isPasswordVisible = false,
+            eulaAccepted = true,
+            isLoading = true,
+            policyAnnotatedText = AnnotatedString("Acepto la Política de Privacidad y el CSAE"),
+            snackbarHostState = remember { SnackbarHostState() },
+            onNameChange = {},
+            onEmailChange = {},
+            onPasswordChange = {},
+            onTogglePasswordVisibility = {},
+            onEulaAcceptedChange = {},
+            onRegister = {},
+            onNavigateBack = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun RegisterContentPasswordVisiblePreview() {
+    SpainDecidesTheme {
+        RegisterContent(
+            name = "Juan García",
+            email = "juan@example.com",
+            password = "password123",
+            isPasswordVisible = true,
+            eulaAccepted = false,
+            isLoading = false,
+            policyAnnotatedText = AnnotatedString("Acepto la Política de Privacidad y el CSAE"),
+            snackbarHostState = remember { SnackbarHostState() },
+            onNameChange = {},
+            onEmailChange = {},
+            onPasswordChange = {},
+            onTogglePasswordVisibility = {},
+            onEulaAcceptedChange = {},
+            onRegister = {},
+            onNavigateBack = {}
+        )
     }
 }
