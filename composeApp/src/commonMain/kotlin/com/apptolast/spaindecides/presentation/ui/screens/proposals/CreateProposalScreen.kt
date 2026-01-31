@@ -107,6 +107,14 @@ fun CreateProposalScreen(
         }
     }
 
+    // Observe errors reactively - fixes stale state bug
+    LaunchedEffect(error) {
+        error?.let { errorMessage ->
+            snackbarHostState.showSnackbar(errorMessage)
+            viewModel.clearError()
+        }
+    }
+
     CreateProposalContent(
         categoryName = categoryName,
         proposalTitle = proposalTitle,
@@ -123,9 +131,9 @@ fun CreateProposalScreen(
                 val success = viewModel.createProposal()
                 if (success) {
                     onProposalCreated()
-                } else if (error != null && !showDuplicatesDialog) {
-                    snackbarHostState.showSnackbar(error!!)
                 }
+                // Errors are shown via LaunchedEffect(error) above
+                // Duplicates are handled via LaunchedEffect(showDuplicatesDialog) above
             }
         }
     )
@@ -215,6 +223,7 @@ fun CreateProposalContent(
     }
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = {
@@ -247,8 +256,7 @@ fun CreateProposalContent(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         // Don't let Scaffold consume bottom insets - we'll handle them manually
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        modifier = modifier
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
         Column(
             modifier = Modifier
