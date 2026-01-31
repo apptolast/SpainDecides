@@ -61,15 +61,17 @@ fun getIconForCategory(iconName: String): ImageVector {
 
 /**
  * Card component for displaying a category.
- * Shows category icon, name, and description.
+ * Shows category icon, name, description, and proposal count.
  *
  * @param category The category to display
+ * @param proposalCount Number of proposals in this category (null if not loaded)
  * @param onClick Callback when the card is clicked
  * @param modifier Optional modifier
  */
 @Composable
 fun CategoryCard(
     category: Category,
+    proposalCount: Int? = null,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -87,21 +89,35 @@ fun CategoryCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon in a colored container
-            Surface(
-                shape = MaterialTheme.shapes.medium,
-                color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.size(48.dp)
+            // Icon in a colored container with proposal count below
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize()
+                Surface(
+                    shape = MaterialTheme.shapes.medium,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.size(48.dp)
                 ) {
-                    Icon(
-                        imageVector = getIconForCategory(category.iconName),
-                        contentDescription = category.getLocalizedName(),
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Icon(
+                            imageVector = getIconForCategory(category.iconName),
+                            contentDescription = category.getLocalizedName(),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+
+                // Proposal count below the icon
+                if (proposalCount != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = proposalCount.toString(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

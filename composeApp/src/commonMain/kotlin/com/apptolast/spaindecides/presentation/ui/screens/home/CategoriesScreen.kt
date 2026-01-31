@@ -5,8 +5,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -46,6 +49,7 @@ fun CategoriesScreen(
     categoryViewModel: CategoryViewModel = koinViewModel()
 ) {
     val categories by categoryViewModel.categories.collectAsState()
+    val proposalCounts by categoryViewModel.proposalCounts.collectAsState()
     val isLoading by categoryViewModel.isLoading.collectAsState()
     val error by categoryViewModel.error.collectAsState()
 
@@ -93,11 +97,17 @@ fun CategoriesScreen(
             }
 
             else -> {
+                val navigationBarPadding = WindowInsets.navigationBars.asPaddingValues()
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding = PaddingValues(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 16.dp,
+                        bottom = 16.dp + navigationBarPadding.calculateBottomPadding()
+                    ),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(
@@ -106,6 +116,7 @@ fun CategoriesScreen(
                     ) { category ->
                         CategoryCard(
                             category = category,
+                            proposalCount = proposalCounts[category.id],
                             onClick = {
                                 onCategoryClick(category)
                             }

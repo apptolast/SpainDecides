@@ -67,6 +67,13 @@ interface ProposalRepository {
      * @return Flow emitting list of proposals with user vote information
      */
     fun getProposalsByIds(proposalIds: List<String>): Flow<List<ProposalWithUserVote>>
+
+    /**
+     * Gets the count of proposals for each category.
+     *
+     * @return Map of category ID to proposal count
+     */
+    suspend fun getProposalCountsByCategory(): Map<String, Int>
 }
 
 /**
