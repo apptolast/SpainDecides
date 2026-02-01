@@ -38,7 +38,7 @@ interface SupabaseWebhookPayload {
 function extractFirstSentence(text: string): string {
     const trimmed = text.trim();
     const match = trimmed.match(/^[^.!?]*[.!?]/);
-    
+
     if (match) {
         return match[0];
     }
@@ -60,16 +60,17 @@ function getNotificationBody(record: NonNullable<SupabaseWebhookPayload["record"
 
 /**
  * Cloud Function triggered by Supabase Database Webhook.
- * 
+ *
  * Sends push notifications when a new proposal is inserted.
- * 
+ * Includes proposalId and categoryId for deep linking navigation.
+ *
  * Headers:
  * - x-webhook-secret: Secret for authentication (configured in Supabase)
  */
 export const sendNewProposalNotification = onRequest(
     { secrets: [webhookSecret] },
     async (req, res) => {
-    
+
     // Only allow POST requests
     if (req.method !== "POST") {
         res.status(405).json({ error: "Method not allowed" });
@@ -87,7 +88,7 @@ export const sendNewProposalNotification = onRequest(
 
     // Parse Supabase webhook payload
     const payload = req.body as SupabaseWebhookPayload;
-    
+
     // Only process INSERT events on proposals table
     if (payload.type !== "INSERT" || payload.table !== "proposals") {
         res.status(200).json({ message: "Ignored - not an INSERT on proposals" });
@@ -101,10 +102,18 @@ export const sendNewProposalNotification = onRequest(
     }
 
     const title = record.title;
-    const body = record.getNotificationBody(record);
+    const body = getNotificationBody(record);
+
+    // Log notification data for debugging
+    console.log("=== Preparing notification ===");
+    console.log("proposalId:", record.id);
+    console.log("categoryId:", record.category_id);
+    console.log("title:", title);
+    console.log("body:", body);
 
     try {
         // Build the notification message
+        // Note: categoryKey lookup is done client-side to keep this function simple
         const message: admin.messaging.Message = {
             topic: "new_proposals",
             notification: {
@@ -114,6 +123,7 @@ export const sendNewProposalNotification = onRequest(
             data: {
                 type: "new_proposal",
                 proposalId: record.id,
+                categoryId: record.category_id,
                 title: title,
                 body: body,
             },
@@ -143,15 +153,15 @@ export const sendNewProposalNotification = onRequest(
 
         // Send the notification
         const response = await admin.messaging().send(message);
-        
+
         console.log("Notification sent successfully:", response);
-        res.status(200).json({ 
-            success: true, 
-            messageId: response 
+        res.status(200).json({
+            success: true,
+            messageId: response
         });
     } catch (error) {
         console.error("Error sending notification:", error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: "Failed to send notification",
             details: error instanceof Error ? error.message : "Unknown error"
         });

@@ -58,6 +58,43 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         completionHandler([.banner, .sound, .badge])
     }
+
+    // Handle notification tap (cold start and warm start)
+    // Called when user taps on a notification to open the app
+    // Note: categoryKey is looked up client-side from CategoryRepository
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                didReceive response: UNNotificationResponse,
+                                withCompletionHandler completionHandler: @escaping () -> Void) {
+        let userInfo = response.notification.request.content.userInfo
+
+        print("[DeepLink-Swift] userNotificationCenter didReceive called")
+        print("[DeepLink-Swift] userInfo: \(userInfo)")
+
+        // Extract deep link data from notification payload
+        if let type = userInfo["type"] as? String, type == "new_proposal",
+           let proposalId = userInfo["proposalId"] as? String,
+           let categoryId = userInfo["categoryId"] as? String {
+
+            print("[DeepLink-Swift] Extracted type: \(type)")
+            print("[DeepLink-Swift] Extracted proposalId: \(proposalId)")
+            print("[DeepLink-Swift] Extracted categoryId: \(categoryId)")
+
+            // Trigger navigation via Kotlin bridge
+            print("[DeepLink-Swift] Calling NotificationDeepLinkHandlerKt.handleNotificationTap...")
+            NotificationDeepLinkHandlerKt.handleNotificationTap(
+                proposalId: proposalId,
+                categoryId: categoryId
+            )
+            print("[DeepLink-Swift] handleNotificationTap completed")
+        } else {
+            print("[DeepLink-Swift] Could not extract required fields from userInfo")
+            print("[DeepLink-Swift] type: \(userInfo["type"] ?? "nil")")
+            print("[DeepLink-Swift] proposalId: \(userInfo["proposalId"] ?? "nil")")
+            print("[DeepLink-Swift] categoryId: \(userInfo["categoryId"] ?? "nil")")
+        }
+
+        completionHandler()
+    }
 }
 
 @main

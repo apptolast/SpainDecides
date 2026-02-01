@@ -12,7 +12,7 @@ admin.initializeApp();
 // Define the secret reference for webhook authentication
 const webhookSecret = (0, params_1.defineSecret)("SUPABASE_WEBHOOK_SECRET");
 /**
- * Extracts the first sentence from text (fallback when short_description is not available).
+ * Extracts the first sentence from text.
  * A sentence ends with '.', '!' or '?'
  */
 function extractFirstSentence(text) {
@@ -39,6 +39,7 @@ function getNotificationBody(record) {
  * Cloud Function triggered by Supabase Database Webhook.
  *
  * Sends push notifications when a new proposal is inserted.
+ * Includes proposalId and categoryId for deep linking navigation.
  *
  * Headers:
  * - x-webhook-secret: Secret for authentication (configured in Supabase)
@@ -71,8 +72,15 @@ exports.sendNewProposalNotification = (0, https_1.onRequest)({ secrets: [webhook
     }
     const title = record.title;
     const body = getNotificationBody(record);
+    // Log notification data for debugging
+    console.log("=== Preparing notification ===");
+    console.log("proposalId:", record.id);
+    console.log("categoryId:", record.category_id);
+    console.log("title:", title);
+    console.log("body:", body);
     try {
         // Build the notification message
+        // Note: categoryKey lookup is done client-side to keep this function simple
         const message = {
             topic: "new_proposals",
             notification: {
@@ -82,6 +90,7 @@ exports.sendNewProposalNotification = (0, https_1.onRequest)({ secrets: [webhook
             data: {
                 type: "new_proposal",
                 proposalId: record.id,
+                categoryId: record.category_id,
                 title: title,
                 body: body,
             },

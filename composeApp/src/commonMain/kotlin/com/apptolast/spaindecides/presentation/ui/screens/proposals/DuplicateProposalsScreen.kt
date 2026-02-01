@@ -179,7 +179,9 @@ fun DuplicateProposalsContent(
         },
         bottomBar = {
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .windowInsetsPadding(WindowInsets.navigationBars),
                 tonalElevation = 3.dp
             ) {
                 Row(
@@ -212,7 +214,6 @@ fun DuplicateProposalsContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .windowInsetsPadding(WindowInsets.navigationBars)
         ) {
             if (duplicates.isNotEmpty()) {
                 // Tab row with similarity percentages
