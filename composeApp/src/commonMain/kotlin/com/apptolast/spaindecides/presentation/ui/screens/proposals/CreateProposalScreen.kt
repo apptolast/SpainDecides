@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -39,6 +41,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
@@ -178,6 +185,13 @@ fun CreateProposalContent(
     val scrollState = rememberScrollState()
     var showDiscardDialog by remember { mutableStateOf(false) }
 
+    // Focus management for keyboard navigation
+    val descriptionFocusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    // Check if form is valid for publishing
+    val canPublish = !isCreating && proposalTitle.isNotBlank() && proposalDescription.isNotBlank()
+
     // Check if there's any content to discard
     val hasContent = proposalTitle.isNotBlank() || proposalDescription.isNotBlank()
 
@@ -243,7 +257,7 @@ fun CreateProposalContent(
                 actions = {
                     TextButton(
                         onClick = onPublish,
-                        enabled = !isCreating && proposalTitle.isNotBlank() && proposalDescription.isNotBlank()
+                        enabled = canPublish
                     ) {
                         Text(stringResource(Res.string.create_proposal_publish))
                     }
@@ -294,6 +308,13 @@ fun CreateProposalContent(
                 enabled = !isCreating,
                 singleLine = true,
                 maxLines = 1,
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { descriptionFocusRequester.requestFocus() }
+                ),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline
@@ -335,8 +356,21 @@ fun CreateProposalContent(
                 placeholder = { Text(stringResource(Res.string.create_proposal_description_placeholder)) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 200.dp),
+                    .heightIn(min = 200.dp)
+                    .focusRequester(descriptionFocusRequester),
                 enabled = !isCreating,
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        keyboardController?.hide()
+                        if (canPublish) {
+                            onPublish()
+                        }
+                    }
+                ),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline

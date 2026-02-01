@@ -26,17 +26,22 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryScrollableTabRow
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -84,17 +89,28 @@ fun DuplicateProposalsScreen(
     val duplicates by viewModel.duplicatesFound.collectAsStateWithLifecycle()
     val duplicateProposals by viewModel.duplicateProposals.collectAsStateWithLifecycle()
     val isCreating by viewModel.isCreating.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
 
     // Create map for quick access to real-time data
     val proposalDataMap = duplicateProposals.associateBy { it.id }
 
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { duplicates.size })
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Observe errors reactively - shows snackbar when error occurs
+    LaunchedEffect(error) {
+        error?.let { errorMessage ->
+            snackbarHostState.showSnackbar(errorMessage)
+            viewModel.clearError()
+        }
+    }
 
     DuplicateProposalsContent(
         duplicates = duplicates,
         proposalDataMap = proposalDataMap,
         isCreating = isCreating,
+        snackbarHostState = snackbarHostState,
         pagerState = pagerState,
         onCancel = {
             viewModel.clearDuplicatesState()
@@ -130,10 +146,13 @@ fun DuplicateProposalsScreen(
  * - HorizontalPager for full proposal content
  * - Voting capability on each proposal
  * - Fixed bottom bar with Cancel and Create anyway buttons
+ * - Progress indicator when creating proposal
+ * - Snackbar for error messages
  *
  * @param duplicates List of similar proposals found
  * @param proposalDataMap Map of proposal IDs to their real-time data
  * @param isCreating Whether a proposal is being created
+ * @param snackbarHostState State for showing snackbar messages
  * @param pagerState State for the horizontal pager
  * @param onCancel Callback when cancel button is clicked
  * @param onCreateAnyway Callback when "create anyway" button is clicked
@@ -147,6 +166,7 @@ fun DuplicateProposalsContent(
     duplicates: List<SimilarProposal>,
     proposalDataMap: Map<String, ProposalWithUserVote>,
     isCreating: Boolean,
+    snackbarHostState: SnackbarHostState,
     pagerState: PagerState,
     onCancel: () -> Unit,
     onCreateAnyway: () -> Unit,
@@ -184,30 +204,40 @@ fun DuplicateProposalsContent(
                     .windowInsetsPadding(WindowInsets.navigationBars),
                 tonalElevation = 3.dp
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = onCancel,
-                        modifier = Modifier.weight(1f),
-                        enabled = !isCreating
-                    ) {
-                        Text(stringResource(Res.string.duplicates_cancel))
+                Column {
+                    // Progress indicator when creating proposal
+                    if (isCreating) {
+                        LinearProgressIndicator(
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
 
-                    Button(
-                        onClick = onCreateAnyway,
-                        modifier = Modifier.weight(1f),
-                        enabled = !isCreating
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Text(stringResource(Res.string.duplicates_create_anyway))
+                        OutlinedButton(
+                            onClick = onCancel,
+                            modifier = Modifier.weight(1f),
+                            enabled = !isCreating
+                        ) {
+                            Text(stringResource(Res.string.duplicates_cancel))
+                        }
+
+                        Button(
+                            onClick = onCreateAnyway,
+                            modifier = Modifier.weight(1f),
+                            enabled = !isCreating
+                        ) {
+                            Text(stringResource(Res.string.duplicates_create_anyway))
+                        }
                     }
                 }
             }
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = modifier
     ) { paddingValues ->
         Column(
@@ -396,6 +426,7 @@ private fun DuplicateProposalsContentPreview() {
             duplicates = SampleData.sampleSimilarProposals,
             proposalDataMap = emptyMap(),
             isCreating = false,
+            snackbarHostState = remember { SnackbarHostState() },
             pagerState = rememberPagerState(pageCount = { SampleData.sampleSimilarProposals.size }),
             onCancel = {},
             onCreateAnyway = {},
@@ -413,6 +444,7 @@ private fun DuplicateProposalsContentCreatingPreview() {
             duplicates = SampleData.sampleSimilarProposals,
             proposalDataMap = emptyMap(),
             isCreating = true,
+            snackbarHostState = remember { SnackbarHostState() },
             pagerState = rememberPagerState(pageCount = { SampleData.sampleSimilarProposals.size }),
             onCancel = {},
             onCreateAnyway = {},
@@ -430,6 +462,7 @@ private fun DuplicateProposalsContentEmptyPreview() {
             duplicates = emptyList(),
             proposalDataMap = emptyMap(),
             isCreating = false,
+            snackbarHostState = remember { SnackbarHostState() },
             pagerState = rememberPagerState(pageCount = { 0 }),
             onCancel = {},
             onCreateAnyway = {},
