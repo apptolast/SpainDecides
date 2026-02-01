@@ -36,8 +36,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.apptolast.spaindecides.data.model.Category
+import com.apptolast.spaindecides.presentation.ui.preview.SampleData
+import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 import com.apptolast.spaindecides.presentation.util.getLocalizedDescription
 import com.apptolast.spaindecides.presentation.util.getLocalizedName
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 /**
  * Maps icon name strings to Material Icons.
@@ -61,15 +64,17 @@ fun getIconForCategory(iconName: String): ImageVector {
 
 /**
  * Card component for displaying a category.
- * Shows category icon, name, and description.
+ * Shows category icon, name, description, and proposal count.
  *
  * @param category The category to display
+ * @param proposalCount Number of proposals in this category (null if not loaded)
  * @param onClick Callback when the card is clicked
  * @param modifier Optional modifier
  */
 @Composable
 fun CategoryCard(
     category: Category,
+    proposalCount: Int? = null,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -87,21 +92,35 @@ fun CategoryCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon in a colored container
-            Surface(
-                shape = MaterialTheme.shapes.medium,
-                color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.size(48.dp)
+            // Icon in a colored container with proposal count below
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize()
+                Surface(
+                    shape = MaterialTheme.shapes.medium,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.size(48.dp)
                 ) {
-                    Icon(
-                        imageVector = getIconForCategory(category.iconName),
-                        contentDescription = category.getLocalizedName(),
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Icon(
+                            imageVector = getIconForCategory(category.iconName),
+                            contentDescription = category.getLocalizedName(),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+
+                // Proposal count below the icon
+                if (proposalCount != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = proposalCount.toString(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -133,5 +152,41 @@ fun CategoryCard(
                 modifier = Modifier.size(24.dp)
             )
         }
+    }
+}
+
+@Preview
+@Composable
+private fun CategoryCardPreview() {
+    SpainDecidesTheme {
+        CategoryCard(
+            category = SampleData.sampleCategory,
+            proposalCount = 42,
+            onClick = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun CategoryCardNoCountPreview() {
+    SpainDecidesTheme {
+        CategoryCard(
+            category = SampleData.sampleCategory,
+            proposalCount = null,
+            onClick = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun CategoryCardHealthPreview() {
+    SpainDecidesTheme {
+        CategoryCard(
+            category = SampleData.sampleCategories[1], // Health category
+            proposalCount = 128,
+            onClick = {}
+        )
     }
 }

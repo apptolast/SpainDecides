@@ -104,7 +104,7 @@
 
     <!-- Pantalla de Crear Propuesta -->
     <string name="create_proposal_title">Nueva Propuesta</string>
-    <string name="create_proposal_category">Categoría: %s</string>
+    <string name="create_proposal_category">%1$s</string>
     <string name="create_proposal_title_label">Título</string>
     <string name="create_proposal_title_placeholder">Escribe un título breve (10-100 caracteres)...</string>
     <string name="create_proposal_title_counter">%1$d/100</string>
@@ -112,6 +112,10 @@
     <string name="create_proposal_description_placeholder">Describe tu propuesta en detalle (10-1000 caracteres)...</string>
     <string name="create_proposal_description_counter">%1$d/1000</string>
     <string name="create_proposal_publish">Publicar</string>
+    <string name="create_proposal_discard_title">¿Descartar Propuesta?</string>
+    <string name="create_proposal_discard_message">Tienes cambios sin guardar. ¿Estás seguro de que quieres descartar esta propuesta?</string>
+    <string name="create_proposal_discard_confirm">Descartar</string>
+    <string name="create_proposal_discard_cancel">Seguir Editando</string>
 
     <!-- Navegación Común -->
     <string name="back">Atrás</string>

@@ -167,8 +167,8 @@ android {
         applicationId = "com.apptolast.spaindecides"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 5
-        versionName = "1.1.2"
+        versionCode = 6
+        versionName = "1.2.0"
     }
 
     packaging {
@@ -209,7 +209,8 @@ android {
 
     buildTypes {
         getByName("debug") {
-            // Debug-specific configuration (no buildConfigField - handled by BuildKonfig)
+            // Use Android's default debug keystore for signing
+            signingConfig = signingConfigs.getByName("debug")
         }
 
         getByName("release") {

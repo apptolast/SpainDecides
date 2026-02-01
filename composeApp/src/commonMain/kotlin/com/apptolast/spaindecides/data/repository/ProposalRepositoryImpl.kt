@@ -386,4 +386,21 @@ class ProposalRepositoryImpl(
                 flowScope.launch { channel.unsubscribe() }
             }
         }
+
+    override suspend fun getProposalCountsByCategory(): Map<String, Int> {
+        return try {
+            val proposals = supabase
+                .from("proposals")
+                .select {
+                    // Only select the category_id column for efficiency
+                }
+                .decodeList<Proposal>()
+
+            // Group by category and count
+            proposals.groupingBy { it.categoryId }.eachCount()
+        } catch (e: Exception) {
+            println("Error fetching proposal counts: ${e.message}")
+            emptyMap()
+        }
+    }
 }

@@ -14,7 +14,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import spaindecides.composeapp.generated.resources.Res
 import spaindecides.composeapp.generated.resources.settings
 
@@ -66,4 +68,28 @@ fun AppTopBar(
             titleContentColor = MaterialTheme.colorScheme.onSurface
         )
     )
+}
+
+@Preview
+@Composable
+private fun AppTopBarPreview() {
+    SpainDecidesTheme {
+        AppTopBar(
+            title = "Spain Decides",
+            subtitle = "Democracia participativa",
+            onSettingsClick = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun AppTopBarNoSubtitlePreview() {
+    SpainDecidesTheme {
+        AppTopBar(
+            title = "Spain Decides",
+            subtitle = null,
+            onSettingsClick = {}
+        )
+    }
 }

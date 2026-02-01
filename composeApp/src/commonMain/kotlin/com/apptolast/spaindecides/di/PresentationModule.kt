@@ -18,12 +18,13 @@ val presentationModule = module {
     viewModelOf(::CategoryViewModel)
     viewModelOf(::ReportViewModel)
 
-    // ProposalViewModel with categoryId parameter
+    // ProposalViewModel with categoryId parameter and SavedStateHandle for state persistence
     // Each category gets its own ViewModel instance to ensure clean Realtime channel lifecycle
-    viewModel { parameters ->
+    viewModel { (categoryId: String) ->
         ProposalViewModel(
-            categoryId = parameters.get(),
-            proposalRepository = get()
+            categoryId = categoryId,
+            proposalRepository = get(),
+            savedStateHandle = get()
         )
     }
 }

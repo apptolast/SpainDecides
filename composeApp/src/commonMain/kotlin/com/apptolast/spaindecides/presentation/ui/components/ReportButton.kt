@@ -7,7 +7,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import spaindecides.composeapp.generated.resources.Res
 import spaindecides.composeapp.generated.resources.report_content
 
@@ -31,5 +33,13 @@ fun ReportButton(
             contentDescription = stringResource(Res.string.report_content),
             tint = MaterialTheme.colorScheme.error
         )
+    }
+}
+
+@Preview
+@Composable
+private fun ReportButtonPreview() {
+    SpainDecidesTheme {
+        ReportButton(onClick = {})
     }
 }

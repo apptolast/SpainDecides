@@ -81,3 +81,29 @@ fun Category.getLocalizedDescription(): String {
         }
     )
 }
+
+/**
+ * Returns the localized category name for a given category key.
+ * This is useful when only the key is available (e.g., from navigation routes).
+ *
+ * @param categoryKey The i18n key for the category (e.g., "economy", "health")
+ * @return Translated category name for the current locale
+ */
+@Composable
+fun getLocalizedCategoryName(categoryKey: String): String {
+    return stringResource(
+        when (categoryKey) {
+            "economy" -> Res.string.category_economy
+            "health" -> Res.string.category_health
+            "education" -> Res.string.category_education
+            "environment" -> Res.string.category_environment
+            "foreign_policy" -> Res.string.category_foreign_policy
+            "justice" -> Res.string.category_justice
+            "housing" -> Res.string.category_housing
+            "science" -> Res.string.category_science
+            "social_policies" -> Res.string.category_social_policies
+            "taxes" -> Res.string.category_taxes
+            else -> Res.string.category_unknown
+        }
+    )
+}

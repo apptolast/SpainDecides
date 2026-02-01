@@ -6,13 +6,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -47,6 +53,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.apptolast.spaindecides.data.remote.SupabaseClientConfig
+import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 import com.apptolast.spaindecides.presentation.viewmodel.AuthState
 import com.apptolast.spaindecides.presentation.viewmodel.AuthViewModel
 import com.apptolast.spaindecides.util.isIOS
@@ -56,6 +63,7 @@ import io.github.jan.supabase.compose.auth.composeAuth
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import spaindecides.composeapp.generated.resources.Res
 import spaindecides.composeapp.generated.resources.auth_divider
@@ -74,8 +82,10 @@ import spaindecides.composeapp.generated.resources.login_with_google
 import spaindecides.composeapp.generated.resources.show_password
 
 /**
- * Login screen composable.
- * Allows users to log in with email and password (UI only for now).
+ * Stateful Login screen composable.
+ *
+ * This composable handles ViewModel injection and state collection,
+ * delegating the actual UI rendering to [LoginContent].
  *
  * @param onLoginSuccess Callback when login is successful
  * @param onNavigateToRegister Callback to navigate to registration screen
@@ -110,22 +120,15 @@ fun LoginScreen(
                 scope.launch {
                     when (result) {
                         is NativeSignInResult.Success -> {
-                            // User successfully signed in with Google
                             onLoginSuccess()
                         }
-
                         is NativeSignInResult.ClosedByUser -> {
-                            // User closed the sign-in dialog
-                            // No action needed
+                            // User closed the sign-in dialog - no action needed
                         }
-
                         is NativeSignInResult.Error -> {
-                            // Error occurred during sign-in
                             snackbarHostState.showSnackbar(googleSignInErrorText)
                         }
-
                         is NativeSignInResult.NetworkError -> {
-                            // Network error occurred
                             snackbarHostState.showSnackbar(googleSignInErrorText)
                         }
                     }
@@ -153,24 +156,92 @@ fun LoginScreen(
     }
 
     // Observe auth state and navigate when authenticated
-    // This is crucial for iOS: when Safari redirects back after Google OAuth,
-    // the Compose UI may be recreated, losing the rememberSignInWithGoogle state.
-    // By observing authState directly, we can detect when Supabase processes
-    // the OAuth callback and creates a session, triggering navigation automatically.
     LaunchedEffect(authState) {
         if (authState is AuthState.Authenticated) {
-            println("LoginScreen: User authenticated via authState observer, navigating to next screen")
             onLoginSuccess()
         }
     }
 
+    LoginContent(
+        email = email,
+        password = password,
+        isPasswordVisible = isPasswordVisible,
+        isLoading = isLoading,
+        snackbarHostState = snackbarHostState,
+        onEmailChange = viewModel::updateEmail,
+        onPasswordChange = viewModel::updatePassword,
+        onTogglePasswordVisibility = viewModel::togglePasswordVisibility,
+        onLogin = {
+            scope.launch {
+                val success = viewModel.login()
+                if (success) {
+                    onLoginSuccess()
+                }
+            }
+        },
+        onGoogleSignIn = {
+            if (isIOS()) {
+                scope.launch {
+                    viewModel.signInWithGoogle()
+                }
+            } else {
+                googleSignInState?.startFlow()
+            }
+        },
+        onForgotPassword = { /* TODO: Implement forgot password */ },
+        onNavigateToRegister = onNavigateToRegister
+    )
+}
+
+/**
+ * Stateless Login content composable.
+ *
+ * This composable is responsible for rendering the UI based on the provided state.
+ * It has no dependencies on ViewModels or other stateful components, making it
+ * easy to preview and test.
+ *
+ * @param email Current email value
+ * @param password Current password value
+ * @param isPasswordVisible Whether password is visible
+ * @param isLoading Whether login is in progress
+ * @param snackbarHostState State for showing snackbar messages
+ * @param onEmailChange Callback when email changes
+ * @param onPasswordChange Callback when password changes
+ * @param onTogglePasswordVisibility Callback to toggle password visibility
+ * @param onLogin Callback when login button is clicked
+ * @param onGoogleSignIn Callback when Google sign-in button is clicked
+ * @param onForgotPassword Callback when forgot password is clicked
+ * @param onNavigateToRegister Callback when register link is clicked
+ * @param modifier Optional modifier
+ */
+@Composable
+fun LoginContent(
+    email: String,
+    password: String,
+    isPasswordVisible: Boolean,
+    isLoading: Boolean,
+    snackbarHostState: SnackbarHostState,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onTogglePasswordVisibility: () -> Unit,
+    onLogin: () -> Unit,
+    onGoogleSignIn: () -> Unit,
+    onForgotPassword: () -> Unit,
+    onNavigateToRegister: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        modifier = modifier
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .windowInsetsPadding(WindowInsets.ime)
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -216,7 +287,7 @@ fun LoginScreen(
             // Email field
             OutlinedTextField(
                 value = email,
-                onValueChange = viewModel::updateEmail,
+                onValueChange = onEmailChange,
                 label = { Text(stringResource(Res.string.field_email)) },
                 leadingIcon = {
                     Icon(
@@ -235,7 +306,7 @@ fun LoginScreen(
             // Password field
             OutlinedTextField(
                 value = password,
-                onValueChange = viewModel::updatePassword,
+                onValueChange = onPasswordChange,
                 label = { Text(stringResource(Res.string.field_password)) },
                 leadingIcon = {
                     Icon(
@@ -244,12 +315,14 @@ fun LoginScreen(
                     )
                 },
                 trailingIcon = {
-                    IconButton(onClick = viewModel::togglePasswordVisibility) {
+                    IconButton(onClick = onTogglePasswordVisibility) {
                         Icon(
                             imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                            contentDescription = if (isPasswordVisible) stringResource(Res.string.hide_password) else stringResource(
-                                Res.string.show_password
-                            )
+                            contentDescription = if (isPasswordVisible) {
+                                stringResource(Res.string.hide_password)
+                            } else {
+                                stringResource(Res.string.show_password)
+                            }
                         )
                     }
                 },
@@ -264,7 +337,7 @@ fun LoginScreen(
 
             // Forgot password link
             TextButton(
-                onClick = { /* TODO: Implement forgot password */ },
+                onClick = onForgotPassword,
                 enabled = !isLoading
             ) {
                 Text(
@@ -277,14 +350,7 @@ fun LoginScreen(
 
             // Login button
             Button(
-                onClick = {
-                    scope.launch {
-                        val success = viewModel.login()
-                        if (success) {
-                            onLoginSuccess()
-                        }
-                    }
-                },
+                onClick = onLogin,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !isLoading && email.isNotBlank() && password.isNotBlank()
             ) {
@@ -319,18 +385,7 @@ fun LoginScreen(
 
             // Google Sign-In button (standard Google style)
             OutlinedButton(
-                onClick = {
-                    if (isIOS()) {
-                        // iOS: Use OAuth web flow via repository
-                        scope.launch {
-                            viewModel.signInWithGoogle()
-                            // Navigation happens via authState observer when OAuth completes
-                        }
-                    } else {
-                        // Android: Use native Google One Tap
-                        googleSignInState?.startFlow()
-                    }
-                },
+                onClick = onGoogleSignIn,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
@@ -374,5 +429,89 @@ fun LoginScreen(
                 }
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun LoginContentPreview() {
+    SpainDecidesTheme {
+        LoginContent(
+            email = "usuario@ejemplo.com",
+            password = "password123",
+            isPasswordVisible = false,
+            isLoading = false,
+            snackbarHostState = remember { SnackbarHostState() },
+            onEmailChange = {},
+            onPasswordChange = {},
+            onTogglePasswordVisibility = {},
+            onLogin = {},
+            onGoogleSignIn = {},
+            onForgotPassword = {},
+            onNavigateToRegister = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun LoginContentEmptyPreview() {
+    SpainDecidesTheme {
+        LoginContent(
+            email = "",
+            password = "",
+            isPasswordVisible = false,
+            isLoading = false,
+            snackbarHostState = remember { SnackbarHostState() },
+            onEmailChange = {},
+            onPasswordChange = {},
+            onTogglePasswordVisibility = {},
+            onLogin = {},
+            onGoogleSignIn = {},
+            onForgotPassword = {},
+            onNavigateToRegister = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun LoginContentLoadingPreview() {
+    SpainDecidesTheme {
+        LoginContent(
+            email = "usuario@ejemplo.com",
+            password = "password123",
+            isPasswordVisible = false,
+            isLoading = true,
+            snackbarHostState = remember { SnackbarHostState() },
+            onEmailChange = {},
+            onPasswordChange = {},
+            onTogglePasswordVisibility = {},
+            onLogin = {},
+            onGoogleSignIn = {},
+            onForgotPassword = {},
+            onNavigateToRegister = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun LoginContentPasswordVisiblePreview() {
+    SpainDecidesTheme {
+        LoginContent(
+            email = "usuario@ejemplo.com",
+            password = "password123",
+            isPasswordVisible = true,
+            isLoading = false,
+            snackbarHostState = remember { SnackbarHostState() },
+            onEmailChange = {},
+            onPasswordChange = {},
+            onTogglePasswordVisibility = {},
+            onLogin = {},
+            onGoogleSignIn = {},
+            onForgotPassword = {},
+            onNavigateToRegister = {}
+        )
     }
 }

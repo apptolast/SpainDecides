@@ -5,11 +5,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -31,7 +34,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import spaindecides.composeapp.generated.resources.Res
 import spaindecides.composeapp.generated.resources.back
 import spaindecides.composeapp.generated.resources.settings_delete_account_button
@@ -87,6 +92,7 @@ fun SettingsContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .windowInsetsPadding(WindowInsets.navigationBars)
                 .padding(horizontal = 16.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -194,5 +200,50 @@ fun SettingsContent(
                 )
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun SettingsContentPreview() {
+    SpainDecidesTheme {
+        SettingsContent(
+            userName = "Juan García",
+            userEmail = "juan@example.com",
+            photoUrl = null,
+            onBack = {},
+            onLogout = {},
+            onDeleteAccount = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun SettingsContentWithPhotoPreview() {
+    SpainDecidesTheme {
+        SettingsContent(
+            userName = "María López",
+            userEmail = "maria@example.com",
+            photoUrl = "https://example.com/photo.jpg",
+            onBack = {},
+            onLogout = {},
+            onDeleteAccount = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun SettingsContentNoNamePreview() {
+    SpainDecidesTheme {
+        SettingsContent(
+            userName = null,
+            userEmail = "anonymous@example.com",
+            photoUrl = null,
+            onBack = {},
+            onLogout = {},
+            onDeleteAccount = {}
+        )
     }
 }

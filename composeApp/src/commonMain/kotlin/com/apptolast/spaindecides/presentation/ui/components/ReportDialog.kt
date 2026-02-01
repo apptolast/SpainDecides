@@ -35,7 +35,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.apptolast.spaindecides.data.model.ReportReason
+import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import spaindecides.composeapp.generated.resources.Res
 import spaindecides.composeapp.generated.resources.close
 import spaindecides.composeapp.generated.resources.report_cancel
@@ -183,5 +185,44 @@ fun ReportDialog(
                 }
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun ReportDialogPreview() {
+    SpainDecidesTheme {
+        ReportDialog(
+            proposalTitle = "Reducir impuestos a las PYMES",
+            onDismiss = {},
+            onConfirm = {},
+            isLoading = false
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ReportDialogLongTitlePreview() {
+    SpainDecidesTheme {
+        ReportDialog(
+            proposalTitle = "Esta es una propuesta con un título muy largo que debería ser truncado automáticamente por el diálogo",
+            onDismiss = {},
+            onConfirm = {},
+            isLoading = false
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ReportDialogLoadingPreview() {
+    SpainDecidesTheme {
+        ReportDialog(
+            proposalTitle = "Reducir impuestos a las PYMES",
+            onDismiss = {},
+            onConfirm = {},
+            isLoading = true
+        )
     }
 }
