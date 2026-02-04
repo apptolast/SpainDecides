@@ -215,8 +215,9 @@ android {
 
         getByName("release") {
             // Enable code shrinking, obfuscation, and optimization
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
+            isShrinkResources = false
+            isDebuggable = true
 
             // Apply ProGuard rules
             proguardFiles(
@@ -293,6 +294,13 @@ buildkonfig {
             STRING,
             "FIREBASE_FUNCTION_API_KEY",
             localProperties.getPropertyWithFallback("FIREBASE_FUNCTION_API_KEY", isReleaseBuild)
+        )
+
+        // N8N Webhook Configuration
+        buildConfigField(
+            STRING,
+            "N8N_WEBHOOK_PATH",
+            localProperties.getPropertyWithFallback("N8N_WEBHOOK_PATH", isReleaseBuild)
         )
     }
 }

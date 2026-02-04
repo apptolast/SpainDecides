@@ -122,9 +122,9 @@ class N8nWebhookClient(
 
     companion object {
         private const val BASE_URL_WEBHOOK = "https://n8n.apptolast.com/webhook/"
-        private const val PATH_URL_WEBHOOK = "new-proposal"
 
-        private const val WEBHOOK_URL = BASE_URL_WEBHOOK + PATH_URL_WEBHOOK
+        private val WEBHOOK_URL: String
+            get() = BASE_URL_WEBHOOK + Environment.N8N_WEBHOOK_PATH
     }
 }
 
