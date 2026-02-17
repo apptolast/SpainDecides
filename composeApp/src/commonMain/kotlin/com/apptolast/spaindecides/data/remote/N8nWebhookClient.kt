@@ -30,7 +30,7 @@ import io.ktor.serialization.JsonConvertException
  * - n8n webhook must be configured with JWT Auth using Supabase JWT secret
  *
  * ## n8n Webhook Configuration Requirements:
- * - **Authentication**: JWT Auth (with Supabase JWT secret)
+ * - **Authentication**: JWT Auth (PEM Key with ES256 algorithm and Supabase public key)
  * - **Respond**: Must be "When Last Node Finishes" (NOT "Immediately")
  * - **Method**: POST
  * - **Content-Type**: application/json
@@ -56,7 +56,6 @@ class N8nWebhookClient(
      * @return ProposalProcessingResponse with status and any duplicates found
      */
     suspend fun processProposal(request: ProposalProcessingRequest): Result<ProposalProcessingResponse> {
-        // Get the current user's JWT token
         val accessToken = authRepository.getAccessToken()
             ?: return Result.failure(
                 N8nWebhookException.Unauthorized("No hay sesión activa. Por favor, inicia sesión.")
@@ -69,10 +68,18 @@ class N8nWebhookClient(
                 setBody(request)
             }
 
+            val responseBody = response.bodyAsText()
+
             when {
                 response.status.isSuccess() -> {
-                    val result = response.body<ProposalProcessingResponse>()
-                    Result.success(result)
+                    if (responseBody.isBlank()) {
+                        Result.failure(
+                            N8nWebhookException.ParseError("El servidor no devolvió datos. Inténtalo de nuevo.")
+                        )
+                    } else {
+                        val result = response.body<ProposalProcessingResponse>()
+                        Result.success(result)
+                    }
                 }
 
                 response.status == HttpStatusCode.Unauthorized -> {
@@ -88,11 +95,10 @@ class N8nWebhookClient(
                 }
 
                 else -> {
-                    val errorBody = response.bodyAsText()
                     Result.failure(
                         N8nWebhookException.ServerError(
                             statusCode = response.status.value,
-                            message = "Server returned ${response.status.value}: $errorBody"
+                            message = "Server returned ${response.status.value}: $responseBody"
                         )
                     )
                 }

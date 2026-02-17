@@ -152,7 +152,7 @@
     <string name="duplicates_title">Similar proposals</string>
     <string name="duplicates_cancel">Cancel</string>
     <string name="duplicates_create_anyway">Create anyway</string>
-    <string name="duplicates_similarity">%1$d%% similar</string>
+    <string name="duplicates_similarity">%1$d% similar</string>
 
     <!-- Report Content -->
     <string name="report_content">Report inappropriate content</string>

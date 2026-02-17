@@ -72,7 +72,7 @@ class CategoryViewModel(
     /**
      * Loads proposal counts for all categories
      */
-    private fun loadProposalCounts() {
+    fun loadProposalCounts() {
         viewModelScope.launch {
             try {
                 proposalCounts.value = proposalRepository.getProposalCountsByCategory()

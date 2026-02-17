@@ -151,8 +151,8 @@
     <!-- Pantalla de Propuestas Duplicadas -->
     <string name="duplicates_title">Propuestas similares</string>
     <string name="duplicates_cancel">Cancelar</string>
-    <string name="duplicates_create_anyway">Crear de todos modos</string>
-    <string name="duplicates_similarity">%1$d%% similar</string>
+    <string name="duplicates_create_anyway">Crear igualmente</string>
+    <string name="duplicates_similarity">%1$d% similar</string>
 
     <!-- Reportar Contenido -->
     <string name="report_content">Reportar contenido inapropiado</string>

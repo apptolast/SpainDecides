@@ -43,12 +43,13 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
         if let token = fcmToken {
             print("FCM Token: \(token)")
-            // Subscribe to new_proposals topic
-            Messaging.messaging().subscribe(toTopic: "new_proposals") { error in
+            // Subscribe to environment-specific topic via KMP
+            let topic = Environment.shared.FCM_TOPIC_NEW_PROPOSALS
+            Messaging.messaging().subscribe(toTopic: topic) { error in
                 if let error = error {
                     print("Error subscribing to topic: \(error)")
                 } else {
-                    print("Subscribed to new_proposals topic")
+                    print("Subscribed to \(topic) topic")
                 }
             }
         }

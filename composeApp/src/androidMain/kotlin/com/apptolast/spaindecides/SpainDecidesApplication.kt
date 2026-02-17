@@ -32,5 +32,10 @@ class SpainDecidesApplication : Application() {
 
         // Subscribe to new_proposals topic to receive notifications
         NotificationInitializer.subscribeToNewProposalsTopic()
+
+        // Set up listener to log incoming notifications
+        NotificationInitializer.setNotificationListener { title, body ->
+            println("[FCM] Notification callback - title: $title, body: $body")
+        }
     }
 }

@@ -23,26 +23,29 @@ val localProperties: Properties by lazy {
     }
 }
 
-// Helper function to get property with Debug/Release fallback
-fun Properties.getPropertyWithFallback(baseName: String, isRelease: Boolean): String {
-    val suffix = if (isRelease) "_RELEASE" else "_DEBUG"
+// Helper function to get property with Debug/Release fallback based on flavor
+fun Properties.getPropertyWithFallback(baseName: String, isProduction: Boolean): String {
+    val suffix = if (isProduction) "_RELEASE" else "_DEBUG"
     return getProperty("$baseName$suffix") ?: getProperty(baseName) ?: ""
 }
 
-// Determine if this is a release build based on Gradle task names
-val isReleaseBuild: Boolean by lazy {
+// Determine if this is a production flavor based on Gradle task names or Xcode configuration.
+// The FLAVOR (dev/prod) controls the backend environment, not the build TYPE (debug/release).
+val isProductionFlavor: Boolean by lazy {
     // 1. Detección para Android (basada en tareas)
-    val androidRelease = gradle.startParameter.taskNames.any {
-        it.contains("release", ignoreCase = true) || it.contains("Release")
+    // Las tareas contienen el nombre del flavor: assembleProdRelease, installDevDebug, etc.
+    val androidProd = gradle.startParameter.taskNames.any {
+        it.contains("prod", ignoreCase = true) || it.contains("Prod")
     }
 
     // 2. Detección para iOS (basada en lo que Xcode nos envía)
     // Cuando Xcode compila, envía la propiedad XCODE_CONFIGURATION (ej: "Debug" o "Release")
+    // En iOS no hay flavors, así que Release = producción
     val xcodeConfig = project.findProperty("XCODE_CONFIGURATION") as? String ?: "Debug"
-    val iosRelease = xcodeConfig.equals("Release", ignoreCase = true)
+    val iosProd = xcodeConfig.equals("Release", ignoreCase = true)
 
-    // Es release si cualquiera de los dos dice que es release
-    androidRelease || iosRelease
+    // Es producción si cualquiera de los dos dice que lo es
+    androidProd || iosProd
 }
 
 kotlin {
@@ -167,7 +170,7 @@ android {
         applicationId = "com.apptolast.spaindecides"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 6
+        versionCode = 5
         versionName = "1.2.0"
     }
 
@@ -215,9 +218,9 @@ android {
 
         getByName("release") {
             // Enable code shrinking, obfuscation, and optimization
-            isMinifyEnabled = false
-            isShrinkResources = false
-            isDebuggable = true
+            isMinifyEnabled = true
+            isShrinkResources = true
+            isDebuggable = false
 
             // Apply ProGuard rules
             proguardFiles(
@@ -252,19 +255,19 @@ buildkonfig {
         buildConfigField(
             STRING,
             "SUPABASE_URL",
-            localProperties.getPropertyWithFallback("SUPABASE_URL", isReleaseBuild)
+            localProperties.getPropertyWithFallback("SUPABASE_URL", isProductionFlavor)
         )
         buildConfigField(
             STRING,
             "SUPABASE_ANON_KEY",
-            localProperties.getPropertyWithFallback("SUPABASE_ANON_KEY", isReleaseBuild)
+            localProperties.getPropertyWithFallback("SUPABASE_ANON_KEY", isProductionFlavor)
         )
 
         // Google OAuth Configuration
         buildConfigField(
             STRING,
             "GOOGLE_WEB_CLIENT_ID",
-            localProperties.getPropertyWithFallback("GOOGLE_WEB_CLIENT_ID", isReleaseBuild)
+            localProperties.getPropertyWithFallback("GOOGLE_WEB_CLIENT_ID", isProductionFlavor)
         )
 
         // EmailJS Configuration (for content reporting)
@@ -288,19 +291,26 @@ buildkonfig {
         buildConfigField(
             STRING,
             "FIREBASE_FUNCTION_URL",
-            localProperties.getPropertyWithFallback("FIREBASE_FUNCTION_URL", isReleaseBuild)
+            localProperties.getPropertyWithFallback("FIREBASE_FUNCTION_URL", isProductionFlavor)
         )
         buildConfigField(
             STRING,
             "FIREBASE_FUNCTION_API_KEY",
-            localProperties.getPropertyWithFallback("FIREBASE_FUNCTION_API_KEY", isReleaseBuild)
+            localProperties.getPropertyWithFallback("FIREBASE_FUNCTION_API_KEY", isProductionFlavor)
         )
 
         // N8N Webhook Configuration
         buildConfigField(
             STRING,
             "N8N_WEBHOOK_PATH",
-            localProperties.getPropertyWithFallback("N8N_WEBHOOK_PATH", isReleaseBuild)
+            localProperties.getPropertyWithFallback("N8N_WEBHOOK_PATH", isProductionFlavor)
+        )
+
+        // FCM Topic Configuration (environment-specific)
+        buildConfigField(
+            STRING,
+            "FCM_TOPIC_NEW_PROPOSALS",
+            if (isProductionFlavor) "new_proposals_prod" else "new_proposals_dev"
         )
     }
 }

@@ -86,6 +86,14 @@ export const sendNewProposalNotification = onRequest(
         return;
     }
 
+    // Determine target FCM topic from environment query parameter
+    const env = req.query.env as string | undefined;
+    if (!env || !["dev", "prod"].includes(env)) {
+        res.status(400).json({ error: "Missing or invalid 'env' query parameter. Must be 'dev' or 'prod'." });
+        return;
+    }
+    const targetTopic = `new_proposals_${env}`;
+
     // Parse Supabase webhook payload
     const payload = req.body as SupabaseWebhookPayload;
 
@@ -106,6 +114,8 @@ export const sendNewProposalNotification = onRequest(
 
     // Log notification data for debugging
     console.log("=== Preparing notification ===");
+    console.log("environment:", env);
+    console.log("targetTopic:", targetTopic);
     console.log("proposalId:", record.id);
     console.log("categoryId:", record.category_id);
     console.log("title:", title);
@@ -115,7 +125,7 @@ export const sendNewProposalNotification = onRequest(
         // Build the notification message
         // Note: categoryKey lookup is done client-side to keep this function simple
         const message: admin.messaging.Message = {
-            topic: "new_proposals",
+            topic: targetTopic,
             notification: {
                 title: title,
                 body: body,
@@ -133,7 +143,7 @@ export const sendNewProposalNotification = onRequest(
                 notification: {
                     icon: "ic_notification",
                     color: "#FABD00",
-                    channelId: "new_proposals",
+                    channelId: targetTopic,
                 },
             },
             // iOS-specific configuration

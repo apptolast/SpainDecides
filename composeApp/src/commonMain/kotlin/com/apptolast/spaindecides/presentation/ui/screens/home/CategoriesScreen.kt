@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -54,6 +55,11 @@ fun CategoriesScreen(
     onNavigateToSettings: () -> Unit,
     categoryViewModel: CategoryViewModel = koinViewModel()
 ) {
+    // Refresh proposal counts each time the screen enters composition
+    LaunchedEffect(Unit) {
+        categoryViewModel.loadProposalCounts()
+    }
+
     val categories by categoryViewModel.categories.collectAsState()
     val proposalCounts by categoryViewModel.proposalCounts.collectAsState()
     val isLoading by categoryViewModel.isLoading.collectAsState()
