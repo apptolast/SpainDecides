@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">España Decide</string>
+
+    <!-- Nombres de Categorías -->
+    <string name="category_economy">Economía y Empleo</string>
+    <string name="category_health">Sanidad Pública</string>
+    <string name="category_education">Educación y Cultura</string>
+    <string name="category_environment">Medio Ambiente</string>
+    <string name="category_foreign_policy">Política Exterior</string>
+    <string name="category_justice">Justicia y Seguridad</string>
+    <string name="category_housing">Vivienda</string>
+    <string name="category_science">Ciencia e Innovación</string>
+    <string name="category_social_policies">Políticas Sociales</string>
+    <string name="category_taxes">Impuestos y Fiscalidad</string>
+
+    <!-- Descripciones de Categorías -->
+    <string name="category_economy_desc">Propuestas relacionadas con empleo, impuestos, crecimiento económico y reformas fiscales</string>
+    <string name="category_health_desc">Mejoras en el sistema sanitario, acceso universal y calidad asistencial</string>
+    <string name="category_education_desc">Reformas educativas, acceso a la cultura y promoción de las artes</string>
+    <string name="category_environment_desc">Sostenibilidad, energías renovables y protección del entorno natural</string>
+    <string name="category_foreign_policy_desc">Relaciones internacionales, cooperación y diplomacia</string>
+    <string name="category_justice_desc">Sistema judicial, seguridad ciudadana y derechos fundamentales</string>
+    <string name="category_housing_desc">Acceso a vivienda digna, regulación del alquiler y políticas habitacionales</string>
+    <string name="category_science_desc">Investigación, desarrollo tecnológico y transferencia de conocimiento</string>
+    <string name="category_social_policies_desc">Igualdad, bienestar social y protección a colectivos vulnerables</string>
+    <string name="category_taxes_desc">Reforma fiscal, transparencia tributaria y distribución de recursos</string>
+
+    <!-- Cadenas Comunes -->
+    <string name="category_unknown">Categoría Desconocida</string>
+    <string name="empty">-</string>
+
+    <!-- Pantalla de Inicio de Sesión -->
+    <string name="login_title">Bienvenido de Nuevo</string>
+    <string name="login_subtitle">Inicia sesión para continuar participando</string>
+    <string name="login_button">Iniciar Sesión</string>
+    <string name="login_with_google">Continuar con Google</string>
+    <string name="login_no_account">¿No tienes cuenta?</string>
+    <string name="login_register_link">Regístrate</string>
+
+    <!-- Pantalla de Registro -->
+    <string name="register_title">Crear Cuenta</string>
+    <string name="register_subtitle">Únete a la comunidad y haz que tu voz sea escuchada</string>
+    <string name="register_button">Crear Cuenta</string>
+    <string name="register_has_account">¿Ya tienes cuenta?</string>
+    <string name="register_login_link">Iniciar Sesión</string>
+    <string name="register_privacy_policy_prefix">Acepto la </string>
+    <string name="register_privacy_policy_link">Política de Privacidad</string>
+    <string name="register_privacy_policy_url">https://albertohidalgo.apptolast.com/es/privacy/spain-decides</string>
+    <string name="register_csae_prefix"> y la </string>
+    <string name="register_csae_link">CSAE</string>
+    <string name="register_csae_url">https://albertohidalgo.apptolast.com/es/privacy/spain-decides-csae</string>
+    <string name="success_registration">¡Cuenta creada exitosamente! Por favor revisa tu correo para verificar tu cuenta.</string>
+    <string name="error_eula_required">Debes leer y aceptar las políticas para registrarte</string>
+
+    <!-- Campos del Formulario -->
+    <string name="field_name">Nombre</string>
+    <string name="field_email">Correo Electrónico</string>
+    <string name="field_password">Contraseña</string>
+    <string name="show_password">Mostrar contraseña</string>
+    <string name="hide_password">Ocultar contraseña</string>
+    <string name="forgot_password">¿Olvidaste tu contraseña?</string>
+
+    <!-- Auth Común -->
+    <string name="auth_divider">o</string>
+
+    <!-- Mensajes de Error -->
+    <string name="error_invalid_credentials">Email o contraseña incorrectos. Por favor intenta de nuevo.</string>
+    <string name="error_user_already_registered">Este correo ya está registrado. Por favor inicia sesión.</string>
+    <string name="error_email_not_confirmed">Por favor verifica tu correo antes de iniciar sesión. Revisa tu bandeja de entrada para el enlace de verificación.</string>
+    <string name="error_weak_password">La contraseña es demasiado débil. Por favor usa una contraseña más segura.</string>
+    <string name="error_network">Error de red. Por favor verifica tu conexión a internet e intenta de nuevo.</string>
+    <string name="error_unknown">Ocurrió un error inesperado. Por favor intenta más tarde.</string>
+    <string name="error_email_required">El correo es obligatorio</string>
+    <string name="error_email_invalid">Por favor ingresa un correo electrónico válido</string>
+    <string name="error_password_required">La contraseña es obligatoria</string>
+    <string name="error_password_short">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="error_name_required">El nombre es obligatorio</string>
+    <string name="error_google_signin">Error al iniciar sesión con Google. Por favor intenta de nuevo.</string>
+
+    <!-- Pantalla de Categorías -->
+    <string name="categories_title">Participa</string>
+    <string name="categories_subtitle">Elige una categoría para ver y votar propuestas</string>
+    <string name="logout_confirmation_title">Cerrar Sesión</string>
+    <string name="logout_confirmation_message">¿Estás seguro de que quieres cerrar sesión?</string>
+    <string name="logout_confirm">Cerrar Sesión</string>
+    <string name="logout_cancel">Cancelar</string>
+
+    <!-- Pantalla de Lista de Propuestas -->
+    <string name="proposals_empty_title">No hay propuestas aún</string>
+    <string name="proposals_empty_subtitle">¡Sé el primero en crear una propuesta en esta categoría!</string>
+    <string name="proposal_new">Crear nueva propuesta</string>
+    <string name="proposal_vote_up">Votar a favor</string>
+    <string name="proposal_vote_down">Votar en contra</string>
+    <string name="proposal_show_more">Ver más</string>
+    <string name="proposal_show_less">Ver menos</string>
+
+    <!-- Pantalla de Detalle de Propuesta -->
+    <string name="proposal_detail_title">Propuesta</string>
+    <string name="proposal_upvotes">A favor: %1$d</string>
+    <string name="proposal_downvotes">En contra: %1$d</string>
+    <string name="proposal_net_votes">Votos netos: %1$d</string>
+
+    <!-- Pantalla de Crear Propuesta -->
+    <string name="create_proposal_title">Nueva Propuesta</string>
+    <string name="create_proposal_category">%1$s</string>
+    <string name="create_proposal_title_label">Título</string>
+    <string name="create_proposal_title_placeholder">Escribe un título breve (10-100 caracteres)...</string>
+    <string name="create_proposal_title_counter">%1$d/100</string>
+    <string name="create_proposal_description_label">Descripción</string>
+    <string name="create_proposal_description_placeholder">Describe tu propuesta en detalle (10-1000 caracteres)...</string>
+    <string name="create_proposal_description_counter">%1$d/1000</string>
+    <string name="create_proposal_publish">Publicar</string>
+    <string name="create_proposal_discard_title">¿Descartar Propuesta?</string>
+    <string name="create_proposal_discard_message">Tienes cambios sin guardar. ¿Estás seguro de que quieres descartar esta propuesta?</string>
+    <string name="create_proposal_discard_confirm">Descartar</string>
+    <string name="create_proposal_discard_cancel">Seguir Editando</string>
+
+    <!-- Navegación Común -->
+    <string name="back">Atrás</string>
+    <string name="close">Cerrar</string>
+    <string name="retry">Reintentar</string>
+    <string name="settings">Configuración</string>
+    <string name="logout">Cerrar Sesión</string>
+
+    <!-- Pantalla de Configuración -->
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_user_name_label">Nombre</string>
+    <string name="settings_email_label">Correo Electrónico</string>
+    <string name="settings_logout_button">Cerrar Sesión</string>
+    <string name="settings_delete_account_button">Eliminar Cuenta</string>
+
+    <!-- Diálogos de Configuración -->
+    <string name="settings_logout_dialog_title">Cerrar Sesión</string>
+    <string name="settings_logout_dialog_message">¿Estás seguro de que quieres cerrar sesión?</string>
+    <string name="settings_logout_confirm">Cerrar Sesión</string>
+    <string name="settings_logout_cancel">Cancelar</string>
+
+    <string name="settings_delete_account_dialog_title">Eliminar Cuenta</string>
+    <string name="settings_delete_account_dialog_message">¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer y se eliminarán todos tus datos permanentemente.</string>
+    <string name="settings_delete_account_confirm">Eliminar Cuenta</string>
+    <string name="settings_delete_account_cancel">Cancelar</string>
+    <string name="settings_delete_account_success">Cuenta eliminada exitosamente</string>
+    <string name="settings_delete_account_error">Error al eliminar la cuenta. Por favor, inténtalo de nuevo.</string>
+
+    <!-- Mensajes de Carga -->
+    <string name="loading_signing_out">Cerrando sesión...</string>
+    <string name="loading_deleting_account">Eliminando cuenta...</string>
+
+    <!-- Pantalla de Propuestas Duplicadas -->
+    <string name="duplicates_title">Propuestas similares</string>
+    <string name="duplicates_cancel">Cancelar</string>
+    <string name="duplicates_create_anyway">Crear igualmente</string>
+    <string name="duplicates_similarity">%1$d% similar</string>
+
+    <!-- Reportar Contenido -->
+    <string name="report_content">Reportar contenido inapropiado</string>
+    <string name="report_dialog_title">Reportar Contenido</string>
+    <string name="report_dialog_proposal">Propuesta: %1$s</string>
+    <string name="report_dialog_select_reason">Selecciona el motivo del reporte:</string>
+    <string name="report_submit">Enviar Reporte</string>
+    <string name="report_cancel">Cancelar</string>
+    <string name="report_success">Reporte enviado correctamente. Gracias por ayudar a mantener nuestra comunidad segura.</string>
+    <string name="report_error">Error al enviar el reporte. Por favor, inténtalo de nuevo.</string>
+</resources>
