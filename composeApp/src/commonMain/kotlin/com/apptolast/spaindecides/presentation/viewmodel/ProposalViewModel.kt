@@ -9,12 +9,10 @@ import com.apptolast.spaindecides.domain.repository.CreateProposalResult
 import com.apptolast.spaindecides.domain.repository.ProposalRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
@@ -41,31 +39,36 @@ class ProposalViewModel(
 
     // ==================== Proposals List State ====================
 
-    val proposals: StateFlow<List<ProposalWithUserVote>> =
-        proposalRepository.getProposalsByCategory(categoryId)
-            .onStart {
-                isLoading.value = true
-                error.value = null
-            }
-            .catch { e ->
-                error.value = e.message ?: "Error al cargar propuestas"
-                isLoading.value = false
-                emit(emptyList())
-            }
-            .onEach {
-                isLoading.value = false
-            }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.Lazily,
-                initialValue = emptyList()
-            )
+    private val _proposals = MutableStateFlow<List<ProposalWithUserVote>>(emptyList())
+    val proposals: StateFlow<List<ProposalWithUserVote>> = _proposals.asStateFlow()
 
     val isLoading: StateFlow<Boolean>
         field: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     val error: StateFlow<String?>
         field: MutableStateFlow<String?> = MutableStateFlow(null)
+
+    /** Tracks proposals with in-flight votes to prevent concurrent taps */
+    private val votingInProgress = mutableSetOf<String>()
+
+    init {
+        viewModelScope.launch {
+            proposalRepository.getProposalsByCategory(categoryId)
+                .onStart {
+                    isLoading.value = true
+                    error.value = null
+                }
+                .catch { e ->
+                    error.value = e.message ?: "Error al cargar propuestas"
+                    isLoading.value = false
+                    emit(emptyList())
+                }
+                .collect { serverProposals ->
+                    isLoading.value = false
+                    _proposals.value = serverProposals
+                }
+        }
+    }
 
     // ==================== Create Proposal State ====================
 
@@ -119,16 +122,64 @@ class ProposalViewModel(
     // ==================== Voting ====================
 
     /**
-     * Votes on a proposal.
+     * Votes on a proposal with optimistic UI update.
+     *
+     * 1. Updates local state immediately for instant feedback
+     * 2. Sends vote to Supabase in background
+     * 3. Reverts if the API call fails
+     *
+     * Concurrent taps on the same proposal are ignored while a vote is in-flight.
+     *
      * @param proposalId ID of the proposal to vote on
      * @param voteType 1 for upvote, -1 for downvote, 0 to remove vote
      */
     fun vote(proposalId: String, voteType: Int) {
+        if (!votingInProgress.add(proposalId)) return
+
+        val previousState = _proposals.value
+
+        // Optimistic update: apply vote change locally
+        _proposals.value = previousState.map { item ->
+            if (item.id == proposalId) {
+                val oldVote = item.userVote
+                val upvoteDelta = when {
+                    voteType == 1 && oldVote != 1 -> 1
+                    voteType != 1 && oldVote == 1 -> -1
+                    else -> 0
+                }
+                val downvoteDelta = when {
+                    voteType == -1 && oldVote != -1 -> 1
+                    voteType != -1 && oldVote == -1 -> -1
+                    else -> 0
+                }
+                ProposalWithUserVote(
+                    proposal = item.proposal.copy(
+                        upvotes = (item.upvotes + upvoteDelta).coerceAtLeast(0),
+                        downvotes = (item.downvotes + downvoteDelta).coerceAtLeast(0)
+                    ),
+                    userVote = voteType
+                )
+            } else {
+                item
+            }
+        }.sortedWith(
+            compareByDescending<ProposalWithUserVote> { it.netVotes }
+                .thenBy { it.id }
+        )
+
+        // Send to server in background
         viewModelScope.launch {
             try {
-                proposalRepository.voteOnProposal(proposalId, voteType)
+                val result = proposalRepository.voteOnProposal(proposalId, voteType)
+                if (result == null) {
+                    _proposals.value = previousState
+                    error.value = "Error al votar"
+                }
             } catch (e: Exception) {
+                _proposals.value = previousState
                 error.value = e.message ?: "Error al votar"
+            } finally {
+                votingInProgress.remove(proposalId)
             }
         }
     }

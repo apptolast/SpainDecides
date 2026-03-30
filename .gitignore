@@ -735,3 +735,4 @@ obj/
 /docs/N8N_VECTOR_SEARCH_HTTP_REQUEST_MIGRATION.md
 /supabase/*
 /.mcp.json
+*.klib
