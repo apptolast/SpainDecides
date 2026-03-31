@@ -64,7 +64,7 @@ jobs:
           echo "FIREBASE_FUNCTION_API_KEY=${{ secrets.FIREBASE_FUNCTION_API_KEY }}" >> local.properties
 
       - name: Assemble
-        run: ./gradlew assembleRelease bundleRelease
+        run: ./gradlew assembleProdRelease bundleProdRelease
 
       # Signing is handled by Gradle signingConfig in build.gradle.kts
 
