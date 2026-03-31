@@ -9,7 +9,7 @@ on:
 #  gh workflow run deploy.yml environment=release --ref <Branch>
 #  gh run list --workflow=deploy.yml
 #
-#  workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
   build_and_deploy:
@@ -40,7 +40,12 @@ jobs:
       - name: Decode google-services.json
         env:
           FIREBASE_JSON: ${{ secrets.FIREBASE_JSON }}
-        run: echo $FIREBASE_JSON > app/google-services.json
+        run: echo $FIREBASE_JSON > composeApp/google-services.json
+
+      - name: Decode Keystore
+        env:
+          SIGNING_STORE_FILE: ${{ secrets.SIGNING_STORE_FILE }}
+        run: echo "$SIGNING_STORE_FILE" | base64 --decode > composeApp/keystore.jks
 
       - name: Create local.properties
         run: |
@@ -53,23 +58,15 @@ jobs:
           echo "N8N_WEBHOOK_PATH_RELEASE=${{ secrets.N8N_WEBHOOK_PATH_RELEASE }}" >> local.properties
           echo "signing.keyAlias=${{ secrets.SIGNING_KEY_ALIAS }}" >> local.properties
           echo "signing.keyPassword=${{ secrets.SIGNING_KEY_PASSWORD }}" >> local.properties
-          echo "signing.storeFile=${{ secrets.SIGNING_STORE_FILE }}" >> local.properties
+          echo "signing.storeFile=keystore.jks" >> local.properties
           echo "signing.storePassword=${{ secrets.SIGNING_STORE_PASSWORD }}" >> local.properties
           echo "FIREBASE_FUNCTION_URL=${{ secrets.FIREBASE_FUNCTION_URL }}" >> local.properties
           echo "FIREBASE_FUNCTION_API_KEY=${{ secrets.FIREBASE_FUNCTION_API_KEY }}" >> local.properties
 
       - name: Assemble
-        run: ./gradlew assembleDebug bundleRelease
+        run: ./gradlew assembleRelease bundleRelease
 
-      # https://github.com/r0adkll/sign-android-release
-      - name: Sign Release
-        uses: r0adkll/sign-android-release@v1
-        with:
-          releaseDirectory: app/build/outputs/bundle/release
-          signingKeyBase64: ${{ secrets.SIGNING_STORE_FILE }}
-          alias: ${{ secrets.SIGNING_KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.SIGNING_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+      # Signing is handled by Gradle signingConfig in build.gradle.kts
 
       # https://github.com/actions/upload-artifact
       - name: Upload APK
