@@ -49,15 +49,11 @@ jobs:
           echo "SUPABASE_ANON_KEY_RELEASE=${{ secrets.SUPABASE_ANON_KEY_RELEASE }}" >> local.properties
           echo "SUPABASE_URL_RELEASE=${{ secrets.SUPABASE_URL_RELEASE }}" >> local.properties
           echo "N8N_WEBHOOK_PATH_RELEASE=${{ secrets.N8N_WEBHOOK_PATH_RELEASE }}" >> local.properties
-          echo "signing.keyAlias=${{ secrets.SIGNING_KEY_ALIAS }}" >> local.properties
-          echo "signing.keyPassword=${{ secrets.SIGNING_KEY_PASSWORD }}" >> local.properties
-          echo "signing.storeFile=${{ secrets.SIGNING_STORE_FILE }}" >> local.properties
-          echo "signing.storePassword=${{ secrets.SIGNING_STORE_PASSWORD }}" >> local.properties
           echo "FIREBASE_FUNCTION_URL=${{ secrets.FIREBASE_FUNCTION_URL }}" >> local.properties
           echo "FIREBASE_FUNCTION_API_KEY=${{ secrets.FIREBASE_FUNCTION_API_KEY }}" >> local.properties
 
-      - name: Run Debug Tests
-        run: ./gradlew build test --continue
+      - name: Build Debug and Run Tests
+        run: ./gradlew assembleDebug testDebugUnitTest lint --continue
 
       - name: Upload Test Reports
         if: ${{ always() }}
@@ -82,10 +78,6 @@ jobs:
           echo "SUPABASE_ANON_KEY_RELEASE=${{ secrets.SUPABASE_ANON_KEY_RELEASE }}" >> local.properties
           echo "SUPABASE_URL_RELEASE=${{ secrets.SUPABASE_URL_RELEASE }}" >> local.properties
           echo "N8N_WEBHOOK_PATH_RELEASE=${{ secrets.N8N_WEBHOOK_PATH_RELEASE }}" >> local.properties
-          echo "signing.keyAlias=${{ secrets.SIGNING_KEY_ALIAS }}" >> local.properties
-          echo "signing.keyPassword=${{ secrets.SIGNING_KEY_PASSWORD }}" >> local.properties
-          echo "signing.storeFile=${{ secrets.SIGNING_STORE_FILE }}" >> local.properties
-          echo "signing.storePassword=${{ secrets.SIGNING_STORE_PASSWORD }}" >> local.properties
           echo "FIREBASE_FUNCTION_URL=${{ secrets.FIREBASE_FUNCTION_URL }}" >> local.properties
           echo "FIREBASE_FUNCTION_API_KEY=${{ secrets.FIREBASE_FUNCTION_API_KEY }}" >> local.properties
 
