@@ -53,7 +53,7 @@ jobs:
           echo "FIREBASE_FUNCTION_API_KEY=${{ secrets.FIREBASE_FUNCTION_API_KEY }}" >> local.properties
 
       - name: Build Debug and Run Tests
-        run: ./gradlew assembleDebug testDebugUnitTest lint --continue
+        run: ./gradlew assembleDebug assembleUnitTest assembleAndroidTest lint --continue
 
       - name: Upload Test Reports
         if: ${{ always() }}
