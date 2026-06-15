@@ -20,7 +20,7 @@ ktor = "3.4.2"
 supabase = "3.4.1"
 buildkonfig = "0.17.1"
 coil = "3.4.0"
-kmpnotifier = "1.6.1"
+kmpnotifier = "2.0.0"
 googleServices = "4.4.4"
 
 [libraries]
