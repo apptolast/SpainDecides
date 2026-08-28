@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.apptolast.spaindecides.data.model.ReportReason
 import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 import spaindecides.composeapp.generated.resources.Res
 import spaindecides.composeapp.generated.resources.close
 import spaindecides.composeapp.generated.resources.report_cancel

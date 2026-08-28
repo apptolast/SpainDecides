@@ -32,7 +32,7 @@ import com.apptolast.spaindecides.presentation.ui.preview.SampleData
 import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 import com.apptolast.spaindecides.presentation.viewmodel.CategoryViewModel
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import spaindecides.composeapp.generated.resources.Res
 import spaindecides.composeapp.generated.resources.categories_subtitle

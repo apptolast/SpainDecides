@@ -67,7 +67,6 @@ kotlin {
 
     sourceSets {
         androidMain.dependencies {
-            implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.koin.android)
 
@@ -87,13 +86,13 @@ kotlin {
         }
 
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.materialIconsExtended) // Material Icons
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.material3)
+            implementation(libs.compose.material.icons.extended) // Material Icons
+            implementation(libs.compose.ui)
+            implementation(libs.compose.components.resources)
+            implementation(libs.compose.ui.tooling.preview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
@@ -140,14 +139,15 @@ kotlin {
         }
     }
 
-    sourceSets.configureEach {
-        languageSettings.enableLanguageFeature("ExplicitBackingFields")
-    }
 }
 
+// The old `android {}` DSL accessor is deprecated in AGP 9, but the new DSL
+// (android.newDsl=true) is not yet compatible with KMP's androidTarget() in an
+// application module - see https://kotl.in/gradle/agp-new-kmp
+@Suppress("DEPRECATION")
 android {
     namespace = "com.apptolast.spaindecides"
-    compileSdkVersion(libs.versions.android.compileSdk.get().toInt())
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     // Signing configurations for release builds
     signingConfigs {
@@ -240,7 +240,7 @@ android {
 }
 
 dependencies {
-    debugImplementation(compose.uiTooling)
+    debugImplementation(libs.compose.ui.tooling)
 }
 
 // =============================================================================
