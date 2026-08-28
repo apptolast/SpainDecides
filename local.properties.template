@@ -1,0 +1,58 @@
+# =============================================================================
+# SpainDecides - local.properties template
+#
+# Copy this file to `local.properties` and fill in the values.
+# `local.properties` is gitignored and must NEVER be committed.
+#
+# Keys with _DEBUG / _RELEASE suffixes are environment-specific:
+#   - _DEBUG   -> used by the `dev` flavor (development backend)
+#   - _RELEASE -> used by the `prod` flavor (production backend)
+# If the suffixed key is missing, the unsuffixed key is used as fallback.
+# See BuildKonfig configuration in composeApp/build.gradle.kts
+# =============================================================================
+
+# Android SDK location (usually set automatically by Android Studio)
+sdk.dir=C\:\\Users\\YOUR_USER\\AppData\\Local\\Android\\Sdk
+
+# -----------------------------------------------------------------------------
+# Supabase (Settings -> API in the Supabase Dashboard)
+# -----------------------------------------------------------------------------
+SUPABASE_URL_DEBUG=https://your-dev-project.supabase.co
+SUPABASE_ANON_KEY_DEBUG=your_dev_anon_key
+SUPABASE_URL_RELEASE=https://your-prod-project.supabase.co
+SUPABASE_ANON_KEY_RELEASE=your_prod_anon_key
+
+# -----------------------------------------------------------------------------
+# Google OAuth (Google Cloud Console -> APIs & Services -> Credentials)
+# Use the WEB client ID, not the Android or iOS one
+# -----------------------------------------------------------------------------
+GOOGLE_WEB_CLIENT_ID=your_client_id.apps.googleusercontent.com
+
+# -----------------------------------------------------------------------------
+# n8n webhook path (appended to https://n8n.apptolast.com/webhook/)
+# Used for AI-powered duplicate detection when creating proposals
+# -----------------------------------------------------------------------------
+N8N_WEBHOOK_PATH_DEBUG=your-dev-webhook-path
+N8N_WEBHOOK_PATH_RELEASE=your-prod-webhook-path
+
+# -----------------------------------------------------------------------------
+# Firebase Cloud Function (push notifications)
+# See docs/PUSH_NOTIFICATIONS_SETUP.md
+# -----------------------------------------------------------------------------
+FIREBASE_FUNCTION_URL=https://your-region-your-project.cloudfunctions.net/sendProposalNotification
+FIREBASE_FUNCTION_API_KEY=your_function_api_key
+
+# -----------------------------------------------------------------------------
+# EmailJS (content reporting)
+# -----------------------------------------------------------------------------
+EMAILJS_SERVICE_ID=your_service_id
+EMAILJS_TEMPLATE_ID=your_template_id
+EMAILJS_PUBLIC_KEY=your_public_key
+
+# -----------------------------------------------------------------------------
+# Release signing (only needed for prodRelease builds)
+# -----------------------------------------------------------------------------
+#signing.storeFile=keystore.jks
+#signing.storePassword=your_store_password
+#signing.keyAlias=your_key_alias
+#signing.keyPassword=your_key_password

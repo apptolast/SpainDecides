@@ -1,7 +1,12 @@
-# SpainDecides - Configuración de Autenticación con Supabase
+# SpainDecides - Configuración de Credenciales
 
-Este documento explica cómo configurar las credenciales de Supabase y Google OAuth para que la
-autenticación funcione correctamente.
+Este documento explica cómo configurar las credenciales de Supabase, Google OAuth y el resto de
+servicios para que la aplicación funcione correctamente.
+
+> **Importante:** la app tiene dos flavors de Android — `dev` (entorno de desarrollo) y `prod`
+> (producción). Las claves con sufijo `_DEBUG` las usa el flavor `dev` y las claves con sufijo
+> `_RELEASE` las usa el flavor `prod`. Si falta la clave con sufijo, se usa la clave sin sufijo
+> como fallback. Ver la configuración de BuildKonfig en `composeApp/build.gradle.kts`.
 
 ## Paso 1: Crear archivo local.properties
 
@@ -34,19 +39,28 @@ autenticación funcione correctamente.
 Abre el archivo `local.properties` y reemplaza los valores:
 
 ```properties
-# Supabase Configuration
-SUPABASE_URL=https://tu-proyecto.supabase.co
-SUPABASE_ANON_KEY=tu_clave_anon_aqui
-# Google OAuth Configuration
+# Supabase - entorno de desarrollo (flavor dev)
+SUPABASE_URL_DEBUG=https://tu-proyecto-dev.supabase.co
+SUPABASE_ANON_KEY_DEBUG=tu_clave_anon_dev
+
+# Supabase - entorno de producción (flavor prod)
+SUPABASE_URL_RELEASE=https://tu-proyecto-prod.supabase.co
+SUPABASE_ANON_KEY_RELEASE=tu_clave_anon_prod
+
+# Google OAuth
 GOOGLE_WEB_CLIENT_ID=tu_client_id.apps.googleusercontent.com
 ```
+
+El resto de claves (n8n, Firebase Cloud Function, EmailJS, firma de release) están documentadas
+en `local.properties.template`. Para las notificaciones push consulta
+`docs/PUSH_NOTIFICATIONS_SETUP.md`.
 
 ## Paso 5: Compilar el proyecto
 
 Una vez configurado el `local.properties`, compila el proyecto:
 
 ```bash
-./gradlew build
+./gradlew :composeApp:assembleDevDebug
 ```
 
 El plugin BuildKonfig leerá automáticamente estos valores y los inyectará de forma segura en la

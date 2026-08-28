@@ -2,8 +2,8 @@
 
 ### Plataforma de Participación Ciudadana · Citizen Participation Platform
 
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.2.20-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
-[![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.9.1-4285F4?style=flat)](https://www.jetbrains.com/lp/compose-multiplatform/)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.4.0-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
+[![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.11.1-4285F4?style=flat)](https://www.jetbrains.com/lp/compose-multiplatform/)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-green.svg?style=flat)](https://www.android.com/)
 
 ---
@@ -53,13 +53,13 @@ SpainDecides está construido con tecnologías de vanguardia:
 
 | Componente                 | Tecnología                              |
 |----------------------------|-----------------------------------------|
-| **Lenguaje**               | Kotlin 2.2.20                           |
-| **Framework UI**           | Compose Multiplatform 1.9.1             |
+| **Lenguaje**               | Kotlin 2.4.0                            |
+| **Framework UI**           | Compose Multiplatform 1.11.1            |
 | **Arquitectura**           | MVVM + Repository Pattern               |
 | **Backend**                | Supabase (PostgreSQL + Auth + Realtime) |
-| **Networking**             | Ktor Client 3.0.3                       |
-| **Inyección Dependencias** | Koin 4.1.1                              |
-| **Navegación**             | Jetpack Navigation Compose 2.8.0        |
+| **Networking**             | Ktor Client 3.5.0                       |
+| **Inyección Dependencias** | Koin 4.2.2                              |
+| **Navegación**             | Navigation Compose 2.9.2 (multiplatform)|
 | **Gestión Estado**         | Kotlin Coroutines + StateFlow           |
 | **Serialización**          | Kotlinx Serialization                   |
 
@@ -157,13 +157,13 @@ SpainDecides is built with cutting-edge technologies:
 
 | Component                | Technology                              |
 |--------------------------|-----------------------------------------|
-| **Language**             | Kotlin 2.2.20                           |
-| **UI Framework**         | Compose Multiplatform 1.9.1             |
+| **Language**             | Kotlin 2.4.0                            |
+| **UI Framework**         | Compose Multiplatform 1.11.1            |
 | **Architecture**         | MVVM + Repository Pattern               |
 | **Backend**              | Supabase (PostgreSQL + Auth + Realtime) |
-| **Networking**           | Ktor Client 3.0.3                       |
-| **Dependency Injection** | Koin 4.1.1                              |
-| **Navigation**           | Jetpack Navigation Compose 2.8.0        |
+| **Networking**           | Ktor Client 3.5.0                       |
+| **Dependency Injection** | Koin 4.2.2                              |
+| **Navigation**           | Navigation Compose 2.9.2 (multiplatform)|
 | **State Management**     | Kotlin Coroutines + StateFlow           |
 | **Serialization**        | Kotlinx Serialization                   |
 
@@ -228,13 +228,13 @@ The application follows the **MVVM (Model-View-ViewModel)** pattern with clean a
 - **Android Studio** Ladybug | 2024.2.1 or later
 - **Xcode** 15.0+ (for iOS development on macOS)
 - **JDK** 17 or later
-- **Kotlin** 2.2.20 (included in project)
+- **Kotlin** 2.4.0 (included in project)
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/YourUsername/SpainDecides.git
+   git clone https://github.com/apptolast/SpainDecides.git
    cd SpainDecides
    ```
 
@@ -243,9 +243,19 @@ The application follows the **MVVM (Model-View-ViewModel)** pattern with clean a
     - Select "Open an Existing Project"
     - Navigate to the cloned `SpainDecides` folder
 
-3. **Sync Gradle**
+3. **Configure credentials**
+    - Copy `local.properties.template` to `local.properties` and fill in the Supabase, Google OAuth
+      and other credentials. See [SETUP.md](SETUP.md) for step-by-step instructions.
+    - Add `composeApp/google-services.json` (Android) and `iosApp/iosApp/GoogleService-Info.plist`
+      (iOS) from your Firebase project. See `docs/PUSH_NOTIFICATIONS_SETUP.md`.
+
+4. **Sync Gradle**
     - Android Studio will automatically sync Gradle dependencies
     - Wait for the sync to complete
+
+> **Note on build variants:** the Android app has two product flavors — `dev` (development backend,
+> applicationId `com.apptolast.spaindecides.dev`) and `prod` (production backend). The flavor
+> selects the backend environment; the build type (debug/release) does not.
 
 ### Build and Run
 
@@ -253,17 +263,20 @@ The application follows the **MVVM (Model-View-ViewModel)** pattern with clean a
 
 **Option 1: Using Android Studio**
 
-- Select the `composeApp` run configuration
+- Select the `composeApp` run configuration and the `devDebug` build variant
 - Click the "Run" button (or press `Shift + F10`)
 
 **Option 2: Using Terminal**
 
 ```bash
-# Build debug APK
-./gradlew :composeApp:assembleDebug
+# Build debug APK (dev backend)
+./gradlew :composeApp:assembleDevDebug
 
 # Install on connected device/emulator
-./gradlew :composeApp:installDebug
+./gradlew :composeApp:installDevDebug
+
+# Production build
+./gradlew :composeApp:assembleProdRelease
 ```
 
 **Run on emulator:**
@@ -272,9 +285,9 @@ The application follows the **MVVM (Model-View-ViewModel)** pattern with clean a
 # Start emulator (if not running)
 emulator -avd Pixel_8_API_35
 
-# Install and launch
-./gradlew :composeApp:installDebug
-adb shell am start -n com.apptolast.spaindecides/.MainActivity
+# Install and launch (note the .dev applicationId suffix of the dev flavor)
+./gradlew :composeApp:installDevDebug
+adb shell am start -n com.apptolast.spaindecides.dev/com.apptolast.spaindecides.MainActivity
 ```
 
 #### iOS
@@ -299,10 +312,10 @@ adb shell am start -n com.apptolast.spaindecides/.MainActivity
 
 ```bash
 # Run all common tests
-./gradlew :composeApp:cleanTestDebugUnitTest :composeApp:testDebugUnitTest
+./gradlew :composeApp:cleanTestDevDebugUnitTest :composeApp:testDevDebugUnitTest
 
-# Run with coverage
-./gradlew :composeApp:testDebugUnitTest --tests "*"
+# Run a single test class
+./gradlew :composeApp:testDevDebugUnitTest --tests "com.apptolast.spaindecides.ComposeAppCommonTest"
 ```
 
 ---
