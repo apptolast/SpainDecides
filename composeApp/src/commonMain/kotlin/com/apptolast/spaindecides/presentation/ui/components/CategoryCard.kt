@@ -40,7 +40,7 @@ import com.apptolast.spaindecides.presentation.ui.preview.SampleData
 import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 import com.apptolast.spaindecides.presentation.util.getLocalizedDescription
 import com.apptolast.spaindecides.presentation.util.getLocalizedName
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 
 /**
  * Maps icon name strings to Material Icons.

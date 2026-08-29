@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 import spaindecides.composeapp.generated.resources.Res
 import spaindecides.composeapp.generated.resources.report_content
 
