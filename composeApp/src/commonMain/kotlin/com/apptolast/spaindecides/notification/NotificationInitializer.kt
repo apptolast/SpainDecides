@@ -1,8 +1,11 @@
 package com.apptolast.spaindecides.notification
 
 import com.apptolast.spaindecides.data.remote.Environment
-import com.mmk.kmpnotifier.notification.NotifierManager
+import com.mmk.kmpnotifier.KMPNotifier
 import com.mmk.kmpnotifier.notification.PayloadData
+import com.mmk.kmpnotifier.push.PushListener
+import com.mmk.kmpnotifier.push.firebase.addPushListener
+import com.mmk.kmpnotifier.push.firebase.firebasePushNotifier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -24,7 +27,7 @@ object NotificationInitializer {
         println("[FCM] Requesting subscription to topic: $topic")
         scope.launch {
             try {
-                NotifierManager.getPushNotifier().subscribeToTopic(topic)
+                KMPNotifier.firebasePushNotifier.subscribeToTopic(topic)
                 println("[FCM] Successfully subscribed to topic: $topic")
             } catch (e: Exception) {
                 println("[FCM] ERROR subscribing to topic '$topic': ${e.message}")
@@ -33,12 +36,12 @@ object NotificationInitializer {
     }
 
     /**
-     * Sets up a listener for incoming notifications.
+     * Sets up a listener for incoming push notifications.
      * @param onNotificationReceived Callback when a notification is received
      */
     fun setNotificationListener(onNotificationReceived: (title: String?, body: String?) -> Unit) {
         println("[FCM] Setting up notification listener")
-        NotifierManager.addListener(object : NotifierManager.Listener {
+        KMPNotifier.addPushListener(object : PushListener {
             override fun onNewToken(token: String) {
                 println("[FCM] New token received: $token")
             }
