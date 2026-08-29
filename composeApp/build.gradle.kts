@@ -208,6 +208,7 @@ android {
     // Disable Android BuildConfig generation - we use BuildKonfig instead
     buildFeatures {
         buildConfig = false
+        resValues = true // flavors define app_name via resValue
     }
 
     buildTypes {
