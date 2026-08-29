@@ -3,8 +3,9 @@ package com.apptolast.spaindecides
 import android.app.Application
 import com.apptolast.spaindecides.di.initKoin
 import com.apptolast.spaindecides.notification.NotificationInitializer
-import com.mmk.kmpnotifier.notification.NotifierManager
+import com.mmk.kmpnotifier.KMPNotifier
 import com.mmk.kmpnotifier.notification.configuration.NotificationPlatformConfiguration
+import com.mmk.kmpnotifier.push.firebase.FirebasePush
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 
@@ -22,12 +23,13 @@ class SpainDecidesApplication : Application() {
             androidContext(this@SpainDecidesApplication) // Provide Android context
         }
 
-        // Initialize KMPNotifier for push notifications
-        NotifierManager.initialize(
-            configuration = NotificationPlatformConfiguration.Android(
+        // Initialize KMPNotifier for push notifications (2.0 API with Firebase extension)
+        KMPNotifier.initialize(
+            NotificationPlatformConfiguration.Android(
                 notificationIconResId = R.drawable.ic_notification,
                 showPushNotification = true
-            )
+            ),
+            FirebasePush
         )
 
         // Subscribe to new_proposals topic to receive notifications
