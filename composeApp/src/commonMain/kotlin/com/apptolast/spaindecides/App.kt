@@ -31,7 +31,9 @@ import com.apptolast.spaindecides.presentation.ui.screens.proposals.ProposalDeta
 import com.apptolast.spaindecides.presentation.ui.screens.proposals.ProposalListScreen
 import com.apptolast.spaindecides.presentation.ui.screens.settings.SettingsScreen
 import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
+import com.apptolast.spaindecides.presentation.viewmodel.AuthState
 import com.apptolast.spaindecides.presentation.viewmodel.ProposalViewModel
+import com.apptolast.spaindecides.presentation.viewmodel.SessionViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -47,6 +49,23 @@ fun App() {
 
         // Inject CategoryRepository for deep link category lookup
         val categoryRepository: CategoryRepository = koinInject()
+
+        // Skip the auth flow when Firebase restored a session.
+        //
+        // BaseLogin's LoginScreen only navigates on an explicit successful sign-in, so without this
+        // a returning user would be asked to log in on every cold start. `launchSingleTop` keeps it
+        // harmless when it coincides with the flow's own onNavigateToHome after a real sign-in.
+        val sessionViewModel: SessionViewModel = koinViewModel()
+        val sessionState by sessionViewModel.authState.collectAsState()
+
+        LaunchedEffect(sessionState) {
+            if (sessionState is AuthState.Authenticated) {
+                navController.navigate(CategoriesRoute) {
+                    popUpTo<AuthRoutesFlow> { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+        }
 
         // Deep link handling for push notifications
         val pendingDeepLink by DeepLinkManager.pendingDeepLink.collectAsState()
