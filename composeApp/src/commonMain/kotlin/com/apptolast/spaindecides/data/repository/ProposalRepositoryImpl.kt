@@ -9,9 +9,9 @@ import com.apptolast.spaindecides.data.model.ProposalWithUserVote
 import com.apptolast.spaindecides.data.remote.N8nWebhookClient
 import com.apptolast.spaindecides.data.remote.N8nWebhookException
 import com.apptolast.spaindecides.data.remote.SupabaseClientConfig
+import com.apptolast.baselogin.domain.AuthRepository
 import com.apptolast.spaindecides.domain.repository.CreateProposalResult
 import com.apptolast.spaindecides.domain.repository.ProposalRepository
-import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.realtime.PostgresAction
@@ -37,21 +37,30 @@ import kotlin.random.Random
  * - Each Flow subscription creates a unique channel (prevents reuse conflicts)
  * - Automatically re-fetches data when proposals or votes change
  *
- * @param notificationService Service for sending push notifications
  * @param n8nWebhookClient Client for n8n webhook communication
+ * @param authRepository BaseLogin repository holding the signed-in Firebase session
  */
 class ProposalRepositoryImpl(
-    private val n8nWebhookClient: N8nWebhookClient
+    private val n8nWebhookClient: N8nWebhookClient,
+    private val authRepository: AuthRepository
 ) : ProposalRepository {
 
     private val supabase = SupabaseClientConfig.client
+
+    /**
+     * The identity rows are attributed to.
+     *
+     * Since authentication moved to Firebase, this is the Firebase UID and no longer a Supabase
+     * `auth.users` UUID. It reads the cached session, so it never blocks on a token refresh.
+     */
+    private suspend fun signedInUserId(): String? = authRepository.getCurrentSession()?.userId
 
     override fun getProposalsByCategory(categoryId: String): Flow<List<ProposalWithUserVote>> =
         callbackFlow {
             val flowScope = this
 
             suspend fun fetchProposalsWithVotes(): List<ProposalWithUserVote> {
-                val currentUserId = supabase.auth.currentUserOrNull()?.id
+                val currentUserId = signedInUserId()
 
                 val proposals = supabase
                     .from("proposals")
@@ -146,7 +155,7 @@ class ProposalRepositoryImpl(
         categoryId: String,
         forceCreation: Boolean
     ): CreateProposalResult {
-        val userId = supabase.auth.currentUserOrNull()?.id
+        val userId = signedInUserId()
             ?: return CreateProposalResult.Error("Usuario no autenticado")
 
         val request = ProposalProcessingRequest(
@@ -220,7 +229,7 @@ class ProposalRepositoryImpl(
 
     override suspend fun voteOnProposal(proposalId: String, voteType: Int): ProposalWithUserVote? {
         try {
-            val userId = supabase.auth.currentUserOrNull()?.id
+            val userId = signedInUserId()
                 ?: throw IllegalStateException("User must be authenticated to vote")
 
             when (voteType) {
@@ -261,7 +270,7 @@ class ProposalRepositoryImpl(
 
     override suspend fun getProposalById(proposalId: String): ProposalWithUserVote? {
         return try {
-            val currentUserId = supabase.auth.currentUserOrNull()?.id
+            val currentUserId = signedInUserId()
 
             val proposal = supabase
                 .from("proposals")
@@ -319,7 +328,7 @@ class ProposalRepositoryImpl(
             val flowScope = this
 
             suspend fun fetchProposalsWithVotes(): List<ProposalWithUserVote> {
-                val currentUserId = supabase.auth.currentUserOrNull()?.id
+                val currentUserId = signedInUserId()
 
                 val proposals = supabase
                     .from("proposals")

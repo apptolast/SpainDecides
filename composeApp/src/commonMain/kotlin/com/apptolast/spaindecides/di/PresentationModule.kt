@@ -1,9 +1,9 @@
 package com.apptolast.spaindecides.di
 
-import com.apptolast.spaindecides.presentation.viewmodel.AuthViewModel
 import com.apptolast.spaindecides.presentation.viewmodel.CategoryViewModel
 import com.apptolast.spaindecides.presentation.viewmodel.ProposalViewModel
 import com.apptolast.spaindecides.presentation.viewmodel.ReportViewModel
+import com.apptolast.spaindecides.presentation.viewmodel.SessionViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -13,8 +13,8 @@ import org.koin.dsl.module
  * Provides ViewModels with lifecycle management.
  */
 val presentationModule = module {
-    // ViewModels
-    viewModelOf(::AuthViewModel)
+    // ViewModels. The auth-flow ViewModels come from BaseLogin's own presentation module.
+    viewModelOf(::SessionViewModel)
     viewModelOf(::CategoryViewModel)
     viewModelOf(::ReportViewModel)
 

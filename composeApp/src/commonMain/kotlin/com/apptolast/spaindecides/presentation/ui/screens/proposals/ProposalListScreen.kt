@@ -48,7 +48,7 @@ import com.apptolast.spaindecides.presentation.ui.preview.SampleData
 import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 import com.apptolast.spaindecides.presentation.util.getLocalizedName
 import com.apptolast.spaindecides.presentation.viewmodel.AuthState
-import com.apptolast.spaindecides.presentation.viewmodel.AuthViewModel
+import com.apptolast.spaindecides.presentation.viewmodel.SessionViewModel
 import com.apptolast.spaindecides.presentation.viewmodel.ProposalViewModel
 import com.apptolast.spaindecides.presentation.viewmodel.ReportUiState
 import com.apptolast.spaindecides.presentation.viewmodel.ReportViewModel
@@ -73,7 +73,7 @@ import spaindecides.composeapp.generated.resources.report_success
  * @param categoryId ID of the category (UUID from database)
  * @param categoryKey i18n key for resolving localized name (e.g., "economy", "health")
  * @param viewModel Proposal ViewModel (injected via Koin with categoryId parameter)
- * @param authViewModel Auth ViewModel for getting current user info
+ * @param authViewModel Session ViewModel for getting current user info
  * @param reportViewModel Report ViewModel for handling content reports
  * @param onBack Callback to navigate back
  * @param onCreateProposal Callback to navigate to create proposal screen
@@ -84,7 +84,7 @@ fun ProposalListScreen(
     categoryId: String,
     categoryKey: String,
     viewModel: ProposalViewModel = koinViewModel { parametersOf(categoryId) },
-    authViewModel: AuthViewModel = koinViewModel(),
+    authViewModel: SessionViewModel = koinViewModel(),
     reportViewModel: ReportViewModel = koinViewModel(),
     onBack: () -> Unit,
     onCreateProposal: () -> Unit,

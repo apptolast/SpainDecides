@@ -1,5 +1,6 @@
 package com.apptolast.spaindecides.di
 
+import com.apptolast.baselogin.di.loginModules
 import org.koin.core.context.startKoin
 import org.koin.dsl.KoinAppDeclaration
 
@@ -12,10 +13,11 @@ fun initKoin(appDeclaration: KoinAppDeclaration? = null) {
         // Platform-specific configuration (optional)
         appDeclaration?.invoke(this)
 
-        // Order matters: authModule must be loaded before dataModule
-        // because N8nWebhookClient depends on AuthRepository
+        // Order matters: BaseLogin's modules must be loaded before dataModule, because
+        // N8nWebhookClient, ProposalRepositoryImpl and the Supabase client all resolve
+        // com.apptolast.baselogin.domain.AuthRepository from them.
+        modules(loginModules(spainDecidesLoginConfig()))
         modules(
-            createAuthModule(),
             dataModule,
             presentationModule
         )

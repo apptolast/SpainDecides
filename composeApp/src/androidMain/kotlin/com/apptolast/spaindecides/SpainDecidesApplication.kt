@@ -1,8 +1,11 @@
 package com.apptolast.spaindecides
 
 import android.app.Application
+import com.apptolast.baselogin.BaseLoginAndroid
 import com.apptolast.spaindecides.di.initKoin
 import com.apptolast.spaindecides.notification.NotificationInitializer
+import com.google.firebase.Firebase
+import com.google.firebase.initialize
 import com.mmk.kmpnotifier.notification.NotifierManager
 import com.mmk.kmpnotifier.notification.configuration.NotificationPlatformConfiguration
 import org.koin.android.ext.koin.androidContext
@@ -10,12 +13,19 @@ import org.koin.android.ext.koin.androidLogger
 
 /**
  * Application class for Android.
- * Initializes Koin dependency injection and push notifications.
+ * Initializes Firebase, BaseLogin, Koin dependency injection and push notifications.
  */
 class SpainDecidesApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        // Firebase now backs authentication as well as messaging, so it is initialized explicitly
+        // instead of relying on the google-services content provider ordering.
+        Firebase.initialize(this)
+
+        // Gives BaseLogin the application context it needs for Credential Manager.
+        BaseLoginAndroid.initialize(this)
 
         initKoin {
             androidLogger() // Enable Android logging for Koin

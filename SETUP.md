@@ -1,7 +1,14 @@
-# SpainDecides - Configuración de Autenticación con Supabase
+# SpainDecides - Configuración de credenciales
 
 Este documento explica cómo configurar las credenciales de Supabase y Google OAuth para que la
-autenticación funcione correctamente.
+aplicación funcione correctamente.
+
+> **La autenticación ya no la hace Supabase, sino Firebase Auth** a través de la librería
+> [BaseLogin](https://github.com/apptolast/BaseLogin). Supabase se queda como base de datos y
+> acepta el token de Firebase mediante Third-Party Auth. La configuración de la consola de Firebase,
+> las políticas RLS y la migración de datos están en
+> [docs/FIREBASE_SUPABASE_AUTH.md](docs/FIREBASE_SUPABASE_AUTH.md) — sin esos pasos la app compila
+> pero no lee ni escribe nada.
 
 ## Paso 1: Crear archivo local.properties
 
@@ -23,11 +30,14 @@ autenticación funcione correctamente.
 
 ## Paso 3: Obtener credencial de Google OAuth
 
-1. Ve a [Google Cloud Console](https://console.cloud.google.com)
-2. Selecciona tu proyecto
-3. Ve a **APIs & Services** → **Credentials**
-4. Busca tu **Web client** OAuth credential
-5. Copia el **Client ID** (termina en `.apps.googleusercontent.com`)
+1. Ve a la consola de [Firebase](https://console.firebase.google.com) → tu proyecto
+2. **Authentication** → **Sign-in method** → **Google** → **Web SDK configuration**
+3. Copia el **Web client ID** (termina en `.apps.googleusercontent.com`)
+4. Solo para iOS: copia también el **iOS client ID** desde
+   **Project settings** → **Your apps** → app de iOS
+
+Es el cliente OAuth del proyecto de Firebase, que no tiene por qué ser el mismo que se configuró en
+su día en Supabase.
 
 ## Paso 4: Rellenar local.properties
 
@@ -37,9 +47,15 @@ Abre el archivo `local.properties` y reemplaza los valores:
 # Supabase Configuration
 SUPABASE_URL=https://tu-proyecto.supabase.co
 SUPABASE_ANON_KEY=tu_clave_anon_aqui
-# Google OAuth Configuration
+# Google OAuth Configuration (cliente del proyecto de Firebase)
 GOOGLE_WEB_CLIENT_ID=tu_client_id.apps.googleusercontent.com
+# Solo necesario para compilar iOS con login de Google
+GOOGLE_IOS_CLIENT_ID=tu_ios_client_id.apps.googleusercontent.com
 ```
+
+También necesitas los ficheros de configuración de Firebase, que están en el `.gitignore`:
+`composeApp/google-services.json` (Android) y `iosApp/iosApp/GoogleService-Info.plist` (iOS). Sin el
+primero la compilación de Android falla en `processDevDebugGoogleServices`.
 
 ## Paso 5: Compilar el proyecto
 
@@ -57,9 +73,10 @@ aplicación.
 Si las credenciales están correctamente configuradas, la aplicación podrá:
 
 - ✅ Conectarse a Supabase
-- ✅ Registrar nuevos usuarios con email/contraseña
+- ✅ Registrar nuevos usuarios con email/contraseña (en Firebase Auth)
 - ✅ Iniciar sesión con email/contraseña
-- ✅ Iniciar sesión con Google OAuth
+- ✅ Iniciar sesión con Google
+- ✅ Recuperar contraseña (pantallas de Forgot / Reset password de BaseLogin)
 
 ## Solución de problemas
 
@@ -73,7 +90,15 @@ Si las credenciales están correctamente configuradas, la aplicación podrá:
 - Asegúrate de que el formato del `local.properties` es correcto (sin comillas en los valores)
 - Ejecuta `./gradlew clean` y luego `./gradlew build`
 
-### OAuth no funciona
+### El login de Google no funciona
 
-- Verifica que las URLs de redirección están configuradas en Supabase
-- Verifica que el Client ID de Google es el **Web client**, no el Android o iOS client
+- Verifica que el Client ID de Google es el **Web client** del proyecto de Firebase, no el de
+  Android ni el de iOS
+- Comprueba que las huellas **SHA-1 y SHA-256** del keystore están dadas de alta en la consola de
+  Firebase: sin ellas Credential Manager falla en Android
+- Comprueba que **Google** está habilitado en Firebase → Authentication → Sign-in method
+
+### Las consultas a la base de datos devuelven vacío o dan permiso denegado
+
+Falta la configuración de Third-Party Auth en Supabase o las políticas RLS siguen filtrando por
+`auth.uid()`. Ver [docs/FIREBASE_SUPABASE_AUTH.md](docs/FIREBASE_SUPABASE_AUTH.md).

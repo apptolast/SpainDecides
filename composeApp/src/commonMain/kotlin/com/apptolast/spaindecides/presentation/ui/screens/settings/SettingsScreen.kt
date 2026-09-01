@@ -13,7 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.apptolast.spaindecides.presentation.ui.components.LoadingDialog
 import com.apptolast.spaindecides.presentation.viewmodel.AuthState
-import com.apptolast.spaindecides.presentation.viewmodel.AuthViewModel
+import com.apptolast.spaindecides.presentation.viewmodel.SessionViewModel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -49,14 +49,14 @@ private enum class SettingsOperation {
  * @param onBack Callback when back button is clicked
  * @param onLogoutSuccess Callback when logout is successful (navigate to login)
  * @param modifier Optional modifier
- * @param viewModel AuthViewModel injected via Koin
+ * @param viewModel SessionViewModel injected via Koin
  */
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
     onLogoutSuccess: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: AuthViewModel = koinViewModel()
+    viewModel: SessionViewModel = koinViewModel()
 ) {
     val authState by viewModel.authState.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
