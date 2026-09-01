@@ -77,6 +77,14 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
                 return
             }
 
+            guard let requiredScheme = Self.reversedGoogleClientId(clientId),
+                  Self.bundleSupportsURLScheme(requiredScheme)
+            else {
+                NSLog("%@", "[GoogleSignIn] Missing URL scheme for iOS client ID: \(clientId)")
+                _ = completion(nil)
+                return
+            }
+
             GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientId)
 
             // The scene that is actually on screen, not whichever one comes first in the set.
@@ -112,6 +120,25 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
                 let accessToken = user.accessToken.tokenString
                 _ = completion("\(idToken)|||accessToken|||\(accessToken)")
             }
+        }
+    }
+
+    private static func reversedGoogleClientId(_ clientId: String) -> String? {
+        let suffix = ".apps.googleusercontent.com"
+        guard clientId.hasSuffix(suffix) else {
+            return nil
+        }
+        let prefix = clientId.dropLast(suffix.count)
+        return "com.googleusercontent.apps.\(prefix)"
+    }
+
+    private static func bundleSupportsURLScheme(_ scheme: String) -> Bool {
+        guard let urlTypes = Bundle.main.object(forInfoDictionaryKey: "CFBundleURLTypes") as? [[String: Any]] else {
+            return false
+        }
+        return urlTypes.contains { urlType in
+            let schemes = urlType["CFBundleURLSchemes"] as? [String]
+            return schemes?.contains(scheme) == true
         }
     }
 
@@ -179,7 +206,7 @@ struct iOSApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     
     init() {
-        KoinInitializerKt.doInitKoin()
+        KoinInitializerKt_.doInitKoin(appDeclaration: nil)
     }
 
     var body: some Scene {

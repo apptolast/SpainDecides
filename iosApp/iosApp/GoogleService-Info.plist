@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.apptolast.spaindecides.SpainDecides</string>
+	<string>com.apptolast.spaindecides.SpainDecides.dev</string>
 	<key>PROJECT_ID</key>
 	<string>spain-decides</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:1012141991014:ios:e023ab96b2108bb3dcb9a7</string>
+	<string>1:1012141991014:ios:e3a2d8dd612fc710dcb9a7</string>
 </dict>
 </plist>

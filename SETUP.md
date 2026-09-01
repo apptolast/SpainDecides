@@ -53,6 +53,12 @@ GOOGLE_WEB_CLIENT_ID=tu_client_id.apps.googleusercontent.com
 GOOGLE_IOS_CLIENT_ID=tu_ios_client_id.apps.googleusercontent.com
 ```
 
+Para iOS, configura también el reversed client ID en `iosApp/Configuration/Config.xcconfig`:
+
+```xcconfig
+GOOGLE_IOS_REVERSED_CLIENT_ID=com.googleusercontent.apps.tu_ios_client_id
+```
+
 También necesitas los ficheros de configuración de Firebase, que están en el `.gitignore`:
 `composeApp/google-services.json` (Android) y `iosApp/iosApp/GoogleService-Info.plist` (iOS). Sin el
 primero la compilación de Android falla en `processDevDebugGoogleServices`.

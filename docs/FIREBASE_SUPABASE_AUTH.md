@@ -52,6 +52,14 @@ GOOGLE_IOS_CLIENT_ID_RELEASE=<ios client id>.apps.googleusercontent.com
 configured in Supabase. They may or may not be the same client depending on how the Google Cloud
 project was set up — check before reusing the old value.
 
+For Xcode, also set the matching URL scheme in `iosApp/Configuration/Config.xcconfig`:
+
+```xcconfig
+GOOGLE_IOS_CLIENT_ID=<ios client id>.apps.googleusercontent.com
+GOOGLE_IOS_REVERSED_CLIENT_ID=com.googleusercontent.apps.<ios client id prefix>
+GOOGLE_WEB_CLIENT_ID=<web client id>.apps.googleusercontent.com
+```
+
 ---
 
 ## 2. Supabase: enable Third-Party Auth for Firebase
@@ -169,7 +177,8 @@ to the `iosApp` target:
 the iOS target will not compile.**
 
 Also add the reversed iOS client ID as a URL scheme in the target's Info settings, otherwise the
-Google flow cannot return to the app.
+Google flow cannot return to the app. `Info.plist` already reads it from
+`GOOGLE_IOS_REVERSED_CLIENT_ID`.
 
 ---
 
