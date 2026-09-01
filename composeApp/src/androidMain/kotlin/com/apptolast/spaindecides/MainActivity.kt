@@ -13,6 +13,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
+import com.apptolast.baselogin.BaseLoginAndroid
 import com.apptolast.spaindecides.navigation.DeepLink
 import com.apptolast.spaindecides.navigation.DeepLinkManager
 
@@ -31,6 +32,8 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // BaseLogin needs a foreground Activity to launch Google sign-in via Credential Manager.
+        BaseLoginAndroid.attachActivity(this)
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
@@ -43,6 +46,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             App()
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        BaseLoginAndroid.detachActivity(this)
     }
 
     private fun askNotificationPermission() {

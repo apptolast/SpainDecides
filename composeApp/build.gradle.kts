@@ -1,3 +1,11 @@
+// Compose Multiplatform 1.11 raised the `compose.*` dependency accessors to error-level
+// deprecations, and AGP 9 does the same for the `android { }` block while `android.newDsl=false`
+// is still required by `androidTarget()` (see gradle.properties). Migrating the accessors means
+// hardcoding versions the plugin resolves today — material3 ships as 1.9.0 and material-icons-
+// extended is pinned at 1.7.3, neither matching composeMultiplatform — so the script keeps using
+// them and silences the escalation instead.
+@file:Suppress("DEPRECATION", "DEPRECATION_ERROR")
+
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 import java.util.Properties
 
@@ -62,6 +70,8 @@ kotlin {
             isStatic = true
             // Export KMPNotifier for iOS
             export(libs.kmpnotifier)
+            // Export BaseLogin so Swift can install the iOS sign-in handlers
+            export(libs.baselogin)
         }
     }
 
@@ -120,10 +130,9 @@ kotlin {
             implementation(libs.ktor.client.logging)
             implementation(libs.ktor.client.websockets)
 
-            // Supabase
+            // Supabase. No auth-kt / compose-auth: identity comes from Firebase through BaseLogin,
+            // and supabase-kt forbids the Auth plugin alongside a custom accessToken.
             implementation(project.dependencies.platform(libs.supabase.bom))
-            implementation(libs.supabase.auth)
-            implementation(libs.supabase.compose.auth)
             implementation(libs.supabase.postgrest)
             implementation(libs.supabase.realtime)
 
@@ -133,6 +142,10 @@ kotlin {
 
             // Push Notifications
             api(libs.kmpnotifier)
+
+            // BaseLogin - auth screens, ViewModels and Firebase Auth backend.
+            // `api` and not `implementation` because the framework exports it to Swift.
+            api(libs.baselogin)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -269,6 +282,12 @@ buildkonfig {
             STRING,
             "GOOGLE_WEB_CLIENT_ID",
             localProperties.getPropertyWithFallback("GOOGLE_WEB_CLIENT_ID", isProductionFlavor)
+        )
+        // Only the native Google sign-in on iOS needs this one; blank elsewhere.
+        buildConfigField(
+            STRING,
+            "GOOGLE_IOS_CLIENT_ID",
+            localProperties.getPropertyWithFallback("GOOGLE_IOS_CLIENT_ID", isProductionFlavor)
         )
 
         // EmailJS Configuration (for content reporting)

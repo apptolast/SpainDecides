@@ -46,7 +46,7 @@ import com.apptolast.spaindecides.presentation.ui.components.ReportDialog
 import com.apptolast.spaindecides.presentation.ui.preview.SampleData
 import com.apptolast.spaindecides.presentation.ui.theme.SpainDecidesTheme
 import com.apptolast.spaindecides.presentation.viewmodel.AuthState
-import com.apptolast.spaindecides.presentation.viewmodel.AuthViewModel
+import com.apptolast.spaindecides.presentation.viewmodel.SessionViewModel
 import com.apptolast.spaindecides.presentation.viewmodel.ProposalViewModel
 import com.apptolast.spaindecides.presentation.viewmodel.ReportUiState
 import com.apptolast.spaindecides.presentation.viewmodel.ReportViewModel
@@ -77,7 +77,7 @@ import spaindecides.composeapp.generated.resources.report_success
  * @param categoryKey i18n key for category name
  * @param onBack Callback to navigate back
  * @param viewModel Proposal ViewModel (injected via Koin with categoryId parameter)
- * @param authViewModel Auth ViewModel for getting current user info
+ * @param authViewModel Session ViewModel for getting current user info
  * @param reportViewModel Report ViewModel for handling content reports
  */
 @Composable
@@ -86,7 +86,7 @@ fun ProposalDetailScreen(
     categoryId: String,
     categoryKey: String,
     viewModel: ProposalViewModel = koinViewModel { parametersOf(categoryId) },
-    authViewModel: AuthViewModel = koinViewModel(),
+    authViewModel: SessionViewModel = koinViewModel(),
     reportViewModel: ReportViewModel = koinViewModel(),
     onBack: () -> Unit
 ) {

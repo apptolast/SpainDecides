@@ -9,20 +9,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed interface Route
 
-/**
- * Login screen route
- * @param successMessage Optional success message to display (e.g., from registration)
- */
-@Serializable
-data class LoginRoute(
-    val successMessage: String? = null
-) : Route
-
-/**
- * Register screen route
- */
-@Serializable
-object RegisterRoute : Route
+// Login and registration are not declared here: they belong to BaseLogin's `authRoutesFlow`, whose
+// routes live in com.apptolast.baselogin.presentation.navigation.
 
 /**
  * Categories/Home screen route

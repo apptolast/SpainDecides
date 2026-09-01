@@ -2,7 +2,7 @@ package com.apptolast.spaindecides.data.remote
 
 import com.apptolast.spaindecides.data.model.ProposalProcessingRequest
 import com.apptolast.spaindecides.data.model.ProposalProcessingResponse
-import com.apptolast.spaindecides.domain.repository.AuthRepository
+import com.apptolast.baselogin.domain.AuthRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.network.sockets.ConnectTimeoutException
@@ -25,18 +25,20 @@ import io.ktor.serialization.JsonConvertException
  * new proposals, including duplicate detection via AI embeddings.
  *
  * ## Security:
- * - Uses JWT authentication via Supabase access token
+ * - Uses JWT authentication via the Firebase ID token of the signed-in user
  * - Token is sent in the Authorization: Bearer header
- * - n8n webhook must be configured with JWT Auth using Supabase JWT secret
+ * - n8n webhook must validate Firebase's token, not Supabase's
  *
  * ## n8n Webhook Configuration Requirements:
- * - **Authentication**: JWT Auth (PEM Key with ES256 algorithm and Supabase public key)
+ * - **Authentication**: JWT Auth against Google's public keys
+ *   (`https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com`),
+ *   issuer `https://securetoken.google.com/<firebase-project-id>` and audience the project id
  * - **Respond**: Must be "When Last Node Finishes" (NOT "Immediately")
  * - **Method**: POST
  * - **Content-Type**: application/json
  *
  * @param httpClient Ktor HTTP client (injected via Koin)
- * @param authRepository Repository to get the current user's JWT token
+ * @param authRepository BaseLogin repository used to get the current user's Firebase ID token
  */
 class N8nWebhookClient(
     private val httpClient: HttpClient,
@@ -56,7 +58,7 @@ class N8nWebhookClient(
      * @return ProposalProcessingResponse with status and any duplicates found
      */
     suspend fun processProposal(request: ProposalProcessingRequest): Result<ProposalProcessingResponse> {
-        val accessToken = authRepository.getAccessToken()
+        val accessToken = authRepository.getIdToken()
             ?: return Result.failure(
                 N8nWebhookException.Unauthorized("No hay sesión activa. Por favor, inicia sesión.")
             )
